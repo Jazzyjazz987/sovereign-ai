@@ -22,10 +22,12 @@ services:
     networks:
       - sovereign-ai
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      # L'image ollama/ollama n'embarque ni curl ni wget ; `ollama ps` renvoie 0 si le serveur répond.
+      test: ["CMD", "ollama", "ps"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
 
   postgres:
     image: postgres:16-alpine

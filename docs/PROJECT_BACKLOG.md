@@ -36,19 +36,16 @@ curl -s .../v1/chat/completions -d '{"model":"mistral-7b",...}'  → 200, conten
 ```
 Note: this LiteLLM build has no `/health/liveliness` (404) — use `/health` (needs auth header).
 
-## B2 — Fix Ollama container healthcheck [DONE? no]
-**Blocked-by:** none
-**Problem:** compose healthcheck runs `curl -f http://localhost:11434/api/tags`; the
-`ollama/ollama` image has no `curl`, so the container is permanently `unhealthy` even though
-the API works. Anything with `depends_on: condition: service_healthy` is affected.
-**Do:** Replace the healthcheck test with one using a binary present in the image
-(e.g. `ollama list`, or a bash `/dev/tcp` probe).
-**Verify:**
+## B2 — Fix Ollama container healthcheck [DONE 2026-09-05]
+**Problem:** healthcheck ran `curl -f http://localhost:11434/api/tags`; `ollama/ollama` has
+neither `curl` nor `wget`, so the container was permanently `unhealthy`.
+**Fix:** `docker-compose.yml` healthcheck test → `["CMD", "ollama", "ps"]` (rc 0 when the
+server responds), added `start_period: 40s`.
+**Verify (run 2026-09-05):**
 ```
-docker compose up -d ollama && sleep 30 && \
-  docker inspect --format '{{.State.Health.Status}}' sovereign-ai-ollama-1
+docker compose up -d ollama ; docker inspect --format '{{.State.Health.Status}}' sovereign-ai-ollama-1
+  → healthy (3 consecutive passing checks); litellm /health still 200; langgraph still healthy
 ```
-Must print `healthy`.
 
 ## B3 — Cascade code vs. real model names (api/main.py) [DONE? no]
 **Blocked-by:** B2
