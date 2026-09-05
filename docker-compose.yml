@@ -75,6 +75,12 @@ services:
       - "8080:8080"
     environment:
       - HF_TOKEN=${HF_TOKEN}
+      - HF_HOME=/models/hf
+      - ANONE_MODEL=${ANONE_MODEL:-urchade/gliner_multi_pii-v1}
+    volumes:
+      # Cache modèles HuggingFace persistant (GLiNER ~1,2 Go) — évite le re-téléchargement
+      # à chaque rebuild/recreate du conteneur (B14).
+      - anone_hf_cache:/models/hf
     networks:
       - sovereign-ai
 
@@ -142,6 +148,7 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  anone_hf_cache:
 
 networks:
   sovereign-ai:

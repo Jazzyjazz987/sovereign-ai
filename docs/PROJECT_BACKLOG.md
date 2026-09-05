@@ -266,16 +266,17 @@ autonomous session (Monitor on the `[T5] Approbation requise` log line → PushN
 operator replies here → session curls approve/deny). Only works while this session runs;
 60s timeout is tight over mobile. `ntfy.sh` webhook is the robust alternative.
 
-## B14 — Persist the HuggingFace model cache (anone) [DONE? no]
-**Blocked-by:** none
-**Problem:** the anone image's GLiNER download (~1.2 GB: `urchade/gliner_multi_pii-v1` +
-`microsoft/mdeberta-v3-base`) lands in the container's writable layer. `docker compose down`
-+ recreate re-downloads it every time.
-**Do:** add a named volume mounted at `/root/.cache/huggingface` (or set `HF_HOME`) on the
-`anone` service in `docker-compose.yml`. Document the offline pre-provisioning path in
-`docs/DEPLOYMENT.md` (the exact package + model list is in B13b notes).
-**Verify:** `docker compose down anone && docker compose up -d anone` → model load completes
-from cache in <15s (no network), `/health` `model_loaded: true`.
+## B13c — Anone masked the question's subject [DONE 2026-09-05]
+The T5 moderation test ("rôle de la CNIL ?") exposed it: GLiNER's `organization` label masked
+`CNIL` → `<ORG_0>`; Claude (seeing only `<ORG_0>` + the DSI system prompt) described the DSI;
+deanonymisation produced "La CNIL <DSI description>" — wrong. RGPD protects natural persons,
+not organisations. Dropped `organization` from `PII_LABELS` (now person/email/phone/NIR/
+address/iban). Verified: `CNIL`/`DSI` pass through, `Paul Atani`/email masked.
+
+## B14 — Persist the HuggingFace model cache (anone) [DONE 2026-09-05]
+`docker-compose.yml`: `anone` gets `HF_HOME=/models/hf` + named volume `anone_hf_cache`.
+`ANONE_MODEL` env passthrough added. Verified: volume holds 1.1 GB after first load; recreate
+no longer re-downloads. Offline pre-provisioning list still to add to `docs/DEPLOYMENT.md` (B7).
 
 ## B12 — Ollama CPU-mode concurrency tuning [DONE? no]
 **Blocked-by:** none

@@ -21,13 +21,16 @@ app = FastAPI()
 MODEL_NAME = os.getenv("ANONE_MODEL", "urchade/gliner_multi_pii-v1")
 
 # Jeu d'étiquettes PII figé. Clé = label GLiNER, valeur = préfixe du token de masquage.
+# RGPD = données à caractère personnel (personnes physiques). On NE masque PAS les
+# organisations / institutions publiques (CNIL, DSI, Conseil d'État...) : ce ne sont pas
+# des données personnelles, et ce sont souvent le sujet même de la question — les masquer
+# détruit le sens de la requête envoyée à T5.
 PII_LABELS = {
     "person": "PERSON",
     "email": "EMAIL",
     "phone number": "PHONE",
     "national identification number": "NIR",
     "address": "ADDRESS",
-    "organization": "ORG",
     "iban": "IBAN",
 }
 
