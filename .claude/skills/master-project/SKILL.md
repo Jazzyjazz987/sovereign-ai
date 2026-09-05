@@ -33,7 +33,9 @@ If these files disagree with each other, trust git + a live check of the system,
    subagent's transcript. If it does not pass, either iterate once more or move the task to
    `Blocked` with a note. No partial credit in the backlog.
 5. **Checkpoint.** Only if verification passed or the state meaningfully advanced:
-   - `git add -A && git commit` with a structured message (template below). Local commits only.
+   - `git add -A && git commit` with a structured message (template below), then
+     `git push origin master` (operator wants GitHub kept current — priority 7). If the push
+     fails, record it in `AUTONOMOUS_STATE.md` and keep going; local commits are the source of truth.
    - Update `PROJECT_BACKLOG.md` (check the box, add the result line + date).
    - Rewrite `AUTONOMOUS_STATE.md` to reflect the new position.
    - Append to `docs/DECISIONS_NEEDED.md` if the iteration surfaced a question for Jazzy.
@@ -50,10 +52,14 @@ cycle (~roughly 40–80k tokens). If not, or if a `<system-reminder>` warns the 
 
 1. Do **not** start new work. Commit anything already staged.
 2. Ensure `git status` is clean — never leave uncommitted changes at end of session.
-3. Write `AUTONOMOUS_STATE.md` with a "RESUME HERE" section: exact next task + next command.
-4. `ScheduleWakeup` with `delaySeconds: 3600` (max) and the standard `/loop` prompt, so the
+3. Write a full handoff to `docs/RESUME_AUTONOMOUS.md` (operator-specified path): everything
+   completed this session, current system state, the exact next task + first commands, and any
+   open DECISIONS_NEEDED items. Also refresh the short `AUTONOMOUS_STATE.md` "RESUME HERE".
+4. `git add -A && git commit -m "checkpoint: autonomous resume plan — <next task>"` then
+   `git push origin master`.
+5. `ScheduleWakeup` with `delaySeconds: 3600` (max) and the standard `/loop` prompt, so the
    loop resumes after the budget recharges.
-5. `PushNotification` one line: what landed this session + what resumes next.
+6. `PushNotification` one line: what landed this session + what resumes next.
 
 ## Wind down (nothing to do)
 

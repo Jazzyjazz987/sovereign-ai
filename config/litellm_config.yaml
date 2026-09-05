@@ -1,30 +1,43 @@
+# LiteLLM — gateway unifié OpenAI-compatible pour la cascade T1→T5
+# Port 4000. Ne référence que des backends réellement joignables sur cet hôte (CPU-only).
+# Les tiers vLLM T3/T4 sont désactivés tant qu'il n'y a pas d'hôte GPU (voir docs/DECISIONS_NEEDED.md D1).
+
 model_list:
+  # --- T1 : réponse rapide / reformulation ---
   - model_name: "mistral-7b"
     litellm_params:
-      model: "ollama/mistral:7b-instruct-q4_k_m"
+      model: "ollama/mistral:7b"
       api_base: "http://ollama:11434"
-  
+
+  # --- T2 : analyse / synthèse ---
+  # Spec CLAUDE.md = Llama 3.3 8B ; non téléchargé sur cet hôte. Repli intérimaire : llama2:7b (voir D2).
   - model_name: "llama-3.3-8b"
     litellm_params:
-      model: "ollama/llama2:8b"
+      model: "ollama/llama2:7b"
       api_base: "http://ollama:11434"
-  
-  - model_name: "qwen-14b"
-    litellm_params:
-      model: "vllm/Qwen/Qwen2-14B-Instruct-AWQ"
-      api_base: "http://vllm-t3:8001"
-  
-  - model_name: "mistral-small-22b"
-    litellm_params:
-      model: "vllm/mistralai/Mistral-Small-Instruct-2501-AWQ"
-      api_base: "http://vllm-t4:8002"
-  
+
+  # --- T3 : code / PowerShell / Graph API (INACTIF — nécessite vLLM + GPU, D1) ---
+  # - model_name: "qwen-14b"
+  #   litellm_params:
+  #     model: "openai/Qwen/Qwen3-14B-AWQ"
+  #     api_base: "http://vllm-t3:8001/v1"
+  #     api_key: "os.environ/VLLM_API_KEY"
+
+  # --- T4 : légal / RGPD / administratif (INACTIF — nécessite vLLM + GPU, D1) ---
+  # - model_name: "mistral-small-22b"
+  #   litellm_params:
+  #     model: "openai/mistralai/Mistral-Small-Instruct-2501-AWQ"
+  #     api_base: "http://vllm-t4:8002/v1"
+  #     api_key: "os.environ/VLLM_API_KEY"
+
+  # --- T5 : cloud conditionnel via API Anthropic (anonymisation Agent Anone OBLIGATOIRE en amont) ---
   - model_name: "claude-sonnet"
     litellm_params:
-      model: "claude-3-5-sonnet-20241022"
+      model: "claude-sonnet-5"
+      api_key: "os.environ/ANTHROPIC_API_KEY"
 
-router_settings:
-  - model_name: "gpt-3.5-turbo"
-    model_list:
-      - "mistral-7b"
-      - "llama-3.3-8b"
+litellm_settings:
+  drop_params: true
+
+general_settings:
+  master_key: "os.environ/LITELLM_MASTER_KEY"

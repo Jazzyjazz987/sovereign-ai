@@ -32,19 +32,19 @@ in the spec at all. Llama 3.3, Qwen, Mistral Small are not pulled; T3/T4 need vL
 actually exist and fall back gracefully.
 
 ## D3 — Production deployment
-**Status:** not started — needs target + policy decisions
-`docs/DEPLOYMENT.md` exists but production needs: deployment host/orchestrator, TLS/mTLS
-between services, PostgreSQL backup strategy + retention, secret management (currently plain
-`.env`), and a CNIL/RGPD sign-off on the T5 cloud path.
-**Needed from you:** deployment target and whether secrets move to a vault.
+**Status:** partially unblocked 2026-09-05 — operator set priorities (backups 6, TLS 6, monitoring)
+The loop will now do the infra scaffolding it can locally: B10 (pg_dump backups), B11
+(nginx TLS reverse proxy behind a compose profile), B6 (real /metrics). Still needs a human
+call on: the actual deployment host/orchestrator, moving `.env` secrets to a vault, and a
+CNIL/RGPD sign-off on the T5 cloud path before production traffic.
+**Needed from you:** deployment target, vault yes/no, RGPD sign-off owner.
 
 ## D4 — Git credential hygiene
-**Status:** flagged — not fixed (would break your push flow)
-The `origin` remote URL in `.git/config` embeds a GitHub Personal Access Token in cleartext
-(`https://ghp_...@github.com/...`). Anyone with read access to the working tree can read it.
-**Recommendation:** rotate that token, then set the remote to a plain URL and use a credential
-helper or SSH. The loop has not touched this and does not push.
-**Needed from you:** confirm you want this changed and the loop can rewrite the remote URL.
+**Status:** operator wants GitHub kept updated (priority 7) → the loop now DOES push to the
+existing `origin`. The remote URL still embeds a GitHub PAT in cleartext in `.git/config`.
+**Recommendation:** rotate that token and move to SSH or a credential helper. The loop will not
+rewrite the remote URL on its own — say the word and it will.
+**Needed from you:** rotate the token; confirm if the loop should switch the remote to SSH.
 
 ---
 

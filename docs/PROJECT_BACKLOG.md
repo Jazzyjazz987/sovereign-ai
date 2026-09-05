@@ -14,22 +14,27 @@ what is actually working (see B8).
 
 ---
 
-## B1 — Fix LiteLLM gateway (port 4000) [DONE? no]
+## B1 — Fix LiteLLM gateway (port 4000) [DONE 2026-09-05]
 **Blocked-by:** none
-**Problem:** `config/litellm_config.yaml` is invalid — `router_settings` is a YAML list (must
-be a mapping); model entries point at tags that do not exist (`ollama/mistral:7b-instruct-q4_k_m`,
-`ollama/llama2:8b`); `claude-sonnet` uses a stale model id; vLLM T3/T4 backends are not running.
-Container exits with code 3 and falls back to LiteLLM's azure example config.
-**Do:** Rewrite the config to reference only reachable backends (ollama tags that exist + the
-Claude model). Keep tier names aligned to CLAUDE.md. Mark vLLM entries with a comment that they
-are inactive until a GPU host exists — do not delete the tier concept.
-**Verify:**
+**Problem:** two bugs. (1) The image ENTRYPOINT is shell-form
+(`litellm --config /app/proxy_server_config.yaml --port 4000`) so the compose `command:` was
+silently ignored and it loaded LiteLLM's bundled Azure example config → exit 3.
+(2) `config/litellm_config.yaml` was invalid — `router_settings` was a list, model tags did not
+exist, stale Claude id.
+**Fix:**
+- `docker-compose.yml`: replaced `command:` with `entrypoint:` pointing at our config; passed
+  `ANTHROPIC_API_KEY` + `VLLM_API_KEY` into the container env.
+- `config/litellm_config.yaml`: rewritten — T1 `ollama/mistral:7b`, T2 `ollama/llama2:7b`
+  (interim, D2), T5 `claude-sonnet-5` with `api_key: os.environ/ANTHROPIC_API_KEY`. vLLM T3/T4
+  left as commented tiers (D1). `general_settings.master_key` wired.
+**Verify (run 2026-09-05):**
 ```
-docker compose up -d litellm && sleep 20 && \
-  curl -sf http://localhost:4000/health && echo && \
-  curl -sf http://localhost:4000/v1/models
+docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' sovereign-ai-litellm-1  → running 0
+curl -s -o/dev/null -w '%{http_code}' -H "Authorization: Bearer $LITELLM_MASTER_KEY" http://localhost:4000/health  → 200
+curl -s .../v1/models  → lists mistral-7b, llama-3.3-8b, claude-sonnet
+curl -s .../v1/chat/completions -d '{"model":"mistral-7b",...}'  → 200, content " Paris"
 ```
-Both must return 200 with JSON; `/v1/models` lists the configured models.
+Note: this LiteLLM build has no `/health/liveliness` (404) — use `/health` (needs auth header).
 
 ## B2 — Fix Ollama container healthcheck [DONE? no]
 **Blocked-by:** none
@@ -127,10 +132,45 @@ comm -23 <(grep -oE '\$\{[A-Z_]+' docker-compose.yml | tr -d '${' | sort -u) \
 ```
 Output empty (every compose var has an example entry).
 
+## B9 — GPU driver + GPU mode (operator priority 4) [DONE? no]
+**Blocked-by:** none (operator authorised driver install 2026-09-05; sudo may still be unavailable to the loop)
+**Problem:** `nvidia-smi` fails. DKMS shows `nvidia/580.159.03` built for kernel 6.17.0-35.
+Unknown whether a physical GPU is attached. Secure Boot reported disabled (PHASE_2_RESULTS).
+**Do (in order, stop at the first blocker and record it):**
+1. `lspci | grep -i nvidia` — is there a GPU device at all? If none → this is a VM without GPU
+   passthrough; record in DECISIONS_NEEDED D1 and STOP (nothing else here is possible).
+2. If a device exists: `modprobe nvidia` / check `dmesg | grep -i nvidia`. Try
+   `nvidia-modprobe` before assuming a reinstall is needed.
+3. If the module truly needs a rebuild and `sudo` works non-interactively:
+   `sudo dkms autoinstall` then re-test `nvidia-smi`. Do NOT reboot.
+4. If `sudo` prompts / a reboot is required → record exact commands for the operator in
+   DECISIONS_NEEDED D1 and STOP.
+5. On `nvidia-smi` success: `./scripts/switch_mode.sh gpu`, then re-run the B3 cascade verify.
+**Verify:** `nvidia-smi` returns 0 AND `docker compose exec ollama nvidia-smi` works from the container.
+
+## B10 — PostgreSQL automated backups (operator priority 6) [DONE? no]
+**Blocked-by:** none
+**Do:** Add a `pg_dump`-based backup: a script `scripts/pg_backup.sh` writing timestamped
+gzip dumps to `data/backups/`, keeping the last 7; wire it into `scripts/health_monitor_loop.sh`
+(or a documented cron line). Minimal — no external backup service.
+**Verify:** `bash scripts/pg_backup.sh && ls -1 data/backups/*.sql.gz | tail -1` shows a fresh dump;
+`gunzip -t` on it passes.
+
+## B11 — TLS / reverse proxy in front of the stack (operator priority 6) [DONE? no]
+**Blocked-by:** B1, B3, B4
+**Do:** Add an nginx (or caddy) reverse-proxy compose service terminating TLS with a
+self-signed cert (documented swap for a real cert), routing `/` → langgraph:8888,
+`/gateway` → litellm:4000, `/grafana` → grafana:3000. Keep internal ports unpublished where
+possible. This is infra scaffolding — do not break the current plain-HTTP dev flow; put it
+behind a compose profile (`--profile tls`).
+**Verify:** `docker compose --profile tls up -d proxy && curl -sk https://localhost/health`
+returns langgraph health JSON.
+
 ---
 
 ## Parked — needs operator decision (see docs/DECISIONS_NEEDED.md)
-- GPU driver 570 install + vLLM T3/T4 bring-up (sudo, reboot, GPU hardware)
-- Model cascade reconciliation: dolphin-mixtral vs CLAUDE.md frozen spec; pull llama3.3:8b / qwen / mistral-small
-- Production deployment target (TLS, PostgreSQL backups, infra host)
-- git remote embeds a GitHub PAT in the URL — credential hygiene
+- **D1** — confirm whether this host has a real GPU (blocks B9 steps 2+ and vLLM T3/T4)
+- **D2** — model cascade: dolphin-mixtral / llama2 vs CLAUDE.md frozen spec; whether to pull
+  `llama3.3:8b` (CPU-friendly) now
+- **D4** — git remote embeds a GitHub PAT in cleartext. Operator wants GitHub kept updated
+  (priority 7) so the loop DOES push via the existing remote, but the token should be rotated.

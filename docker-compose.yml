@@ -52,9 +52,13 @@ services:
       - "4000:4000"
     environment:
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - VLLM_API_KEY=${VLLM_API_KEY}
     volumes:
       - ./config/litellm_config.yaml:/app/litellm_config.yaml
-    command: ["litellm", "--config", "/app/litellm_config.yaml", "--port", "4000"]
+    # L'ENTRYPOINT de l'image est en forme shell (litellm --config /app/proxy_server_config.yaml)
+    # et ignore `command:`. On surcharge l'entrypoint pour charger notre config.
+    entrypoint: ["litellm", "--config", "/app/litellm_config.yaml", "--port", "4000"]
     networks:
       - sovereign-ai
     depends_on:
