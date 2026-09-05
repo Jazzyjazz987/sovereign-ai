@@ -111,8 +111,104 @@ measurable in production.
 
 ---
 
+### Round 02 — orchestrator-auth-identity · eval-and-prompt-governance · cloud-legal-basis · capacity-model-and-latency · data-lifecycle-dpia · client-ux-and-continuity
+23 proposals, all 23 survived. **Highest-leverage:** *unpublish the data-plane ports + one
+identity-terminating proxy*. A 4-line `docker-compose.yml` edit removes host mappings for
+`:8888` (auth-free FastAPI that calls the cloud), `:4000` (exposes `LITELLM_MASTER_KEY`),
+`:11434` (raw Ollama), `:5432` (Postgres). Then one `oauth2-proxy` container + one Entra app
+registration + a ~30-line JWT dependency in `main.py`. Unblocks ~half the roadmap (Round 1
+named "no auth on :8888" as the blocker for all ACL/quota/RAG-ACL/cache work).
+
+**Top 6 to adopt:**
+1. **Identity-terminating proxy + unpublish data-plane ports + bounded no-identity lane** —
+   `oauth2-proxy` (Entra OIDC, self-hosted since M365 F3 has no App Proxy / Conditional Access /
+   P1) injecting a proxy-signed JWT (oid, roles, tenant). **Must ship bundled** with a no-identity
+   lane (unauth-passthrough through the same proxy, clamped to T2, cannot reach T5/RAG/cache-write,
+   one global rate bucket) so a satellite/Entra outage degrades to local Q&A instead of total
+   outage. Use Entra **app roles**, not raw group claims (group-overage cap). Define a
+   client-credentials path for service-to-service + RAG `/ingest`.
+2. **Curated canonical answer base** for the recurring core — the single largest capacity multiplier;
+   50-60% of helpdesk load is ~30-50 clusters (reset MDP, VPN satellite, MFA, F3 licences, congés).
+   Human-reviewed answers served at ~10ms with zero inference, and they keep answering when
+   inference is down. Needs the pgvector/embeddings layer first, a named editorial owner (~0.3 FTE),
+   fail-toward-live-cascade below a confidence threshold, review-by dates, one-click unpublish.
+3. **DPIA-as-code** — one checked-in `api/legal/data_manifest.yaml` enumerating every store that can
+   hold nominative/pseudonymised data (lawful basis, purpose, location, reversible?, TTL, erasure
+   procedure) = simultaneously the CNIL Art. 30 register, a nightly reaper's config, and a CI gate
+   (no new store without a manifest entry). **LiteLLM runs metadata-only** (`turn_off_message_logging`)
+   — removes an entire pseudonymised-PII store for a one-liner. Scripted erasure drill (seed a
+   canary subject across all stores → fire erasure → assert zero residual) monthly.
+4. **Extract every behaviour-defining prompt into a versioned fingerprinted prompt pack** —
+   code-confirmed: `query_ollama` sends the user prompt **raw with no system field**, so T1-T4
+   answer with zero French enforcement, no "réponse indicative non juridique" framing, no Article-9
+   refusal, no defence against "ignore les consignes". "The legal model" is literally "whatever
+   dolphin-mixtral does raw". `config/prompts.yaml` per-tier (version, owner, body), fail-fast load,
+   fingerprint stamped into `/query` response. T1/T2 get disclaimer prompts (they're the T5/T4
+   failure sink). Lands now, no dependency on the corpus.
+5. **`cloud_authorization.yaml` + `api/legal/` + fail-closed startup gate** — `route_t5_with_anonymization`
+   calls the Anthropic API with **no recorded transfer basis**. A machine-readable signed+expiring
+   YAML `{t5_enabled, legal_basis: SCC+TIA|none, dpia_ref, tia_ref, signed_by, review_due}` that
+   `main.py` reads at startup, hard-failing T5 closed to local if basis is `none` or review is
+   overdue. Ship **only Regime B (SCCs + TIA)** as operative — because `main.py` keeps the
+   `pii_mapping` key, the transfer stays in GDPR Chapter V scope regardless of what Anthropic can do
+   (EDPB Jan-2025 pseudonymisation guidance). Route T5 through LiteLLM so the key + spend log live
+   in one place, message logging OFF.
+6. **Honest two-lane capacity model** — bounded synchronous product (cache/RAG hits + a hard-capped
+   ~40-token T1 reformulation) vs asynchronous "réponse différée" product (all T2-T5, answered by
+   notification). `OLLAMA_NUM_PARALLEL=1` (currently 2 — on CPU, two concurrent generations just
+   make both miss their deadline). Serialized queue → latency becomes deterministic
+   (`wait = queue_depth × mean_answer_time`) = one Grafana gauge. **Reject the EWMA closed-loop
+   governor** (a stateful control loop a 2-3 person team can't debug at 2am). Publish the SLA as
+   "heures ouvrées, best effort" with **no number** until drain capacity is measured.
+
+**Cross-cutting R2 findings:**
+- `LITELLM_MASTER_KEY` on `:4000`, Postgres on `:5432`, Ollama on `:11434` — all host-published, no
+  ingress control.
+- The `pii_mapping` key retention (DSI holds the re-identification key) means **a T5 call is always
+  a GDPR Article 46 transfer** — a code switch labelled "effectivement anonyme" would encode a legal
+  bet a regulator is likely to reject.
+- **`dolphin-mixtral` and `neural-chat` are uncensored community fine-tunes** being used as the code
+  and legal tiers with no stated vetting.
+- Anone at write-time should apply **only** to artifacts that can feed T5 / cross the perimeter — not
+  every local queue job (GLiNER-at-0.5 mangles text, competes for CPU, adds a 503-prone SPOF to work
+  that never leaves the building).
+- Cache key must be `sha256(sensitivity_tier || normalized_query)` with 3-4 coarse sensitivity tiers
+  — **not** caller identity (per-user group sets → near-zero cross-user hit rate).
+- Teams as a transport puts every query in M365 Purview/eDiscovery scope → primary client must be an
+  Entra-auth PWA served from the box; Teams only for the approver-side T5 gate (anonymised payload).
+
+---
+
 ## Open design questions for the operator
-_(accumulated across rounds — round 1)_
+_(accumulated across rounds)_
+
+### From round 2
+11. **Is cloud T5 actually required by the directions métier**, or is "T4 is the ceiling, fully
+    local" acceptable? This one decision determines whether the whole cloud-legal workstream (DPIA,
+    TIA, SCCs, EU-hosting) is needed now or shelved.
+12. **Named DPO / RGPD sign-off owner** — do they have real bandwidth for DPIA ownership + a
+    quarterly human review of legal-category answers? If the role is fiction, the `api/legal/`
+    artifacts and human-review tiers are fiction.
+13. **Comité social (works council)** consulted + DPIA filed for the new processing purposes over
+    5500 civil servants: per-identity usage metering/quota, query-log mining for the FAQ base, the
+    operational query-text store? Cannot go live without it.
+14. **Async "answer delivered later by notification" as the PRIMARY UX** — acceptable, or must it
+    stay an exception?
+15. **Sign-off on the frozen-cascade amendments** already implied: auto-cascade capped at T4, T5 =
+    deliberate escalation-only, CLAUDE.md table corrected to match `api/main.py` reality (+ phantom
+    Llama 3.3 fixed). Needs explicit written approval.
+16. **Budget / procurement appetite** — money + marché public willingness for EU-hosted Claude
+    (Bedrock/Vertex EU) and/or interim sovereign CPU worker VMs (OVH / Scaleway / Outscale — **not**
+    AWS/Azure/GCP for personal data)? Or strictly single-box, no external compute?
+17. **Retention period** for the operational query store + deferred queue (24-48h proposed) — and is
+    losing multi-day conversation memory acceptable as a product decision?
+18. **Funded named owners** for the canonical answer base (~0.3 FTE editorial) and the prompt pack /
+    `GOVERNANCE.md`?
+19. **Are `dolphin-mixtral` and `neural-chat` (uncensored community fine-tunes) acceptable** as the
+    deployed code and legal tiers, or must the cascade move to the vetted CLAUDE.md models before
+    go-live?
+
+### From round 1
 
 1. **Amend the frozen cascade?** Sign off on: (a) T5 no longer auto-reachable; (b) collapse T1+T2
    into one entry model; (c) "small / medium / cloud" framing; (d) juridique/RGPD advice on Qwen 14B
