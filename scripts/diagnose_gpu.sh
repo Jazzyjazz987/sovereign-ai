@@ -1,0 +1,66 @@
+#!/bin/bash
+# scripts/diagnose_gpu.sh
+# GPU diagnostic script - outputs report to docs/GPU_RECOVERY_LOG.md
+set -e
+
+LOG_FILE="docs/GPU_RECOVERY_LOG.md"
+mkdir -p docs
+
+{
+echo "# GPU Diagnostic Report"
+echo ""
+echo "**Timestamp:** $(date)"
+echo ""
+echo "## 1. GPU Hardware Detection"
+echo "\`\`\`"
+lspci | grep -i nvidia 2>/dev/null || echo "No NVIDIA GPU detected via lspci"
+echo "\`\`\`"
+echo ""
+echo "## 2. NVIDIA Driver Packages"
+echo "\`\`\`"
+dpkg -l 2>/dev/null | grep nvidia-driver || echo "No nvidia-driver packages installed"
+echo "\`\`\`"
+echo ""
+echo "## 3. Kernel Modules (nvidia)"
+echo "\`\`\`"
+lsmod 2>/dev/null | grep nvidia || echo "nvidia module not loaded"
+echo "\`\`\`"
+echo ""
+echo "## 4. nvidia-smi Status"
+echo "\`\`\`"
+nvidia-smi 2>&1 || echo "nvidia-smi failed or not installed"
+echo "\`\`\`"
+echo ""
+echo "## 5. DKMS Status (nvidia)"
+echo "\`\`\`"
+dkms status 2>/dev/null | grep nvidia || echo "No DKMS status for nvidia (dkms may not be installed)"
+echo "\`\`\`"
+echo ""
+echo "## 6. Secure Boot Status"
+echo "\`\`\`"
+mokutil --sb-state 2>&1 || echo "mokutil not available"
+echo "\`\`\`"
+echo ""
+echo "## 7. Container Runtime GPU Support"
+echo "\`\`\`"
+docker info 2>/dev/null | grep -i nvidia || echo "No NVIDIA runtime in Docker info"
+echo "\`\`\`"
+echo ""
+echo "## Recovery Status"
+echo ""
+if nvidia-smi &>/dev/null; then
+    echo "**STATUS: GPU OPERATIONAL** - nvidia-smi reports GPU(s) available"
+else
+    echo "**STATUS: GPU UNAVAILABLE** - Running in CPU-only mode"
+    echo ""
+    echo "### Recommended Recovery Steps"
+    echo "1. Check kernel module: \`sudo modprobe nvidia\`"
+    echo "2. Rebuild DKMS: \`sudo dkms autoinstall\`"
+    echo "3. Verify Secure Boot is disabled (prevents unsigned module loading)"
+    echo "4. If no GPU hardware: continue with CPU-only mode (OLLAMA_CPU_ONLY=1)"
+fi
+} > "$LOG_FILE"
+
+echo "=== GPU Diagnostic Complete ==="
+echo "Report written to: $LOG_FILE"
+cat "$LOG_FILE"

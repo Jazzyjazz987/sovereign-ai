@@ -11,7 +11,16 @@ services:
     environment:
       - OLLAMA_NUM_PARALLEL=2
       - OLLAMA_MAX_LOADED_MODELS=2
-      - OLLAMA_CPU_ONLY=1
+      # GPU mode: remove OLLAMA_CPU_ONLY and uncomment deploy section below
+      - OLLAMA_CPU_ONLY=${OLLAMA_CPU_ONLY:-1}
+    # GPU support (uncomment when nvidia-container-toolkit is installed):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
     networks:
       - sovereign-ai
     healthcheck:
@@ -94,6 +103,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus_alerts.yml:/etc/prometheus/alerts.yml
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
