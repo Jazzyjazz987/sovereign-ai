@@ -62,6 +62,49 @@ curl -X POST http://localhost:8080/anonymize \
 - **PostgreSQL** : State persistence + LiteLLM logs
 - **Prometheus** (9090) + **Grafana** (3000) : Observabilité
 
+## Autonomous Continuation
+
+This project is designed for autonomous execution via subagents.
+
+### Current Status (Phase 1-2 Complete)
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | GPU diagnostics, DKMS module helper, Docker GPU checks | ✅ Complete |
+| Phase 2 | T5 cloud integration (Anthropic Claude), PII anonymization | ✅ Complete |
+| Phase 3 | Grafana dashboards, Prometheus alert rules | ✅ Complete |
+| Phase 4 | Autonomous health monitoring, resume plan | ✅ Complete |
+
+### GPU Status
+
+No NVIDIA GPU detected in current environment. Ollama runs in CPU-only mode (`OLLAMA_CPU_ONLY=1`).
+GPU support is configured in `docker-compose.yml` (commented, ready to enable when hardware available).
+See `docs/GPU_RECOVERY_LOG.md` for diagnostic details.
+
+### Resuming Work
+
+```bash
+./scripts/resume_phase2.sh  # Pick up from Phase 2 validation
+```
+
+### Health Monitoring (Always On)
+
+```bash
+nohup ./scripts/health_monitor_loop.sh > logs/monitor.out 2>&1 &
+grep "✗" logs/health_monitor_*.log  # Find failures
+```
+
+### T5 Cloud Cascade
+
+Complex queries (complexity > 4.5) route to Claude Sonnet via Anthropic API with PII anonymization:
+
+```bash
+# Force T5 route
+curl -X POST http://localhost:8888/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Jean Dupont demande des clarifications légales sur la CNIL","model":"t5"}'
+```
+
 ## Development
 
 Voir `/opt/claude/CLAUDE.md` pour les workflows de développement local.
