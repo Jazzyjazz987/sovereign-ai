@@ -91,6 +91,12 @@ services:
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
       - LITELLM_API_KEY=${LITELLM_MASTER_KEY}
       - OLLAMA_URL=http://ollama:11434
+      - T5_MODEL=${T5_MODEL:-claude-sonnet-5}
+      - T5_MAX_TOKENS=${T5_MAX_TOKENS:-700}
+      - T5_MAX_CALLS=${T5_MAX_CALLS:-150}
+      - T5_MODERATION=${T5_MODERATION:-off}
+      - T5_APPROVAL_TIMEOUT=${T5_APPROVAL_TIMEOUT:-60}
+      - T5_NOTIFY_WEBHOOK=${T5_NOTIFY_WEBHOOK:-}
     depends_on:
       postgres:
         condition: service_started

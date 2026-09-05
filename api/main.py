@@ -3,9 +3,10 @@ LangGraph Orchestrateur Cascade T1→T5
 Port 8888 - API + Web UI
 """
 import os
+import time
 import httpx
 import asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
@@ -25,6 +26,75 @@ T5_MODEL = os.getenv("T5_MODEL", "claude-sonnet-5")
 T5_MAX_TOKENS = int(os.getenv("T5_MAX_TOKENS", "700"))
 T5_MAX_CALLS = int(os.getenv("T5_MAX_CALLS", "150"))  # plafond d'appels cloud par process
 _t5_calls = 0
+
+# --- Modération humaine des appels T5 -------------------------------------------------
+# Si activée, chaque appel T5 est mis en attente : une notification part (webhook), et
+# l'appel n'est fait que s'il est approuvé via POST /t5/{id}/approve. Sans réponse dans
+# T5_APPROVAL_TIMEOUT secondes → repli local T4.
+T5_MODERATION = os.getenv("T5_MODERATION", "off").lower() in ("1", "true", "on", "yes")
+T5_APPROVAL_TIMEOUT = float(os.getenv("T5_APPROVAL_TIMEOUT", "60"))
+T5_NOTIFY_WEBHOOK = os.getenv("T5_NOTIFY_WEBHOOK", "").strip()
+
+# Tarifs API Anthropic — USD par million de tokens (entrée, sortie). Source : skill claude-api.
+T5_PRICES = {
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-haiku-4-5": (1.0, 5.0),
+    "claude-opus-5": (5.0, 25.0),
+}
+
+
+def _estimate_cost(text: str, model: str) -> dict:
+    """Estimation grossière : ~4 caractères/token en entrée, T5_MAX_TOKENS en sortie."""
+    in_tok = len(text) // 4 + 40  # +40 pour le prompt système
+    out_tok = T5_MAX_TOKENS
+    p_in, p_out = T5_PRICES.get(model, T5_PRICES["claude-sonnet-5"])
+    usd = in_tok / 1e6 * p_in + out_tok / 1e6 * p_out
+    return {"model": model, "input_tokens_est": in_tok, "output_tokens_max": out_tok,
+            "cost_usd_est": round(usd, 4)}
+
+
+# File d'attente d'approbation T5 : {id: {id, anonymized, estimate, created, future}}
+_t5_pending: dict = {}
+_t5_seq = 0
+
+
+async def _notify_t5(rid: str, estimate: dict) -> None:
+    """Notifie une demande d'approbation T5 (log + webhook best-effort)."""
+    msg = (f"[T5] Approbation requise {rid} — modèle {estimate['model']}, "
+           f"~{estimate['input_tokens_est']} tok in / {estimate['output_tokens_max']} max out, "
+           f"coût estimé ~{estimate['cost_usd_est']} USD. Repli T4 dans "
+           f"{int(T5_APPROVAL_TIMEOUT)}s sans réponse.")
+    print(msg, flush=True)
+    if not T5_NOTIFY_WEBHOOK:
+        return
+    payload = {"type": "t5_approval_request", "request_id": rid,
+               "timeout_s": T5_APPROVAL_TIMEOUT,
+               "approve_path": f"/t5/{rid}/approve", "deny_path": f"/t5/{rid}/deny",
+               **estimate}
+    try:
+        await asyncio.to_thread(requests.post, T5_NOTIFY_WEBHOOK, json=payload, timeout=5)
+    except Exception as e:  # noqa: BLE001 — la notif ne doit jamais casser la requête
+        print(f"[T5] webhook notif KO: {e}", flush=True)
+
+
+async def _await_t5_approval(anonymized_query: str) -> tuple[bool, dict]:
+    """Crée une demande d'approbation, notifie, attend la décision ou le timeout."""
+    global _t5_seq
+    _t5_seq += 1
+    rid = f"t5-{_t5_seq}"
+    estimate = _estimate_cost(anonymized_query, T5_MODEL)
+    fut: asyncio.Future = asyncio.get_running_loop().create_future()
+    _t5_pending[rid] = {"id": rid, "anonymized": anonymized_query, "estimate": estimate,
+                        "created": time.time(), "future": fut}
+    await _notify_t5(rid, estimate)
+    try:
+        approved = await asyncio.wait_for(fut, timeout=T5_APPROVAL_TIMEOUT)
+        reason = "approuvé" if approved else "refusé"
+    except asyncio.TimeoutError:
+        approved, reason = False, f"pas d'approbation en {int(T5_APPROVAL_TIMEOUT)}s"
+    finally:
+        _t5_pending.pop(rid, None)
+    return approved, {"request_id": rid, "reason": reason, "estimate": estimate}
 
 # Pydantic models
 class QueryRequest(BaseModel):
@@ -203,6 +273,13 @@ async def route_t5_with_anonymization(query: str) -> dict:
     anonymized_query = anon_data["anonymized_text"]
     pii_mapping = anon_data.get("pii_mapping", {})
 
+    # Step 1b: modération humaine optionnelle (T5_MODERATION=on)
+    if T5_MODERATION:
+        approved, info = await _await_t5_approval(anonymized_query)
+        if not approved:
+            return await _fallback_local(
+                query, f"T5 {info['reason']} (est. {info['estimate']['cost_usd_est']} USD)")
+
     # Step 2: Call T5 (Claude) via Anthropic API
     try:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -286,8 +363,42 @@ async def health():
         "version": "2.0",
         "cascade": "T1→T2→T3→T4→T5",
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
-               "max_tokens": T5_MAX_TOKENS}
+               "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
+               "pending": len(_t5_pending)}
     }
+
+
+# --- Modération T5 : file d'attente + décisions -------------------------------------
+@app.get("/t5/pending")
+async def t5_pending():
+    """Demandes T5 en attente d'approbation humaine."""
+    return {"pending": [
+        {"id": p["id"], "estimate": p["estimate"],
+         "waiting_s": round(time.time() - p["created"], 1),
+         "anonymized_preview": p["anonymized"][:200]}
+        for p in _t5_pending.values()
+    ]}
+
+
+def _resolve_t5(rid: str, approved: bool) -> dict:
+    p = _t5_pending.get(rid)
+    if p is None:
+        raise HTTPException(status_code=404, detail=f"aucune demande T5 en attente: {rid}")
+    if not p["future"].done():
+        p["future"].set_result(approved)
+    return {"id": rid, "approved": approved}
+
+
+@app.post("/t5/{rid}/approve")
+async def t5_approve(rid: str):
+    """Autorise l'appel cloud T5 en attente."""
+    return _resolve_t5(rid, True)
+
+
+@app.post("/t5/{rid}/deny")
+async def t5_deny(rid: str):
+    """Refuse l'appel cloud T5 → repli local T4."""
+    return _resolve_t5(rid, False)
 
 @app.get("/models")
 async def list_models():
