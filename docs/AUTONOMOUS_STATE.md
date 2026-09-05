@@ -9,18 +9,21 @@
 Next task: **B6 — Prometheus `/metrics` endpoints** on langgraph + anone (dashboards are empty;
 prometheus logs a `/metrics` 404 every few seconds). Then B12 (ollama CPU tuning), B14 (HF cache
 volume), B7 (doc accuracy pass), B8, B9 (GPU probe), B10, B11.
-**If the operator says "clé posée":** first run the full B4 E2E — recreate langgraph+litellm
-(NOT anone — it re-downloads 1.2 GB, B14), test key validity, then a PII query through T5 with
-a log check that no raw name leaves for the cloud.
 First commands:
 ```
 cd /opt/claude/sovereign-ai
 grep -n metrics config/prometheus.yml
-cat api/main.py | sed -n '1,20p'   # add prometheus_client /metrics
+sed -n '1,20p' api/main.py   # add prometheus_client /metrics
 ```
 
 ## In flight
-- Nothing uncommitted after this checkpoint.
+- Nothing uncommitted in git.
+- `.env` (untracked): operator's real `ANTHROPIC_API_KEY` + `T5_MODERATION=on`,
+  `T5_APPROVAL_TIMEOUT=300` (added by Claude Code). T5 moderation is LIVE.
+- This session holds a persistent Monitor (`b02wjazyo`) on the `[T5] Approbation requise`
+  log line → PushNotifies the operator on a real T5 request; they reply here to approve/deny
+  (`curl -X POST localhost:8888/t5/{id}/approve|deny`). Monitor dies with the session; after
+  that every T5 call just times out (300s) to T4 — safe, no un-approved cloud spend.
 
 ## Done this session
 - Bootstrapped autonomous manager (skill + BACKLOG + DECISIONS D1–D6 + RESUME_AUTONOMOUS).
@@ -38,6 +41,13 @@ cat api/main.py | sed -n '1,20p'   # add prometheus_client /metrics
   unique `<PERSON_0>` tokens + `pii_mapping`, HTTP 503 on failure. 14 tests pass. The T5 gate
   now passes real anonymised text (stops only at the 401 from the disabled key).
 - **B14 filed** — HF model cache (~1.2 GB) not on a volume → re-downloads on `anone` recreate.
+- **B16 ✅** T5 cost guardrails (`T5_MAX_TOKENS`/`T5_MAX_CALLS`) + human moderation gate
+  (`T5_MODERATION`, `/t5/pending`, `/t5/{id}/approve|deny`, webhook). E2E verified with a real
+  T5 call ($0.0009). **B17 open** — notification channel (Claude-session relay armed; ntfy.sh
+  is the robust alternative).
+- **SECURITY (D4)** — `.env` was git-tracked; a real key briefly hit a local commit, push
+  protection blocked it, rewound. `.env` now untracked + `.gitignore` fixed. STILL: `.env` in
+  pushed history (`b02c2dd`) + PAT in remote URL → operator must rotate secrets + purge history.
 
 ## Standing constraints
 - CPU-only host, no confirmed GPU. Never reboot. sudo only if non-interactive + no reboot.
@@ -47,5 +57,6 @@ cat api/main.py | sed -n '1,20p'   # add prometheus_client /metrics
 - Open decisions: D1 GPU presence, D2 model spec, D4 git token, D5 T5 key, D6 docker-vs-native.
 
 ## Backlog status
-B1 ✅  B2 ✅  B3 ✅  B4 ✅(E2E, key posée)  B5 ✅  B13a ✅  B13b ✅
-B6 ☐←NEXT  B7 ☐  B8 ☐  B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)  B12 ☐(ollama CPU)  B14 ☐(HF cache)
+B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅ B13a ✅ B13b ✅ B16 ✅(T5 cost+moderation)
+B6 ☐←NEXT  B7 ☐  B8 ☐  B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)  B12 ☐(ollama CPU)
+B14 ☐(HF cache)  B17 ☐(T5 notif channel)
