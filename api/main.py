@@ -151,25 +151,47 @@ async def query_ollama_with_fallback(start_tier: str, prompt: str) -> tuple[str,
     raise OllamaError("tous les tiers locaux ont échoué: " + " | ".join(errors))
 
 # T5 Handler with Anonymization
-async def route_t5_with_anonymization(query: str) -> dict:
-    """Route to T5 (Claude Sonnet) via Agent Anone PII anonymization"""
+async def _fallback_local(query: str, raison: str) -> dict:
+    """Repli local T4 quand T5 ne peut pas être appelé en toute sécurité."""
+    try:
+        text, model, tier = await query_ollama_with_fallback("T4", query)
+        return {"status": "ok", "query": query, "response": text, "model_used": model,
+                "tier": tier, "complexity": 5.0, "anonymized": False,
+                "message": f"T5 non appelé ({raison}); repli local sur {tier}"}
+    except OllamaError as oe:
+        return {"status": "error", "model": "T5",
+                "error": f"T5 non appelé ({raison}); repli local KO ({oe})"}
 
-    # Step 1: Anonymize via Agent Anone
+
+async def route_t5_with_anonymization(query: str) -> dict:
+    """Route vers T5 (Claude) via l'anonymisation PII Agent Anone.
+
+    RGPD — CLAUDE.md : l'anonymisation est OBLIGATOIRE. En cas de doute on
+    N'APPELLE PAS le cloud (fail-closed) : repli local à la place.
+    """
+
+    # Step 1: Anonymisation via Agent Anone — fail-closed
     try:
         anone_response = requests.post(
             "http://anone:8080/anonymize",
             json={"text": query},
             timeout=10
         )
-
-        if anone_response.status_code != 200:
-            return {"error": "PII anonymization failed", "status": "error"}
-
-        anon_data = anone_response.json()
-        anonymized_query = anon_data.get("anonymized_text", query)
-        pii_mapping = anon_data.get("pii_mapping", {})
     except requests.exceptions.RequestException as e:
-        return {"error": f"Agent Anone connection failed: {str(e)}", "status": "error"}
+        return await _fallback_local(query, f"Agent Anone injoignable: {e}")
+
+    if anone_response.status_code != 200:
+        return await _fallback_local(query, f"Anone HTTP {anone_response.status_code}")
+
+    anon_data = anone_response.json()
+    # L'anonymisation doit avoir explicitement réussi ET renvoyer un texte anonymisé.
+    # Pas de repli silencieux sur la requête brute (= fuite PII vers le cloud).
+    if anon_data.get("status") != "ok" or "anonymized_text" not in anon_data:
+        return await _fallback_local(
+            query, f"anonymisation non confirmée: {anon_data.get('message', anon_data.get('status'))}")
+
+    anonymized_query = anon_data["anonymized_text"]
+    pii_mapping = anon_data.get("pii_mapping", {})
 
     # Step 2: Call T5 (Claude Sonnet) via Anthropic API
     try:
@@ -215,21 +237,7 @@ Respond in French. Be precise and official."""
             "message": "Traité par T5 (Anthropic Claude) + Agent Anone"
         }
     except anthropic.APIError as e:
-        # T5 indisponible → repli sur le meilleur tier local (T4).
-        try:
-            text, model, tier = await query_ollama_with_fallback("T4", query)
-            return {
-                "status": "ok",
-                "query": query,
-                "response": text,
-                "model_used": model,
-                "tier": tier,
-                "complexity": 5.0,
-                "anonymized": False,
-                "message": f"T5 indisponible ({e}); repli local sur {tier}"
-            }
-        except OllamaError as oe:
-            return {"error": f"T5 KO ({e}); repli local KO ({oe})", "status": "error", "model": "T5"}
+        return await _fallback_local(query, f"API Anthropic indisponible: {e}")
 
 # API Endpoints
 @app.post("/query")

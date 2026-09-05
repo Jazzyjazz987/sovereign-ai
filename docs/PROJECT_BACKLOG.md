@@ -14,6 +14,50 @@ what is actually working (see B8).
 
 ---
 
+## B13 — RGPD: Agent Anone anonymisation is broken (CRITICAL)
+Found by the B5 test subagent + confirmed live 2026-09-05.
+
+### B13a — fail-closed T5 path [DONE 2026-09-05]
+**Problem:** `anone_api` GLiNER is **not loaded** (`ner is None`) → `/anonymize` returns
+`{"status":"error"}` with **HTTP 200**. `main.py` checked only the status code, then did
+`anon_data.get("anonymized_text", query)` → **fell back to the raw query and sent PII to the
+cloud.** Direct violation of CLAUDE.md ("jamais en clair vers cloud", "OBLIGATOIRE").
+**Fix (api/main.py):** `route_t5_with_anonymization` is now fail-closed — the cloud is called
+only when Anone returns `status == "ok"` AND an `anonymized_text`. Any other case →
+`_fallback_local()` (T4). New tests `api/tests/test_t5_failclosed.py` (2) assert the Anthropic
+client is never even instantiated in those cases.
+**Verify (2026-09-05):** `POST /query complexity=5.0` with a name + NIR →
+`"T5 non appelé (anonymisation non confirmée: GLiNER not loaded); repli local sur T4"`,
+`model_used=dolphin-mixtral`. PII stayed local. `pytest tests/ -q` → 12 passed.
+
+### B13b — make Agent Anone actually anonymise [DONE? no]  ← NEXT / TOP PRIORITY
+**Blocked-by:** needs `pip`/network in the anone image build (available during `docker build`).
+**Problems (api/anone_api.py):**
+1. `pipeline("token-classification", model="urchade/gliner_multi_pii-v1")` is the wrong API —
+   GLiNER needs the `gliner` package (`from gliner import GLiNER`), absent from
+   `requirements.anone.txt`. So `ner` is always `None`.
+2. Bare `except:` hides the load error.
+3. `/anonymize` returns **no `pii_mapping`** and uses **non-unique** placeholders (`[person]`),
+   so `/deanonymize` can never restore — the T5 user gets a masked response.
+4. Offset drift: substitutions use original offsets after the string length changed → only
+   correct for single-entity input. (Fix: apply entities sorted by `start` descending.)
+5. `/anonymize` returns HTTP 200 on internal error (should be 503/500).
+**Do:** add `gliner` to `requirements.anone.txt`; load `GLiNER.from_pretrained("urchade/gliner_multi_pii-v1")`;
+detect with a fixed PII label set (person, email, phone, NIR/SSN, address, IBAN…); replace each
+occurrence with a **unique** token (`<PERSON_0>`) and return `pii_mapping`; splice right-to-left;
+return 503 when the model is unavailable. Keep `main.py`'s fail-closed check.
+**Verify:**
+```
+docker compose build anone && docker compose up -d anone && sleep 60
+curl -s localhost:8080/anonymize -d '{"text":"Jean Dupont (jean.dupont@gov.pf) conteste"}' \
+  → status ok, anonymized_text has <PERSON_0> and <EMAIL_0>, pii_mapping maps them back, raw absent
+curl -s localhost:8080/deanonymize -d '{"text":"<PERSON_0> ok","pii_mapping":{"<PERSON_0>":"Jean Dupont"}}'
+  → "Jean Dupont ok"
+# then the full B4 verify (needs a real ANTHROPIC_API_KEY — D5)
+```
+
+---
+
 ## B1 — Fix LiteLLM gateway (port 4000) [DONE 2026-09-05]
 **Blocked-by:** none
 **Problem:** two bugs. (1) The image ENTRYPOINT is shell-form
@@ -91,14 +135,12 @@ POST /query complexity=5.0 → message: "T5 indisponible (401 ... invalid x-api-
 Remaining to verify once a real key is supplied: anone `/anonymize` hit in the log window +
 raw PII never present in an outbound-cloud log line.
 
-## B5 — pytest suite under api/tests/ [DONE? no]  ← NEXT
-**Blocked-by:** none (B3 done)
-**Problem:** CLAUDE.md documents `pytest api/tests/` but the directory does not exist. Only
-ad-hoc `test_*.py` at repo root.
-**Do:** Create `api/tests/` with focused unit tests: (1) complexity→tier routing function,
-(2) Anone `/anonymize` then `/deanonymize` round-trips a name, (3) tier fallback when a model
-id is missing. Mock network where needed. Add `requirements` for pytest if missing.
-**Verify:** `cd api && python -m pytest tests/ -v` → all pass.
+## B5 — pytest suite under api/tests/ [DONE 2026-09-05]
+Created `api/tests/` (test_routing.py ×5, test_fallback.py ×2, test_anone.py ×3,
+test_t5_failclosed.py ×2) + `api/requirements.dev.txt` + `conftest.py` (stubs `transformers`).
+Host has no `pip`/`venv`/network → suite runs inside `sovereign-ai-langgraph:latest`:
+`docker run --rm -v $PWD/api:/work -w /work sovereign-ai-langgraph:latest sh -c "pip install -q -r requirements.dev.txt && python -m pytest tests/ -q"` → **12 passed**.
+Surfaced the B13 anonymisation bugs.
 
 ## B6 — Prometheus /metrics endpoints [DONE? no]
 **Blocked-by:** B3

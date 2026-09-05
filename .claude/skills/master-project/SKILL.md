@@ -109,6 +109,11 @@ Claude-Session: https://claude.ai/code/session_0146Gw93oyAzeQRMBQienYB2
   with nested quotes inside heredocs.
 - Long commands hit the 120s tool timeout and background themselves — prefer one cheap check
   per call, and read the task output file when notified.
+- The host has **no `pip` / `venv` / network**. Run pytest inside an existing image:
+  `docker run --rm -v $PWD/api:/work -w /work sovereign-ai-langgraph:latest sh -c "pip install -q -r requirements.dev.txt && python -m pytest tests/ -q"`.
+- **Never `git add -A` while a subagent is writing files** — you will commit its half-written
+  work under your message (happened in `9c61b1a`). `git add` explicit paths, or wait for the
+  subagent to finish.
 
 ## Hard rules
 
