@@ -38,19 +38,31 @@ continues one task at a time: delegate to a subagent → verify → commit → p
   tags, `claude-sonnet-5`, vLLM tiers commented pending GPU). Verified: `/health` 200,
   `/v1/models` lists 3 models, real completion returns "Paris".
 
-**System state at end of session 1:**
-- Up: postgres (healthy), anone, langgraph, prometheus, grafana, ollama, **litellm (now up)**
-- No usable GPU (`nvidia-smi` fails; DKMS nvidia/580.159.03 present; GPU presence unconfirmed)
-- Ollama models present: `mistral:7b`, `dolphin-mixtral:latest`, `neural-chat:latest`, `llama2:7b`
-- CPU-only mode
+- **B2 DONE** — Ollama healthcheck (`curl` absent from image) → `["CMD","ollama","ps"]`; container now `healthy`.
+- **B3 DONE** — `api/main.py` cascade rewrite: `TIERS` single source of truth, optional
+  `complexity` request override, complexity cap 5.0 (T5 was unreachable), `query_ollama_with_fallback`
+  downward chain, `query_ollama` raises `OllamaError`, `/query` returns a `tier` field. Verified.
+- **B4 code-complete, live test blocked** — T5 model id → `T5_MODEL` env (default `claude-sonnet-5`);
+  anonymise→cloud→deanonymise order confirmed; `anthropic.APIError` now falls back to T4 locally.
+  BLOCKER: `.env` `ANTHROPIC_API_KEY=disabled` → 401 on every cloud call. See DECISIONS_NEEDED D5.
 
-**Next task on resume: B2 — fix the Ollama container healthcheck** (image has no `curl`, so the
-container is permanently `unhealthy`). Then B3 (cascade code vs real model names). See backlog.
+**System state at end of session 1:**
+- Up (7/7): postgres (healthy), ollama (healthy), litellm, anone, langgraph, prometheus, grafana
+- No usable GPU (`nvidia-smi` fails; DKMS nvidia/580.159.03 present; GPU presence unconfirmed — D1)
+- Ollama models: `mistral:7b`, `llama2:7b`, `neural-chat:latest`, `dolphin-mixtral:latest`
+- CPU-only mode, ~3 tok/s. dolphin-mixtral (46B) as T4 is very slow on CPU.
+- **New operator questions:** D5 (T5 key / Opus-5), D6 (docker vs native — hybrid recommended).
+
+**Next task on resume: B5 — pytest suite under `api/tests/`.** Then B6 (/metrics), B12 (ollama
+CPU tuning), B7 (doc accuracy), B9 (GPU probe), B10 (pg backups), B11 (TLS proxy).
 
 First commands on resume:
 ```
+cd /opt/claude/sovereign-ai
 docker compose ps
-docker inspect --format '{{.State.Health.Status}}' sovereign-ai-ollama-1
-sed -n '/^  ollama:/,/^  postgres:/p' docker-compose.yml
-cat docs/AUTONOMOUS_STATE.md
+cat docs/AUTONOMOUS_STATE.md docs/PROJECT_BACKLOG.md
+sed -n '1,140p' api/main.py
 ```
+
+### Session 2 — <fill in on next resume>
+

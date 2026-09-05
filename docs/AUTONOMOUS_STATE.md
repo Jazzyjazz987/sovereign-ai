@@ -6,27 +6,35 @@
 **Full handoff:** `docs/RESUME_AUTONOMOUS.md`
 
 ## RESUME HERE
-Next task: **B2 — Fix the Ollama container healthcheck** (see `docs/PROJECT_BACKLOG.md`).
+Next task: **B5 — pytest suite under `api/tests/`** (see `docs/PROJECT_BACKLOG.md`).
+Good candidate to delegate to a subagent (independent, doesn't need running services).
 First commands:
 ```
 cd /opt/claude/sovereign-ai
-docker compose ps
-docker inspect --format '{{.State.Health.Status}}' sovereign-ai-ollama-1
-sed -n '/^  ollama:/,/^  postgres:/p' docker-compose.yml
+ls api/ ; cat api/main.py | head -120        # TIERS, CascadeRouter, calculate_complexity
+docker compose exec anone python -c "import gliner" 2>/dev/null; ls test_*.py
 ```
 
 ## In flight
-- Nothing uncommitted.
+- Nothing uncommitted after this checkpoint.
 
 ## Done this session
-- Bootstrapped autonomous manager (skill + BACKLOG B1–B11 + DECISIONS D1–D4 + RESUME_AUTONOMOUS).
-- B1 ✅ LiteLLM gateway fixed and verified (entrypoint override + config rewrite).
+- Bootstrapped autonomous manager (skill + BACKLOG B1–B12 + DECISIONS D1–D6 + RESUME_AUTONOMOUS).
+- **B1 ✅** LiteLLM gateway fixed (entrypoint override + config rewrite), verified.
+- **B2 ✅** Ollama healthcheck fixed (`ollama ps`), container now `healthy`.
+- **B3 ✅** Cascade routing rewritten in `api/main.py`: `TIERS` single source, optional
+  `complexity` override, cap 5.0 (T5 reachable), `query_ollama_with_fallback` chain, `tier`
+  field. Verified via complexity sweep + restart.
+- **B4 ~** T5 code complete (`claude-sonnet-5` via `T5_MODEL`, anonymise-before-cloud confirmed,
+  graceful T4 fallback). LIVE cloud test blocked: `.env` `ANTHROPIC_API_KEY=disabled` → D5.
 
 ## Standing constraints
-- CPU-only host, no confirmed GPU. Never reboot. sudo only if non-interactive and no reboot needed.
+- CPU-only host, no confirmed GPU. Never reboot. sudo only if non-interactive + no reboot.
 - Model cascade frozen. Verify every doc claim against a live command.
-- Commit AND `git push origin master` every checkpoint (operator priority 7).
-- Parked items → DECISIONS_NEEDED.md (D1 GPU presence, D2 model spec, D4 git token).
+- Commit AND `git push origin master` every checkpoint.
+- **Serialise inference tests** (see skill "Inference-testing rules"). Restart ollama if wedged.
+- Open decisions: D1 GPU presence, D2 model spec, D4 git token, D5 T5 key, D6 docker-vs-native.
 
 ## Backlog status
-B1 ✅  B2 ☐  B3 ☐  B4 ☐  B5 ☐  B6 ☐  B7 ☐  B8 ☐  B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)
+B1 ✅  B2 ✅  B3 ✅  B4 ~(blocked D5)  B5 ☐←NEXT  B6 ☐  B7 ☐  B8 ☐
+B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)  B12 ☐(ollama CPU tuning)

@@ -46,6 +46,38 @@ existing `origin`. The remote URL still embeds a GitHub PAT in cleartext in `.gi
 rewrite the remote URL on its own — say the word and it will.
 **Needed from you:** rotate the token; confirm if the loop should switch the remote to SSH.
 
+## D5 — T5 cloud key is disabled (operator priority 5)
+**Status:** BLOCKER for priority 5 ("T5 cloud integration testing").
+`.env` contains `ANTHROPIC_API_KEY=disabled` (literal 8-char string). Every T5 call returns
+401 `invalid x-api-key`. The code is ready (anonymise → cloud → deanonymise, `claude-sonnet-5`,
+graceful T4 fallback), but cloud T5 cannot be tested without a real key.
+**Options:**
+- (a) Provide a real Anthropic API key in `.env` (`ANTHROPIC_API_KEY=sk-ant-...`) → the loop
+  will run the full B4 verification (PII gate + no-leak check).
+- (b) Keep cloud OFF by design (pure-sovereign posture) — then say so and the loop will mark T5
+  as "intentionally disabled, local-only" and stop treating it as a gap.
+**Your mid-session note:** "in case it is not set, use opus 5 model for this session." Two
+readings: (i) set `T5_MODEL=claude-opus-5` for the stack's cloud tier — done-able now via `.env`,
+but still needs a valid key; (ii) run THIS Claude Code session on Opus 5 — that is a client
+setting (`/model opus`), not something the loop can change. Please clarify which.
+
+## D6 — Docker vs native — "l'utilisation de docker alourdit-elle notre IA ?"
+**Status:** open architecture question raised by operator 2026-09-05.
+**Analysis (short):** Docker adds ~0% to inference math — the 3 tok/s we see is 100% CPU with
+no GPU driver, not containerisation. Docker *does* add: GPU-passthrough friction
+(nvidia-container-toolkit, CUDA image matching), duplicated Python runtimes per service, the
+heavy `nvidia/cuda:12.1` base for Anone, and a slow build→restart dev loop (felt today).
+**Recommendation — hybrid:**
+- Run **Ollama natively** on the GPU host (systemd) — removes the biggest friction point, gives
+  it direct VRAM access; this is Ollama's own recommended deployment.
+- Keep the **plumbing** (LiteLLM, PostgreSQL, Prometheus, Grafana, Anone, LangGraph) in Compose
+  — light, benefits from isolation, easy to redeploy.
+- Do **API dev** (`main.py`, `anone_api.py`) in the `venv-*` from CLAUDE.md with `--reload`,
+  containerise only for integration/deploy.
+- vLLM: fine in Docker (official image), but needs a GPU regardless.
+**The real weight today is not Docker:** no GPU driver, and `dolphin-mixtral` (46B) as T4 on CPU.
+**Needed from you:** approve the hybrid split, or say keep everything in Compose.
+
 ---
 
 ## Answered decisions

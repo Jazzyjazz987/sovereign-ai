@@ -8,6 +8,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from typing import Optional
 import re
 import anthropic
 import requests
@@ -17,11 +18,26 @@ app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 # Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 litellm_api_key = os.getenv("LITELLM_API_KEY")
+# Modèle T5 (cloud Anthropic). CLAUDE.md : "Claude Sonnet". Surchargeable via l'env.
+T5_MODEL = os.getenv("T5_MODEL", "claude-sonnet-5")
 
 # Pydantic models
 class QueryRequest(BaseModel):
     query: str
     model: str = "auto"
+    # Override optionnel du score de complexité (1.0–5.0). Si absent, il est calculé
+    # à partir des mots-clés de la requête. Utile pour les tests de cascade déterministes.
+    complexity: Optional[float] = None
+
+# Cascade figée (CLAUDE.md). Chaque tier pointe vers un tag Ollama, sauf T5 (cloud).
+# L'ordre sert aussi de chaîne de repli : si un tier échoue, on descend d'un cran.
+TIERS = [
+    ("T1", "mistral:7b"),
+    ("T2", "llama2:7b"),
+    ("T3", "neural-chat"),
+    ("T4", "dolphin-mixtral"),
+    ("T5", "claude-sonnet"),
+]
 
 # Cascade Router Logic
 class CascadeRouter:
@@ -43,7 +59,7 @@ class CascadeRouter:
         }
 
     def calculate_complexity(self, query: str) -> float:
-        """Calculate query complexity (1.0 - 4.0)"""
+        """Calcule un score de complexité (1.0 - 5.0)"""
         query_lower = query.lower()
         word_count = len(query.split())
 
@@ -60,50 +76,79 @@ class CascadeRouter:
         complexity += code_matches * 0.4
         complexity += advanced_matches * 0.6
 
-        # Length bonus
-        if word_count > 20:
-            complexity += 0.5
-        elif word_count > 50:
+        # Length bonus (tester le seuil le plus élevé d'abord)
+        if word_count > 50:
             complexity += 1.0
+        elif word_count > 20:
+            complexity += 0.5
 
-        return min(4.0, complexity)  # Cap at 4.0
+        return min(5.0, complexity)  # Cap at 5.0 (T5 atteignable)
 
-    def route(self, query: str, forced_model: str = None) -> tuple[str, float]:
-        """Route query to appropriate model. Returns (model, complexity)"""
+    def route(self, query: str, forced_model: str = None,
+              complexity_override: float = None) -> tuple[str, float, str]:
+        """Route la requête. Retourne (model, complexity, tier_label)."""
         if forced_model and forced_model != "auto":
-            model_map = {"t1": "mistral:7b", "t2": "llama2:7b", "t3": "neural-chat", "t4": "dolphin-mixtral", "t5": "claude-sonnet"}
-            return model_map.get(forced_model, "mistral:7b"), 2.0
+            forced_map = {label.lower(): (model, label) for label, model in TIERS}
+            model, label = forced_map.get(forced_model.lower(), ("mistral:7b", "T1"))
+            return model, 2.0, label
 
-        complexity = self.calculate_complexity(query)
+        complexity = complexity_override if complexity_override is not None \
+            else self.calculate_complexity(query)
 
-        # Route by complexity
+        # Route par complexité vers un tier
         if complexity < 1.5:
-            return "mistral:7b", complexity  # T1
+            idx = 0   # T1
         elif complexity < 2.5:
-            return "llama2:7b", complexity   # T2
+            idx = 1   # T2
         elif complexity < 3.5:
-            return "neural-chat", complexity  # T3
+            idx = 2   # T3
         elif complexity < 4.5:
-            return "dolphin-mixtral", complexity  # T4
+            idx = 3   # T4
         else:
-            return "claude-sonnet", complexity  # T5
+            idx = 4   # T5
+        label, model = TIERS[idx]
+        return model, complexity, label
 
 router = CascadeRouter()
 
 # Ollama Client
+class OllamaError(Exception):
+    """Erreur d'appel Ollama — déclenche le repli vers le tier inférieur."""
+
 async def query_ollama(model: str, prompt: str) -> str:
-    """Query Ollama model"""
+    """Interroge un modèle Ollama. Lève OllamaError en cas d'échec."""
     try:
         async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(
                 f"{OLLAMA_URL}/api/generate",
                 json={"model": model, "prompt": prompt, "stream": False}
             )
-            if response.status_code == 200:
-                return response.json().get("response", "No response")
-            return f"Error: {response.status_code}"
     except Exception as e:
-        return f"Error connecting to Ollama: {str(e)}"
+        raise OllamaError(f"connexion Ollama impossible: {e}")
+
+    if response.status_code != 200:
+        raise OllamaError(f"Ollama HTTP {response.status_code} pour {model}: {response.text[:200]}")
+    text = response.json().get("response", "").strip()
+    if not text:
+        raise OllamaError(f"réponse vide de {model}")
+    return text
+
+
+async def query_ollama_with_fallback(start_tier: str, prompt: str) -> tuple[str, str, str]:
+    """Essaie le tier demandé puis descend la cascade. Retourne (texte, model, tier)."""
+    start_idx = next((i for i, (label, _) in enumerate(TIERS) if label == start_tier), 0)
+    errors = []
+    for label, model in TIERS[start_idx::-1]:  # du tier courant vers T1
+        if label == "T5":
+            continue  # T5 est géré séparément (anonymisation)
+        try:
+            text = await query_ollama(model, prompt)
+            if errors:
+                text = f"[repli {start_tier}→{label}] {text}"
+            return text, model, label
+        except OllamaError as e:
+            errors.append(str(e))
+    raise OllamaError("tous les tiers locaux ont échoué: " + " | ".join(errors))
 
 # T5 Handler with Anonymization
 async def route_t5_with_anonymization(query: str) -> dict:
@@ -131,7 +176,7 @@ async def route_t5_with_anonymization(query: str) -> dict:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
         message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model=T5_MODEL,
             max_tokens=1024,
             messages=[
                 {
@@ -163,34 +208,55 @@ Respond in French. Be precise and official."""
             "status": "ok",
             "query": query,
             "response": final_response,
-            "model_used": "claude-3-5-sonnet-20241022",
+            "model_used": T5_MODEL,
+            "tier": "T5",
             "complexity": 5.0,
             "anonymized": True,
-            "message": "Processed with T5 (Anthropic Claude) + Agent Anone"
+            "message": "Traité par T5 (Anthropic Claude) + Agent Anone"
         }
     except anthropic.APIError as e:
-        return {"error": str(e), "status": "error", "model": "T5"}
+        # T5 indisponible → repli sur le meilleur tier local (T4).
+        try:
+            text, model, tier = await query_ollama_with_fallback("T4", query)
+            return {
+                "status": "ok",
+                "query": query,
+                "response": text,
+                "model_used": model,
+                "tier": tier,
+                "complexity": 5.0,
+                "anonymized": False,
+                "message": f"T5 indisponible ({e}); repli local sur {tier}"
+            }
+        except OllamaError as oe:
+            return {"error": f"T5 KO ({e}); repli local KO ({oe})", "status": "error", "model": "T5"}
 
 # API Endpoints
 @app.post("/query")
 async def query_cascade(request: QueryRequest):
-    """Route and answer query using cascade"""
-    model, complexity = router.route(request.query, request.model if request.model != "auto" else None)
+    """Route et répond à une requête via la cascade T1→T5."""
+    forced = request.model if request.model != "auto" else None
+    model, complexity, tier = router.route(request.query, forced, request.complexity)
 
-    # Route to T5 (Claude Sonnet) for high complexity queries
-    if model == "claude-sonnet":
+    # T5 (Claude Sonnet) : passage obligatoire par l'anonymisation Agent Anone.
+    if tier == "T5":
         return await route_t5_with_anonymization(request.query)
 
-    # Get response from Ollama for T1-T4
-    response = await query_ollama(model, request.query)
+    # T1–T4 : Ollama avec repli automatique vers le tier inférieur.
+    try:
+        response, model, tier = await query_ollama_with_fallback(tier, request.query)
+    except OllamaError as e:
+        return {"status": "error", "query": request.query, "error": str(e),
+                "model_used": model, "complexity": round(complexity, 2)}
 
     return {
         "status": "ok",
         "query": request.query,
         "response": response,
         "model_used": model,
+        "tier": tier,
         "complexity": round(complexity, 2),
-        "message": f"Processed with {model}"
+        "message": f"Traité par {tier} ({model})"
     }
 
 @app.get("/health")

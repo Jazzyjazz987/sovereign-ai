@@ -47,44 +47,52 @@ docker compose up -d ollama ; docker inspect --format '{{.State.Health.Status}}'
   → healthy (3 consecutive passing checks); litellm /health still 200; langgraph still healthy
 ```
 
-## B3 — Cascade code vs. real model names (api/main.py) [DONE? no]
-**Blocked-by:** B2
-**Problem:** LangGraph reports cascade `T1→T2→T3→T4`. Need to confirm which model id each tier
-calls and that every id resolves against the running Ollama (mistral:7b, dolphin-mixtral).
-Tiers whose model is not loaded must degrade gracefully (fall back to the nearest lower tier),
-not 500.
-**Do:** Read `api/main.py` (the file baked into Dockerfile.langgraph). Make tier→model a single
-clear mapping. Add a graceful fallback when a model id is unavailable. No model swaps — if the
-"correct" model per CLAUDE.md is not pulled, fall back + log a warning; the gap is recorded in
-DECISIONS_NEEDED.
-**Verify:**
+## B3 — Cascade code vs. real model names (api/main.py) [DONE 2026-09-05]
+**Problems found:** (1) `calculate_complexity` capped at 4.0 but the T5 branch needed ≥4.5 →
+**T5 was unreachable by auto-routing**. (2) The documented `complexity` request field did not
+exist on `QueryRequest` — it was silently ignored by every curl test in the docs. (3) On a model
+error `query_ollama` returned an error *string* with HTTP 200 — no fallback.
+**Fix (api/main.py):**
+- `QueryRequest` gains optional `complexity: float` override.
+- Single `TIERS` list (T1→T5) is the one source of truth for tier→model.
+- `calculate_complexity` cap → 5.0; length-bonus elif order fixed.
+- `route()` returns `(model, complexity, tier)`; forced-model map derived from `TIERS`.
+- New `query_ollama_with_fallback(start_tier, prompt)` walks the chain downward; `query_ollama`
+  now raises `OllamaError`. `/query` response gains a `tier` field.
+**Verify (run 2026-09-05, pre-load-thrash sweep + post-restart single):**
 ```
-for c in 1.0 2.5 4.0; do
-  curl -sf -X POST http://localhost:8888/query -H 'Content-Type: application/json' \
-    -d "{\"query\":\"Explique en une phrase le rôle de la DSI\",\"complexity\":$c}" ; echo
-done
+complexity 1.0 → T1 mistral:7b   status ok   (post-restart, 7.8s, coherent FR)
+complexity 2.5 → T3 neural-chat  status ok
+complexity 4.0 → T4 dolphin-mixtral  status ok
+complexity 5.0 → T5 → 401 (key disabled, B4) → graceful fallback to T4 dolphin-mixtral, status ok
+forced model "t9" (bogus) → defaults to T1, status ok
 ```
-All three return 200 with a coherent French `response` and a `model_used` that exists in `ollama list`.
+**Incident note:** running 3+ concurrent curl loops against a CPU-only Ollama (4 models,
+MAX_LOADED_MODELS=2, incl. 46B dolphin-mixtral) wedged Ollama (model stuck "Stopping...").
+`docker compose restart ollama` cleared it. → new backlog B12; loop must serialise inference tests.
 
-## B4 — T5 path + mandatory PII anonymisation gate [DONE? no]
-**Blocked-by:** B1, B3
-**Problem:** CLAUDE.md: Agent Anone anonymisation is OBLIGATOIRE before any T5 call. Need to
-prove (a) a high-complexity/cloud query reaches Claude, (b) it passes through `/anonymize` first,
-(c) the Claude model id is current (load the `claude-api` skill before editing any model id).
-**Do:** Trace the T5 code path in `api/main.py`. Confirm anonymise-before-send. Update the Claude
-model id to a current one. If ANTHROPIC_API_KEY is invalid, record in DECISIONS_NEEDED and make
-T5 fall back to the top local tier cleanly.
-**Verify:**
+## B4 — T5 path + mandatory PII anonymisation gate [CODE DONE 2026-09-05 · LIVE TEST BLOCKED]
+**Blocked-by:** live cloud test blocked on `ANTHROPIC_API_KEY` (see below)
+**Done:**
+- Traced `route_t5_with_anonymization` in `api/main.py`: order is `/anonymize` (Agent Anone) →
+  Claude API → `/deanonymize`. If Anone is unreachable or non-200, the function returns an error
+  and never calls the cloud — the gate holds.
+- Claude model id `claude-3-5-sonnet-20241022` → `T5_MODEL` env var, default `claude-sonnet-5`
+  (verified current via the `claude-api` skill; CLAUDE.md T5 = "Claude Sonnet").
+- On `anthropic.APIError` T5 now falls back to `query_ollama_with_fallback("T4", …)` → clean
+  local degradation instead of a bare error dict.
+**BLOCKER:** `.env` has `ANTHROPIC_API_KEY=disabled` (literal string). Every T5 call → 401
+`authentication_error`. Cloud T5 is effectively OFF. Recorded in DECISIONS_NEEDED D5.
+**Verify (partial, 2026-09-05):**
 ```
-curl -sf -X POST http://localhost:8888/query -H 'Content-Type: application/json' \
-  -d '{"query":"Jean Dupont (NIR 1 85 09 78 006 084 36) conteste une sanction disciplinaire, analyse juridique CNIL détaillée","complexity":5.0}' ; echo
-docker compose logs --since 2m anone | grep -i anonym
+POST /query complexity=5.0 → message: "T5 indisponible (401 ... invalid x-api-key); repli local sur T4"
+  status=ok, model_used=dolphin-mixtral   ← fallback path proven
 ```
-Response is coherent French legal analysis; anone logs show an anonymise call in the window;
-the raw name must NOT appear in any outbound-cloud log line.
+Remaining to verify once a real key is supplied: anone `/anonymize` hit in the log window +
+raw PII never present in an outbound-cloud log line.
 
-## B5 — pytest suite under api/tests/ [DONE? no]
-**Blocked-by:** B3
+## B5 — pytest suite under api/tests/ [DONE? no]  ← NEXT
+**Blocked-by:** none (B3 done)
 **Problem:** CLAUDE.md documents `pytest api/tests/` but the directory does not exist. Only
 ad-hoc `test_*.py` at repo root.
 **Do:** Create `api/tests/` with focused unit tests: (1) complexity→tier routing function,
@@ -162,6 +170,17 @@ possible. This is infra scaffolding — do not break the current plain-HTTP dev 
 behind a compose profile (`--profile tls`).
 **Verify:** `docker compose --profile tls up -d proxy && curl -sk https://localhost/health`
 returns langgraph health JSON.
+
+## B12 — Ollama CPU-mode concurrency tuning [DONE? no]
+**Blocked-by:** none
+**Problem:** CPU-only host with 4 pulled models (incl. 46B dolphin-mixtral) + default
+`OLLAMA_MAX_LOADED_MODELS=2` / `OLLAMA_NUM_PARALLEL=2` → model thrashing and a wedged unload
+under light concurrency (observed 2026-09-05 during B3 testing).
+**Do:** In `docker-compose.yml` default `OLLAMA_MAX_LOADED_MODELS` to 1 and `OLLAMA_NUM_PARALLEL`
+to 1 for CPU mode (keep them env-overridable so GPU mode can raise them). Document in
+`docs/CPU_GPU_MODES.md`. Consider `keep_alive` tuning.
+**Verify:** after the change, run 3 sequential `/query` calls (complexity 1.0, 2.0, 4.0) with a
+2s gap — all return `status: ok` and `ollama ps` never shows a stuck "Stopping..." entry.
 
 ---
 

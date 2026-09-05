@@ -99,6 +99,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_0146Gw93oyAzeQRMBQienYB2
 ```
 
+## Inference-testing rules (CPU host — learned 2026-09-05)
+
+- The host is CPU-only. Ollama runs at ~3 tok/s; a T4 (46B) query can take minutes.
+- **Serialise** all `/query` tests — one at a time, a short gap between. Never run parallel
+  curl loops or a multi-query script against Ollama; it wedges (model stuck "Stopping...").
+- If Ollama wedges: `docker compose restart ollama`, wait for `ollama ps` to answer, retry once.
+- Write test scripts to a file with `PYTHONUNBUFFERED=1`; do not rely on inline `python3 -c`
+  with nested quotes inside heredocs.
+- Long commands hit the 120s tool timeout and background themselves — prefer one cheap check
+  per call, and read the task output file when notified.
+
 ## Hard rules
 
 - One committed task per iteration is a good iteration. Zero is fine if you verified something.
