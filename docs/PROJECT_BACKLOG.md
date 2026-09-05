@@ -30,7 +30,26 @@ client is never even instantiated in those cases.
 `"T5 non appelé (anonymisation non confirmée: GLiNER not loaded); repli local sur T4"`,
 `model_used=dolphin-mixtral`. PII stayed local. `pytest tests/ -q` → 12 passed.
 
-### B13b — make Agent Anone actually anonymise [DONE? no]  ← NEXT / TOP PRIORITY
+### B13b — make Agent Anone actually anonymise [DONE 2026-09-05]
+**Fix (api/anone_api.py):** `from gliner import GLiNER` + `GLiNER.from_pretrained(...)`,
+`predict_entities` with a fixed 7-label PII set (person/email/phone/NIR/address/org/iban),
+unique tokens `<PERSON_0>` deduped by value, right-to-left splice (no offset drift),
+returns `pii_mapping` + `entities_found`, **HTTP 503** (not 200) when the model is absent or
+detection errors. `requirements.anone.txt` += `gliner>=0.2.13`. conftest stubs `gliner`.
+**Verify (2026-09-05, independent):**
+```
+GET  /health → {"model_loaded": true}
+POST /anonymize "Léa Faatau (lea.faatau@gov.pf) au 87 45 12 90 ... dossier DSI"
+  → <PERSON_0> (<EMAIL_0>) au <PHONE_0> ... dossier <ORG_0> ; pii_mapping round-trips ; raw absent
+POST /query complexity=5.0 (key still 'disabled') → "T5 non appelé (API Anthropic indisponible: 401 ...)"
+  ← now gets PAST anonymisation (anonymised text WAS sent to the Anthropic client), stops only at 401
+pytest tests/ -q → 14 passed
+```
+**Build needed network** (succeeded): PyPI gliner/torch/transformers (~4.6 GB layer) + HF models
+`urchade/gliner_multi_pii-v1` (1.15 GB) + `microsoft/mdeberta-v3-base` at first container start.
+See B14 (HF cache not on a volume → re-downloads on recreate).
+
+### (original B13b spec)
 **Blocked-by:** needs `pip`/network in the anone image build (available during `docker build`).
 **Problems (api/anone_api.py):**
 1. `pipeline("token-classification", model="urchade/gliner_multi_pii-v1")` is the wrong API —
@@ -212,6 +231,17 @@ possible. This is infra scaffolding — do not break the current plain-HTTP dev 
 behind a compose profile (`--profile tls`).
 **Verify:** `docker compose --profile tls up -d proxy && curl -sk https://localhost/health`
 returns langgraph health JSON.
+
+## B14 — Persist the HuggingFace model cache (anone) [DONE? no]
+**Blocked-by:** none
+**Problem:** the anone image's GLiNER download (~1.2 GB: `urchade/gliner_multi_pii-v1` +
+`microsoft/mdeberta-v3-base`) lands in the container's writable layer. `docker compose down`
++ recreate re-downloads it every time.
+**Do:** add a named volume mounted at `/root/.cache/huggingface` (or set `HF_HOME`) on the
+`anone` service in `docker-compose.yml`. Document the offline pre-provisioning path in
+`docs/DEPLOYMENT.md` (the exact package + model list is in B13b notes).
+**Verify:** `docker compose down anone && docker compose up -d anone` → model load completes
+from cache in <15s (no network), `/health` `model_loaded: true`.
 
 ## B12 — Ollama CPU-mode concurrency tuning [DONE? no]
 **Blocked-by:** none
