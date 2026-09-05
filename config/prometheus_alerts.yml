@@ -1,36 +1,183 @@
 groups:
-  - name: sovereign_ai_alerts
+  - name: sovereign_ai_cascade
     interval: 30s
     rules:
-      - alert: HighGPUMemoryUsage
-        expr: nvidia_smi_memory_used_percent > 90
-        for: 2m
-        annotations:
-          summary: "GPU memory usage > 90%"
-          description: "GPU {{ $labels.index }} memory at {{ $value }}%"
-
-      - alert: T5APIErrors
-        expr: rate(anthropic_api_errors_total[5m]) > 0.1
-        for: 1m
-        annotations:
-          summary: "T5 (Anthropic) API errors detected"
-          description: "Error rate: {{ $value }} errors/sec"
-
       - alert: CascadeHighLatency
-        expr: histogram_quantile(0.95, cascade_response_time_seconds) > 5
+        expr: histogram_quantile(0.95, rate(langgraph_query_duration_seconds_bucket[5m])) > 5
         for: 3m
         annotations:
           summary: "Cascade response latency > 5s (p95)"
-          description: "{{ $value }}s latency detected"
+          description: "LangGraph p95 latency: {{ $value }}s"
 
+      - alert: CascadeTierTimeout
+        expr: increase(langgraph_tier_timeout_total[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "Cascade tier timeout detected"
+          description: "Timeouts in last 5m: {{ $value }}"
+
+      - alert: CascadeErrorRate
+        expr: rate(langgraph_query_errors_total[5m]) > 0.05
+        for: 2m
+        annotations:
+          summary: "Cascade error rate > 5%"
+          description: "Error rate: {{ $value }} errors/sec"
+
+      - alert: T5CloudErrorRate
+        expr: increase(langgraph_t5_api_errors_total[5m]) > 2
+        for: 1m
+        annotations:
+          summary: "T5 (Anthropic) API errors detected"
+          description: "T5 errors in last 5m: {{ $value }}"
+
+      - alert: AnonymizationLatency
+        expr: histogram_quantile(0.95, rate(anone_anonymize_duration_seconds_bucket[5m])) > 1
+        for: 2m
+        annotations:
+          summary: "PII anonymization latency > 1s (p95)"
+          description: "Agent Anone p95 latency: {{ $value }}s"
+
+  - name: sovereign_ai_gpu
+    interval: 30s
+    rules:
+      - alert: HighGPUMemoryUsage
+        expr: (nvidia_smi_memory_used_bytes / nvidia_smi_memory_total_bytes) * 100 > 90
+        for: 2m
+        annotations:
+          summary: "GPU memory usage > 90%"
+          description: "GPU {{ $labels.index }} memory: {{ $value | humanizePercentage }}"
+
+      - alert: GPUTemperatureHigh
+        expr: nvidia_smi_temperature_gpu > 80
+        for: 3m
+        annotations:
+          summary: "GPU temperature > 80°C"
+          description: "GPU {{ $labels.index }} temp: {{ $value }}°C"
+
+      - alert: VLLMMemoryPressure
+        expr: (vllm_gpu_memory_used_bytes / vllm_gpu_memory_total_bytes) * 100 > 85
+        for: 2m
+        annotations:
+          summary: "vLLM GPU memory > 85%"
+          description: "vLLM {{ $labels.tier }} memory pressure: {{ $value | humanizePercentage }}"
+
+      - alert: OllamaMemoryPressure
+        expr: (ollama_gpu_memory_used_bytes / ollama_gpu_memory_total_bytes) * 100 > 85
+        for: 2m
+        annotations:
+          summary: "Ollama GPU memory > 85%"
+          description: "Ollama memory pressure: {{ $value | humanizePercentage }}"
+
+  - name: sovereign_ai_services
+    interval: 30s
+    rules:
       - alert: PostgreSQLDown
         expr: pg_up == 0
         for: 1m
         annotations:
           summary: "PostgreSQL database is down"
+          description: "PostgreSQL service unreachable"
 
-      - alert: OllamaHealthCheck
+      - alert: PostgreSQLConnectionsHigh
+        expr: pg_stat_activity_count > 80
+        for: 2m
+        annotations:
+          summary: "PostgreSQL connections > 80"
+          description: "Active connections: {{ $value }}"
+
+      - alert: OllamaUnhealthy
         expr: up{job="ollama"} == 0
         for: 2m
         annotations:
           summary: "Ollama service unhealthy"
+          description: "Ollama health check failing"
+
+      - alert: LiteLLMUnhealthy
+        expr: up{job="litellm"} == 0
+        for: 2m
+        annotations:
+          summary: "LiteLLM router unhealthy"
+          description: "LiteLLM health check failing"
+
+      - alert: LangGraphUnhealthy
+        expr: up{job="langgraph"} == 0
+        for: 2m
+        annotations:
+          summary: "LangGraph orchestrator unhealthy"
+          description: "LangGraph health check failing"
+
+      - alert: AnoneUnhealthy
+        expr: up{job="anone"} == 0
+        for: 2m
+        annotations:
+          summary: "Agent Anone (PII) service unhealthy"
+          description: "Agent Anone health check failing"
+
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        annotations:
+          summary: "Prometheus metrics unavailable"
+          description: "Prometheus self-scrape failing"
+
+  - name: sovereign_ai_infrastructure
+    interval: 30s
+    rules:
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype=~"ext4|xfs"} / node_filesystem_size_bytes{mountpoint="/",fstype=~"ext4|xfs"})) * 100 > 85
+        for: 5m
+        annotations:
+          summary: "Disk usage > 85%"
+          description: "Disk space available: {{ $value | humanizePercentage }}"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        annotations:
+          summary: "CPU usage > 80%"
+          description: "CPU usage: {{ $value | humanize }}%"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        annotations:
+          summary: "System memory usage > 85%"
+          description: "Memory usage: {{ $value | humanize }}%"
+
+      - alert: DockerDaemonDown
+        expr: up{job="docker"} == 0
+        for: 1m
+        annotations:
+          summary: "Docker daemon unreachable"
+          description: "Docker metrics unavailable"
+
+  - name: sovereign_ai_models
+    interval: 30s
+    rules:
+      - alert: T1ModelOffline
+        expr: increase(ollama_model_load_errors_total{model="mistral:7b-q4"}[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "T1 model (Mistral 7B) load failed"
+          description: "Model loading errors detected"
+
+      - alert: T2ModelOffline
+        expr: increase(ollama_model_load_errors_total{model="llama2:8b-q4"}[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "T2 model (Llama 8B) load failed"
+          description: "Model loading errors detected"
+
+      - alert: T3ModelOffline
+        expr: increase(vllm_model_load_errors_total{tier="t3"}[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "T3 model (Qwen 14B) load failed"
+          description: "vLLM T3 model loading errors"
+
+      - alert: T4ModelOffline
+        expr: increase(vllm_model_load_errors_total{tier="t4"}[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "T4 model (Mistral Small 22B) load failed"
+          description: "vLLM T4 model loading errors"
