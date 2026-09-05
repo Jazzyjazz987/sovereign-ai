@@ -39,12 +39,27 @@ call on: the actual deployment host/orchestrator, moving `.env` secrets to a vau
 CNIL/RGPD sign-off on the T5 cloud path before production traffic.
 **Needed from you:** deployment target, vault yes/no, RGPD sign-off owner.
 
-## D4 — Git credential hygiene
-**Status:** operator wants GitHub kept updated (priority 7) → the loop now DOES push to the
-existing `origin`. The remote URL still embeds a GitHub PAT in cleartext in `.git/config`.
-**Recommendation:** rotate that token and move to SSH or a credential helper. The loop will not
-rewrite the remote URL on its own — say the word and it will.
-**Needed from you:** rotate the token; confirm if the loop should switch the remote to SSH.
+## D4 — Git credential hygiene + secrets in history (SECURITY — action needed)
+**Status:** partly handled 2026-09-05, rest needs the operator.
+
+**Fixed by the loop:**
+- `.env` was **tracked** in git (CLAUDE.md claimed "git-ignored" — it wasn't; `.gitignore`
+  only listed `.env.local` / `.env.production`). Now untracked + `.gitignore` fixed (commit
+  after `567a4d6`). The real `ANTHROPIC_API_KEY` briefly entered ONE local commit; the push
+  was **blocked by GitHub push protection** so it never left this machine — that commit was
+  rewound (`git reset --soft`) before re-committing without `.env`.
+
+**Still needs you:**
+1. **`.env` is in pushed history** — commit `b02c2dd` ("chore: add full sovereign AI stack…")
+   contains a `.env` file on GitHub. Treat every value that was ever in it as compromised:
+   rotate `POSTGRES_PASSWORD`, `GRAFANA_PASSWORD`, `LITELLM_MASTER_KEY`, `VLLM_API_KEY`,
+   `HF_TOKEN`, and the Anthropic key. Then purge it from history
+   (`git filter-repo --path .env --invert-paths`, or the GitHub-supported BFG) and force-push.
+2. **The `origin` URL embeds a GitHub PAT** in cleartext in `.git/config`
+   (`https://ghp_…@github.com/…`). Rotate that token; switch the remote to SSH or a credential
+   helper. The loop won't rewrite the remote URL on its own.
+
+Until (1)+(2) are done the repo should be considered private-only / compromised-credentials.
 
 ## D5 — T5 cloud key [RESOLVED 2026-09-05]
 Operator supplied a real `ANTHROPIC_API_KEY` in `.env`. `claude-sonnet-5` verified working.

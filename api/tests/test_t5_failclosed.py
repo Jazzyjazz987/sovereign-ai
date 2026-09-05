@@ -47,6 +47,26 @@ def test_anone_erreur_gliner_absent__pas_d_appel_cloud(monkeypatch):
     assert "anonymisation non confirmée" in out["message"]
 
 
+def test_plafond_budget_t5__repli_local_sans_appel(monkeypatch):
+    """Au-delà de T5_MAX_CALLS, on ne touche ni Anone ni le cloud : repli direct."""
+    monkeypatch.setattr(main, "T5_MAX_CALLS", 0)
+
+    def _no_net(*a, **k):
+        raise AssertionError("aucun appel réseau ne doit partir quand le plafond est atteint")
+
+    monkeypatch.setattr(main.requests, "post", _no_net)
+    monkeypatch.setattr(main.anthropic, "Anthropic", _no_net)
+
+    async def fake_fallback(model, prompt):
+        return "réponse locale"
+
+    monkeypatch.setattr(main, "query_ollama", fake_fallback)
+
+    out = _run("requête quelconque")
+    assert out["status"] == "ok"
+    assert "plafond T5 atteint" in out["message"]
+
+
 def test_anone_injoignable__repli_local(monkeypatch):
     """Anone injoignable -> repli local, pas d'exception qui remonte."""
     def _raise(*a, **k):

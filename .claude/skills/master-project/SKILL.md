@@ -99,6 +99,16 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_0146Gw93oyAzeQRMBQienYB2
 ```
 
+## T5 / Anthropic API cost rules (operator budget ~5 USD — learned 2026-09-05)
+
+- Every T5 call spends real money. **At most ONE T5 smoke test per loop session**, and only
+  when a change actually touches the T5 path.
+- Test cascade routing with forced local tiers (`{"model":"t1"}` … `"t4"`) or a `complexity`
+  value < 4.5 — never drive real cloud traffic to verify routing.
+- `main.py` has `T5_MAX_CALLS` (default 150) and `T5_MAX_TOKENS` (700). Do not raise them.
+- Cheapest T5 model is `claude-haiku-4-5` via `T5_MODEL` in `.env`.
+- `GET /health` reports `t5.calls` — check it, don't grow it needlessly.
+
 ## Inference-testing rules (CPU host — learned 2026-09-05)
 
 - The host is CPU-only. Ollama runs at ~3 tok/s; a T4 (46B) query can take minutes.

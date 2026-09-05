@@ -19,7 +19,12 @@ app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 litellm_api_key = os.getenv("LITELLM_API_KEY")
 # Modèle T5 (cloud Anthropic). CLAUDE.md : "Claude Sonnet". Surchargeable via l'env.
+# Budget serré : mettre T5_MODEL=claude-haiku-4-5 dans .env (~5x moins cher en sortie).
 T5_MODEL = os.getenv("T5_MODEL", "claude-sonnet-5")
+# Garde-fous de coût pour l'API Anthropic (budget opérateur ~5 USD).
+T5_MAX_TOKENS = int(os.getenv("T5_MAX_TOKENS", "700"))
+T5_MAX_CALLS = int(os.getenv("T5_MAX_CALLS", "150"))  # plafond d'appels cloud par process
+_t5_calls = 0
 
 # Pydantic models
 class QueryRequest(BaseModel):
@@ -169,6 +174,11 @@ async def route_t5_with_anonymization(query: str) -> dict:
     RGPD — CLAUDE.md : l'anonymisation est OBLIGATOIRE. En cas de doute on
     N'APPELLE PAS le cloud (fail-closed) : repli local à la place.
     """
+    global _t5_calls
+
+    # Step 0: garde-fou budget — au-delà du plafond, on reste en local.
+    if _t5_calls >= T5_MAX_CALLS:
+        return await _fallback_local(query, f"plafond T5 atteint ({T5_MAX_CALLS} appels)")
 
     # Step 1: Anonymisation via Agent Anone — fail-closed
     try:
@@ -193,22 +203,18 @@ async def route_t5_with_anonymization(query: str) -> dict:
     anonymized_query = anon_data["anonymized_text"]
     pii_mapping = anon_data.get("pii_mapping", {})
 
-    # Step 2: Call T5 (Claude Sonnet) via Anthropic API
+    # Step 2: Call T5 (Claude) via Anthropic API
     try:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
+        _t5_calls += 1
         message = client.messages.create(
             model=T5_MODEL,
-            max_tokens=1024,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""You are a French-language AI assistant for the Polynésie française DSI.
-Context: Government information system (RGPD-compliant, sovereign).
-Query: {anonymized_query}
-Respond in French. Be precise and official."""
-                }
-            ]
+            max_tokens=T5_MAX_TOKENS,
+            system="Assistant IA francophone pour la DSI de Polynésie française "
+                   "(SI gouvernemental, RGPD, souverain). Réponds en français, "
+                   "de façon précise, officielle et concise.",
+            messages=[{"role": "user", "content": anonymized_query}],
         )
 
         response_text = message.content[0].text
@@ -226,6 +232,7 @@ Respond in French. Be precise and official."""
             # If de-anonymization fails, return anonymized response
             final_response = response_text
 
+        usage = getattr(message, "usage", None)
         return {
             "status": "ok",
             "query": query,
@@ -234,7 +241,10 @@ Respond in French. Be precise and official."""
             "tier": "T5",
             "complexity": 5.0,
             "anonymized": True,
-            "message": "Traité par T5 (Anthropic Claude) + Agent Anone"
+            "t5_calls": _t5_calls,
+            "usage": {"input_tokens": getattr(usage, "input_tokens", None),
+                      "output_tokens": getattr(usage, "output_tokens", None)} if usage else None,
+            "message": f"Traité par T5 ({T5_MODEL}) + Agent Anone"
         }
     except anthropic.APIError as e:
         return await _fallback_local(query, f"API Anthropic indisponible: {e}")
@@ -274,7 +284,9 @@ async def health():
         "status": "healthy",
         "service": "langgraph",
         "version": "2.0",
-        "cascade": "T1→T2→T3→T4→T5"
+        "cascade": "T1→T2→T3→T4→T5",
+        "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
+               "max_tokens": T5_MAX_TOKENS}
     }
 
 @app.get("/models")

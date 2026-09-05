@@ -149,6 +149,16 @@ Query (complexity 5.0): "Le fonctionnaire Teiva Hauata (NIR 1 82 09 987 156 023)
 The full T1→T5 cascade now works with the mandatory PII gate. Key validity confirmed
 (`claude-sonnet-5` direct call → "OK").
 **Historical blocker (resolved):** live cloud test was blocked on `ANTHROPIC_API_KEY=disabled`.
+
+**Cost controls added 2026-09-05 (operator budget ~5 USD):**
+- `T5_MAX_TOKENS` (env, default 700) — was hard-coded 1024.
+- `T5_MAX_CALLS` (env, default 150) — cloud calls per process; beyond it → `_fallback_local`.
+- system prompt moved off the user message + asks for concision (fewer input+output tokens).
+- `GET /health` exposes `t5: {model, calls, max_calls, max_tokens}`; `/query` T5 response
+  carries `t5_calls` + `usage {input_tokens, output_tokens}`.
+- `.env.example` documents `T5_MODEL=claude-haiku-4-5` as the cheapest option (~5× less on output).
+- Verified: 1 T5 call = 81 in / 167 out tokens ≈ $0.002 (sonnet-5). 15 tests pass.
+- Loop rule added: max ONE T5 smoke test per session; route-test with forced local tiers.
 **Done:**
 - Traced `route_t5_with_anonymization` in `api/main.py`: order is `/anonymize` (Agent Anone) →
   Claude API → `/deanonymize`. If Anone is unreachable or non-200, the function returns an error
