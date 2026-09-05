@@ -255,6 +255,17 @@ behind a compose profile (`--profile tls`).
 **Verify:** `docker compose --profile tls up -d proxy && curl -sk https://localhost/health`
 returns langgraph health JSON.
 
+## B16 — T5 human-moderation gate [DONE 2026-09-05]
+`T5_MODERATION=on` → every T5 call waits for `POST /t5/{id}/approve` (else local T4 after
+`T5_APPROVAL_TIMEOUT`, default 60s). Cost estimate (per-model price table) logged + POSTed to
+`T5_NOTIFY_WEBHOOK`. `GET /t5/pending`, `/t5/{id}/approve`, `/t5/{id}/deny`. Gate sits after
+anonymisation. 4 tests; live-verified approve→T5 / deny→T4. Compose passes `T5_*` env through.
+**Open (B17):** the operator wants the notification to land in their Claude mobile app as a
+message in this conversation. The stack can't post to Claude directly — done via this
+autonomous session (Monitor on the `[T5] Approbation requise` log line → PushNotification →
+operator replies here → session curls approve/deny). Only works while this session runs;
+60s timeout is tight over mobile. `ntfy.sh` webhook is the robust alternative.
+
 ## B14 — Persist the HuggingFace model cache (anone) [DONE? no]
 **Blocked-by:** none
 **Problem:** the anone image's GLiNER download (~1.2 GB: `urchade/gliner_multi_pii-v1` +
