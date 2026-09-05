@@ -1,0 +1,8 @@
+# Dépendances de la suite de tests hors-ligne (backlog B5).
+# Ne pas utiliser en production — les images Docker n'installent pas ce fichier.
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx==0.25.2
+# main.py importe `requests` mais requirements.langgraph.txt ne le liste pas (bug,
+# voir rapport B5). Ajouté ici pour rendre les tests exécutables.
+requests==2.31.0

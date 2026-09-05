@@ -56,10 +56,11 @@ graceful T4 fallback), but cloud T5 cannot be tested without a real key.
   will run the full B4 verification (PII gate + no-leak check).
 - (b) Keep cloud OFF by design (pure-sovereign posture) — then say so and the loop will mark T5
   as "intentionally disabled, local-only" and stop treating it as a gap.
-**Your mid-session note:** "in case it is not set, use opus 5 model for this session." Two
-readings: (i) set `T5_MODEL=claude-opus-5` for the stack's cloud tier — done-able now via `.env`,
-but still needs a valid key; (ii) run THIS Claude Code session on Opus 5 — that is a client
-setting (`/model opus`), not something the loop can change. Please clarify which.
+**Your mid-session note clarified 2026-09-05:** "use opus 5 model for this session" = reading
+(ii) — run THIS Claude Code session on Opus 5. That is a client setting the loop cannot change;
+the operator runs `/model opus` (or `/model claude-opus-5`) in the terminal. The stack's T5
+tier stays `T5_MODEL=claude-sonnet-5` per CLAUDE.md unless you say otherwise.
+STILL OPEN: provide a real Anthropic API key to test T5, or declare cloud OFF by design?
 
 ## D6 — Docker vs native — "l'utilisation de docker alourdit-elle notre IA ?"
 **Status:** open architecture question raised by operator 2026-09-05.
