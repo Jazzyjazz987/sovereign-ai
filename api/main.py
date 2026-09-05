@@ -1,5 +1,5 @@
 """
-LangGraph Orchestrateur Cascade T1→T4
+LangGraph Orchestrateur Cascade T1→T5
 Port 8888 - API + Web UI
 """
 import os
@@ -9,6 +9,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import re
+import anthropic
+import requests
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 
@@ -69,7 +71,7 @@ class CascadeRouter:
     def route(self, query: str, forced_model: str = None) -> tuple[str, float]:
         """Route query to appropriate model. Returns (model, complexity)"""
         if forced_model and forced_model != "auto":
-            model_map = {"t1": "mistral:7b", "t2": "llama2:7b", "t3": "neural-chat", "t4": "dolphin-mixtral"}
+            model_map = {"t1": "mistral:7b", "t2": "llama2:7b", "t3": "neural-chat", "t4": "dolphin-mixtral", "t5": "claude-sonnet"}
             return model_map.get(forced_model, "mistral:7b"), 2.0
 
         complexity = self.calculate_complexity(query)
@@ -81,8 +83,10 @@ class CascadeRouter:
             return "llama2:7b", complexity   # T2
         elif complexity < 3.5:
             return "neural-chat", complexity  # T3
-        else:
+        elif complexity < 4.5:
             return "dolphin-mixtral", complexity  # T4
+        else:
+            return "claude-sonnet", complexity  # T5
 
 router = CascadeRouter()
 
@@ -101,13 +105,83 @@ async def query_ollama(model: str, prompt: str) -> str:
     except Exception as e:
         return f"Error connecting to Ollama: {str(e)}"
 
+# T5 Handler with Anonymization
+async def route_t5_with_anonymization(query: str) -> dict:
+    """Route to T5 (Claude Sonnet) via Agent Anone PII anonymization"""
+
+    # Step 1: Anonymize via Agent Anone
+    try:
+        anone_response = requests.post(
+            "http://anone:8080/anonymize",
+            json={"text": query},
+            timeout=10
+        )
+
+        if anone_response.status_code != 200:
+            return {"error": "PII anonymization failed", "status": "error"}
+
+        anon_data = anone_response.json()
+        anonymized_query = anon_data.get("anonymized_text", query)
+        pii_mapping = anon_data.get("pii_mapping", {})
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Agent Anone connection failed: {str(e)}", "status": "error"}
+
+    # Step 2: Call T5 (Claude Sonnet) via Anthropic API
+    try:
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""You are a French-language AI assistant for the Polynésie française DSI.
+Context: Government information system (RGPD-compliant, sovereign).
+Query: {anonymized_query}
+Respond in French. Be precise and official."""
+                }
+            ]
+        )
+
+        response_text = message.content[0].text
+
+        # Step 3: De-anonymize response (restore PII from mapping)
+        try:
+            deanon_response = requests.post(
+                "http://anone:8080/deanonymize",
+                json={"text": response_text, "pii_mapping": pii_mapping},
+                timeout=10
+            )
+
+            final_response = deanon_response.json().get("text", response_text)
+        except requests.exceptions.RequestException:
+            # If de-anonymization fails, return anonymized response
+            final_response = response_text
+
+        return {
+            "status": "ok",
+            "query": query,
+            "response": final_response,
+            "model_used": "claude-3-5-sonnet-20241022",
+            "complexity": 5.0,
+            "anonymized": True,
+            "message": "Processed with T5 (Anthropic Claude) + Agent Anone"
+        }
+    except anthropic.APIError as e:
+        return {"error": str(e), "status": "error", "model": "T5"}
+
 # API Endpoints
 @app.post("/query")
 async def query_cascade(request: QueryRequest):
     """Route and answer query using cascade"""
     model, complexity = router.route(request.query, request.model if request.model != "auto" else None)
 
-    # Get response from Ollama
+    # Route to T5 (Claude Sonnet) for high complexity queries
+    if model == "claude-sonnet":
+        return await route_t5_with_anonymization(request.query)
+
+    # Get response from Ollama for T1-T4
     response = await query_ollama(model, request.query)
 
     return {
@@ -125,8 +199,8 @@ async def health():
     return {
         "status": "healthy",
         "service": "langgraph",
-        "version": "1.0",
-        "cascade": "T1→T2→T3→T4"
+        "version": "2.0",
+        "cascade": "T1→T2→T3→T4→T5"
     }
 
 @app.get("/models")
@@ -176,6 +250,8 @@ def get_html_content() -> str:
             .response { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-top: 20px; border-radius: 4px; min-height: 60px; }
             .model-btn { padding: 8px 15px; margin: 5px; border: 2px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
             .model-btn.active { background: #667eea; color: white; border-color: #667eea; }
+            .model-btn.t5 { border-color: #ff6b9d; }
+            .model-btn.t5.active { background: #ff6b9d; border-color: #ff6b9d; }
             .status { margin-top: 10px; padding: 10px; border-radius: 4px; }
             .success { background: #d4edda; color: #155724; }
             .error { background: #f8d7da; color: #721c24; }
@@ -184,7 +260,7 @@ def get_html_content() -> str:
     <body>
         <div class="container">
             <h1>🚀 Sovereign AI Cascade Router</h1>
-            <p>T1 (Mistral) → T2 (Llama) → T3 (Neural-Chat) → T4 (Dolphin)</p>
+            <p>T1 (Mistral) → T2 (Llama) → T3 (Neural-Chat) → T4 (Dolphin) → T5 (Claude Sonnet)</p>
 
             <h3>Sélectionner un modèle:</h3>
             <div id="modelButtons"></div>
@@ -211,12 +287,13 @@ def get_html_content() -> str:
                 {id: 't1', label: 'T1'},
                 {id: 't2', label: 'T2'},
                 {id: 't3', label: 'T3'},
-                {id: 't4', label: 'T4'}
+                {id: 't4', label: 'T4'},
+                {id: 't5', label: 'T5', special: true}
             ];
 
             models.forEach(m => {
                 const btn = document.createElement('button');
-                btn.className = 'model-btn' + (m.id === 'auto' ? ' active' : '');
+                btn.className = 'model-btn' + (m.id === 'auto' ? ' active' : '') + (m.special ? ' t5' : '');
                 btn.textContent = m.label;
                 btn.onclick = () => {
                     document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
