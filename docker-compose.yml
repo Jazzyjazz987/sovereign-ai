@@ -9,9 +9,16 @@ services:
       - ollama_data:/root/.ollama
       - ./scripts/ollama_init.sh:/docker-entrypoint.d/init.sh
     environment:
-      - OLLAMA_NUM_PARALLEL=2
-      - OLLAMA_MAX_LOADED_MODELS=2
-      - OLLAMA_CPU_ONLY=1
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-2}
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-2}
+      - OLLAMA_CPU_ONLY=${OLLAMA_CPU_ONLY:-1}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${GPU_DEVICE_COUNT:-0}
+              capabilities: [compute, utility]
     networks:
       - sovereign-ai
     healthcheck:
