@@ -1,0 +1,128 @@
+{
+  "dashboard": {
+    "title": "Sovereign AI Cascade (T1→T5)",
+    "description": "Production cascade metrics: model routing, latency, T5 API errors, PII anonymization success",
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Model Selection by Complexity",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rate(cascade_router_calls_total[5m])",
+            "legendFormat": "{{model}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "Calls/sec"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Average Response Time (ms)",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, cascade_response_time_seconds) * 1000",
+            "legendFormat": "p95 {{model}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "ms",
+            "label": "Latency (ms)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "T5 API Error Rate",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(anthropic_api_errors_total[5m])",
+            "legendFormat": "{{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background",
+          "justifyMode": "center"
+        }
+      },
+      {
+        "id": 4,
+        "title": "PII Anonymization Success Rate",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(anone_success_total[5m]) / (rate(anone_attempts_total[5m]) + 0.001) * 100",
+            "legendFormat": "Success %",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "justifyMode": "center"
+        },
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "red",
+              "value": null
+            },
+            {
+              "color": "yellow",
+              "value": 95
+            },
+            {
+              "color": "green",
+              "value": 99
+            }
+          ]
+        }
+      }
+    ],
+    "version": 1,
+    "schemaVersion": 27,
+    "overwrite": true
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "dashboard": {
+    "title": "GPU Utilization & VRAM",
+    "description": "Production GPU metrics: memory usage, temperature, model load times",
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "GPU Memory Usage (%)",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "nvidia_smi_memory_used_percent",
+            "legendFormat": "GPU {{index}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "percent",
+            "label": "Memory %",
+            "max": 100,
+            "min": 0
+          }
+        ],
+        "alert": {
+          "name": "GPU Memory High",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [90],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "GPU Memory High",
+          "noDataState": "no_data",
+          "notificationUids": []
+        }
+      },
+      {
+        "id": 2,
+        "title": "GPU Temperature (°C)",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "nvidia_smi_temperature_gpu",
+            "legendFormat": "GPU {{index}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "Temperature (°C)",
+            "min": 0,
+            "max": 90
+          }
+        ],
+        "alert": {
+          "name": "GPU Temperature High",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [80],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "2m", "now"]
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "GPU Temperature High",
+          "noDataState": "no_data",
+          "notificationUids": []
+        }
+      },
+      {
+        "id": 3,
+        "title": "Ollama Model Load Time (s)",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, ollama_model_load_duration_seconds)",
+            "legendFormat": "{{model}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "justifyMode": "center"
+        },
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Load Duration (s)"
+          }
+        ]
+      }
+    ],
+    "version": 1,
+    "schemaVersion": 27,
+    "overwrite": true
+  }
+}
