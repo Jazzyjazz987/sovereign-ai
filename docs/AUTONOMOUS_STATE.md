@@ -6,15 +6,24 @@
 **Full handoff:** `docs/RESUME_AUTONOMOUS.md`
 
 ## RESUME HERE
-Next task: **B6 — Prometheus `/metrics` endpoints** on langgraph + anone (dashboards are empty;
-prometheus logs a `/metrics` 404 every few seconds). Then B12 (ollama CPU tuning), B14 (HF cache
-volume), B7 (doc accuracy pass), B8, B9 (GPU probe), B10, B11.
+Next task: **B12 — Ollama CPU concurrency tuning** (`OLLAMA_MAX_LOADED_MODELS=1`,
+`OLLAMA_NUM_PARALLEL=1` defaults for CPU mode in docker-compose). Then B7 (doc accuracy pass),
+B6b (litellm/ollama /metrics), B9 (GPU probe), B10 (pg backup), B11 (TLS), B18 (RAG — see below).
 First commands:
 ```
 cd /opt/claude/sovereign-ai
-grep -n metrics config/prometheus.yml
-sed -n '1,20p' api/main.py   # add prometheus_client /metrics
+sed -n '/^  ollama:/,/^  postgres:/p' docker-compose.yml
 ```
+
+## RAG workstream (B18) — operator wants the server to have its own RAG
+Design agreed in conversation 2026-09-05: new `rag` service (port 8090, FastAPI like anone) +
+**pgvector in the existing PostgreSQL** (switch image to `pgvector/pgvector:pg16`, add
+`rag_chunks` table) + local embeddings `intfloat/multilingual-e5-base` (volume-cached like B14).
+Endpoints: `/ingest`, `/search`, `DELETE /doc/{id}` (RGPD erasure), `/health`, `/metrics`.
+LangGraph `use_rag` step; retrieved chunks with PII → Anone before T5. ACL via `acl_tags` +
+Entra-group filter (permissive first). NOT STARTED — operator was mid-thread on ECC install.
+Sub-items to file: B18a pgvector, B18b rag service, B18c ingestion, B18d cascade integration,
+B18e ACL. Write `docs/RAG_DESIGN.md` when starting.
 
 ## In flight
 - Nothing uncommitted in git.
@@ -57,6 +66,13 @@ sed -n '1,20p' api/main.py   # add prometheus_client /metrics
 - Open decisions: D1 GPU presence, D2 model spec, D4 git token, D5 T5 key, D6 docker-vs-native.
 
 ## Backlog status
-B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅ B13a ✅ B13b ✅ B16 ✅(T5 cost+moderation)
-B6 ☐←NEXT  B7 ☐  B8 ☐  B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)  B12 ☐(ollama CPU)
-B14 ☐(HF cache)  B17 ☐(T5 notif channel)
+B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅ B6 ✅ B13a ✅ B13b ✅ B13c ✅ B14 ✅ B16 ✅(T5 cost+moderation)
+B12 ☐←NEXT(ollama CPU)  B7 ☐  B6b ☐(litellm/ollama metrics)  B9 ☐(GPU)  B10 ☐(pg backup)
+B11 ☐(TLS)  B17 ☐(T5 notif channel)  B18 ☐(RAG workstream)
+
+## Non-stack side task (Claude Code instance only)
+Operator asked to install **ECC** (`ecc-universal@2.2.1`, agent-harness framework) into
+`/opt/claude/.claude/` via `--target claude-project`. Repo cloned to `/opt/claude/ECC-src`,
+inspected (clean). `Bash(npx:*)` added to `/opt/claude/.claude/settings.json` but the auto-mode
+classifier still blocks npx for the loop → operator runs it themselves. Backup of user `.claude`
+at `/opt/claude/.ecc-backup-<ts>/`. Does NOT touch the sovereign-ai stack.
