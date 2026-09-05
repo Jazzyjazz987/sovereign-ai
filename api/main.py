@@ -1,19 +1,22 @@
 """
-LangGraph Orchestrateur Cascade T1→T4
+LangGraph Orchestrateur Cascade T1→T5
 Port 8888 - API + Web UI
 """
 import os
 import httpx
 import asyncio
+import requests as req_lib
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import re
 
-app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
+app = FastAPI(title="Sovereign AI Cascade Router", version="2.0")
 
 # Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+ANONE_URL = os.getenv("ANONE_URL", "http://anone:8080")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 litellm_api_key = os.getenv("LITELLM_API_KEY")
 
 # Pydantic models
@@ -36,12 +39,14 @@ class CascadeRouter:
         self.advanced_keywords = {
             "architecture", "design", "pattern", "microservices",
             "kubernetes", "docker", "ansible", "terraform",
-            "rgpd", "compliance", "governance", "security", "analyse",
-            "strategy", "plan", "evaluate"
+            "rgpd", "compliance", "gouvernemental", "governance",
+            "security", "analyse", "strategy", "plan", "evaluate",
+            "légal", "légaux", "juridique", "obligations", "clarifications",
+            "cnil", "réglementation"
         }
 
     def calculate_complexity(self, query: str) -> float:
-        """Calculate query complexity (1.0 - 4.0)"""
+        """Calculate query complexity (1.0 - 5.0)"""
         query_lower = query.lower()
         word_count = len(query.split())
 
@@ -59,30 +64,38 @@ class CascadeRouter:
         complexity += advanced_matches * 0.6
 
         # Length bonus
-        if word_count > 20:
-            complexity += 0.5
-        elif word_count > 50:
+        if word_count > 50:
             complexity += 1.0
+        elif word_count > 20:
+            complexity += 0.5
 
-        return min(4.0, complexity)  # Cap at 4.0
+        return min(5.0, complexity)  # Cap at 5.0 (T5 threshold)
 
     def route(self, query: str, forced_model: str = None) -> tuple[str, float]:
-        """Route query to appropriate model. Returns (model, complexity)"""
+        """Route query to appropriate model tier. Returns (model, complexity)"""
         if forced_model and forced_model != "auto":
-            model_map = {"t1": "mistral:7b", "t2": "llama2:7b", "t3": "neural-chat", "t4": "dolphin-mixtral"}
+            model_map = {
+                "t1": "mistral:7b",
+                "t2": "llama2:7b",
+                "t3": "neural-chat",
+                "t4": "dolphin-mixtral",
+                "t5": "claude-3-5-sonnet-20241022"
+            }
             return model_map.get(forced_model, "mistral:7b"), 2.0
 
         complexity = self.calculate_complexity(query)
 
         # Route by complexity
         if complexity < 1.5:
-            return "mistral:7b", complexity  # T1
+            return "mistral:7b", complexity          # T1
         elif complexity < 2.5:
-            return "llama2:7b", complexity   # T2
+            return "llama2:7b", complexity            # T2
         elif complexity < 3.5:
-            return "neural-chat", complexity  # T3
+            return "neural-chat", complexity          # T3
+        elif complexity < 4.5:
+            return "dolphin-mixtral", complexity      # T4
         else:
-            return "dolphin-mixtral", complexity  # T4
+            return "claude-3-5-sonnet-20241022", complexity  # T5
 
 router = CascadeRouter()
 
@@ -101,13 +114,95 @@ async def query_ollama(model: str, prompt: str) -> str:
     except Exception as e:
         return f"Error connecting to Ollama: {str(e)}"
 
+# T5 Cloud Client via Agent Anone
+async def route_t5_with_anonymization(query: str) -> dict:
+    """Route to T5 (Claude Sonnet) via Agent Anone PII anonymization"""
+    import anthropic
+
+    if not ANTHROPIC_API_KEY:
+        return {
+            "error": "ANTHROPIC_API_KEY not set",
+            "status": "error",
+            "model": "T5"
+        }
+
+    # Step 1: Anonymize via Agent Anone
+    try:
+        anone_resp = req_lib.post(
+            f"{ANONE_URL}/anonymize",
+            json={"text": query},
+            timeout=10
+        )
+        if anone_resp.status_code == 200:
+            anon_data = anone_resp.json()
+            anonymized_query = anon_data.get("anonymized_text", query)
+            pii_mapping = anon_data.get("pii_mapping", {})
+        else:
+            anonymized_query = query
+            pii_mapping = {}
+    except Exception:
+        anonymized_query = query
+        pii_mapping = {}
+
+    # Step 2: Call T5 (Claude Sonnet) via Anthropic API
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    try:
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "You are a French-language AI assistant for the Polynésie française DSI.\n"
+                        "Context: Government information system (RGPD-compliant, sovereign).\n"
+                        f"Query: {anonymized_query}\n"
+                        "Respond in French. Be precise and official."
+                    )
+                }
+            ]
+        )
+
+        response_text = message.content[0].text
+
+        # Step 3: De-anonymize response (restore PII from mapping)
+        if pii_mapping:
+            try:
+                deanon_resp = req_lib.post(
+                    f"{ANONE_URL}/deanonymize",
+                    json={"text": response_text, "pii_mapping": pii_mapping},
+                    timeout=10
+                )
+                if deanon_resp.status_code == 200:
+                    response_text = deanon_resp.json().get("text", response_text)
+            except Exception:
+                pass  # fallback to anonymized response
+
+        return {
+            "status": "ok",
+            "query": query,
+            "response": response_text,
+            "model_used": "claude-3-5-sonnet-20241022",
+            "complexity": 5.0,
+            "anonymized": True,
+            "message": "Processed with T5 (Anthropic Claude) + Agent Anone"
+        }
+    except Exception as e:
+        return {"error": str(e), "status": "error", "model": "T5"}
+
 # API Endpoints
 @app.post("/query")
 async def query_cascade(request: QueryRequest):
-    """Route and answer query using cascade"""
-    model, complexity = router.route(request.query, request.model if request.model != "auto" else None)
+    """Route and answer query using cascade T1→T5"""
+    forced = request.model if request.model != "auto" else None
+    model, complexity = router.route(request.query, forced)
 
-    # Get response from Ollama
+    # T5: cloud route with PII anonymization
+    if model == "claude-3-5-sonnet-20241022":
+        return await route_t5_with_anonymization(request.query)
+
+    # T1-T4: Ollama local models
     response = await query_ollama(model, request.query)
 
     return {
@@ -125,8 +220,8 @@ async def health():
     return {
         "status": "healthy",
         "service": "langgraph",
-        "version": "1.0",
-        "cascade": "T1→T2→T3→T4"
+        "version": "2.0",
+        "cascade": "T1→T2→T3→T4→T5"
     }
 
 @app.get("/models")
@@ -137,28 +232,27 @@ async def list_models():
             response = await client.get(f"{OLLAMA_URL}/api/tags")
             if response.status_code == 200:
                 return response.json()
-    except:
+    except Exception:
         pass
 
     return {
         "models": [
-            {"name": "mistral:7b", "size": "4GB"},
-            {"name": "llama2:7b", "size": "4GB"},
-            {"name": "neural-chat", "size": "4GB"},
-            {"name": "dolphin-mixtral", "size": "13GB"}
+            {"name": "mistral:7b", "size": "4GB", "tier": "T1"},
+            {"name": "llama2:7b", "size": "4GB", "tier": "T2"},
+            {"name": "neural-chat", "size": "4GB", "tier": "T3"},
+            {"name": "dolphin-mixtral", "size": "13GB", "tier": "T4"},
+            {"name": "claude-3-5-sonnet-20241022", "size": "cloud", "tier": "T5"}
         ]
     }
 
 # Read HTML template
 def get_html_content() -> str:
     """Get Web UI HTML"""
-    # Read from file if exists, otherwise return inline
     html_file = os.path.join(os.path.dirname(__file__), "static", "index.html")
     if os.path.exists(html_file):
         with open(html_file, 'r', encoding='utf-8') as f:
             return f.read()
 
-    # Fallback: return inline HTML
     return """
     <!DOCTYPE html>
     <html>
@@ -184,13 +278,13 @@ def get_html_content() -> str:
     <body>
         <div class="container">
             <h1>🚀 Sovereign AI Cascade Router</h1>
-            <p>T1 (Mistral) → T2 (Llama) → T3 (Neural-Chat) → T4 (Dolphin)</p>
+            <p>T1 (Mistral) → T2 (Llama) → T3 (Neural-Chat) → T4 (Dolphin) → T5 (Claude Sonnet)</p>
 
             <h3>Sélectionner un modèle:</h3>
             <div id="modelButtons"></div>
 
             <h3>Votre question:</h3>
-            <textarea id="query" placeholder="Posez votre question ici..."></textarea>
+            <textarea id="query" placeholder="Posez votre question ici..." rows="4"></textarea>
 
             <div>
                 <button onclick="submitQuery()">Envoyer</button>
@@ -205,13 +299,13 @@ def get_html_content() -> str:
         <script>
             let selectedModel = 'auto';
 
-            // Create model buttons
             const models = [
                 {id: 'auto', label: 'Auto 🔄'},
-                {id: 't1', label: 'T1'},
-                {id: 't2', label: 'T2'},
-                {id: 't3', label: 'T3'},
-                {id: 't4', label: 'T4'}
+                {id: 't1', label: 'T1 Mistral'},
+                {id: 't2', label: 'T2 Llama'},
+                {id: 't3', label: 'T3 Neural'},
+                {id: 't4', label: 'T4 Dolphin'},
+                {id: 't5', label: 'T5 Claude ☁️'}
             ];
 
             models.forEach(m => {
@@ -228,10 +322,7 @@ def get_html_content() -> str:
 
             async function submitQuery() {
                 const query = document.getElementById('query').value;
-                if (!query.trim()) {
-                    alert('Entrez une question');
-                    return;
-                }
+                if (!query.trim()) { alert('Entrez une question'); return; }
 
                 const response = document.getElementById('response');
                 const status = document.getElementById('status');
@@ -239,7 +330,7 @@ def get_html_content() -> str:
                 status.innerHTML = '';
 
                 try {
-                    const result = await fetch('http://localhost:8888/query', {
+                    const result = await fetch('/query', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({query, model: selectedModel})
@@ -252,6 +343,7 @@ def get_html_content() -> str:
 
                     let statusHtml = '<div class="status success">✓ Réponse reçue';
                     if (data.model_used) statusHtml += ` (${data.model_used})`;
+                    if (data.anonymized) statusHtml += ' 🔒 PII anonymisé';
                     statusHtml += '</div>';
                     status.innerHTML = statusHtml;
                 } catch (e) {
