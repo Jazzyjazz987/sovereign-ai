@@ -1,0 +1,36 @@
+groups:
+  - name: sovereign_ai_alerts
+    interval: 30s
+    rules:
+      - alert: HighGPUMemoryUsage
+        expr: nvidia_smi_memory_used_percent > 90
+        for: 2m
+        annotations:
+          summary: "GPU memory usage > 90%"
+          description: "GPU {{ $labels.index }} memory at {{ $value }}%"
+
+      - alert: T5APIErrors
+        expr: rate(anthropic_api_errors_total[5m]) > 0.1
+        for: 1m
+        annotations:
+          summary: "T5 (Anthropic) API errors detected"
+          description: "Error rate: {{ $value }} errors/sec"
+
+      - alert: CascadeHighLatency
+        expr: histogram_quantile(0.95, cascade_response_time_seconds) > 5
+        for: 3m
+        annotations:
+          summary: "Cascade response latency > 5s (p95)"
+          description: "{{ $value }}s latency detected"
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        annotations:
+          summary: "PostgreSQL database is down"
+
+      - alert: OllamaHealthCheck
+        expr: up{job="ollama"} == 0
+        for: 2m
+        annotations:
+          summary: "Ollama service unhealthy"
