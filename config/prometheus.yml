@@ -2,6 +2,14 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
@@ -15,4 +23,14 @@ scrape_configs:
   - job_name: 'litellm'
     static_configs:
       - targets: ['litellm:4000']
+    metrics_path: '/metrics'
+
+  - job_name: 'langgraph'
+    static_configs:
+      - targets: ['langgraph:8888']
+    metrics_path: '/metrics'
+
+  - job_name: 'anone'
+    static_configs:
+      - targets: ['anone:8080']
     metrics_path: '/metrics'

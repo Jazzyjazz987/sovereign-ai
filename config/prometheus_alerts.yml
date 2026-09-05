@@ -1,0 +1,75 @@
+groups:
+  - name: sovereign_ai_alerts
+    interval: 30s
+    rules:
+      - alert: HighGPUMemoryUsage
+        expr: nvidia_smi_memory_used_bytes / nvidia_smi_memory_total_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU memory usage > 90%"
+          description: "GPU {{ $labels.index }} memory at {{ $value }}%"
+
+      - alert: T5APIErrors
+        expr: rate(anthropic_api_errors_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "T5 (Anthropic) API errors detected"
+          description: "Error rate: {{ $value }} errors/sec"
+
+      - alert: CascadeHighLatency
+        expr: histogram_quantile(0.95, rate(cascade_response_time_seconds_bucket[5m])) > 5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cascade response latency > 5s (p95)"
+          description: "{{ $value }}s p95 latency detected on model {{ $labels.model }}"
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been down for more than 1 minute"
+
+      - alert: OllamaUnhealthy
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ollama service unhealthy"
+          description: "Ollama LLM service has been unreachable for 2+ minutes"
+
+      - alert: LangGraphDown
+        expr: up{job="langgraph"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LangGraph cascade router is down"
+          description: "LangGraph service (port 8888) unreachable"
+
+      - alert: AnoneServiceDown
+        expr: up{job="anone"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent Anone PII service is down"
+          description: "T5 cloud routing will proceed without PII anonymization"
+
+      - alert: PiiAnonymizationFailureRate
+        expr: rate(anone_attempts_total[5m]) > 0 and rate(anone_success_total[5m]) / rate(anone_attempts_total[5m]) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PII anonymization failure rate > 5%"
+          description: "Success rate: {{ $value | humanizePercentage }}"
