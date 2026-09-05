@@ -1,0 +1,27 @@
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y python3.11 python3.11-dev python3-pip git && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip setuptools wheel
+
+RUN pip install vllm torch transformers
+
+ARG MODEL_NAME=gpt2
+ARG PORT=8001
+ARG GPU_MEMORY=0.7
+
+ENV MODEL_NAME=${MODEL_NAME} \
+    PORT=${PORT} \
+    GPU_MEMORY=${GPU_MEMORY}
+
+EXPOSE ${PORT}
+
+CMD python3 -m vllm.entrypoints.openai.api_server \
+    --model $MODEL_NAME \
+    --port $PORT \
+    --gpu-memory-utilization $GPU_MEMORY \
+    --dtype float16 \
+    --trust-remote-code \
+    --max-model-len 512

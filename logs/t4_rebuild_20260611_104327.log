@@ -1,0 +1,1233 @@
+time="2026-06-11T10:43:27-10:00" level=warning msg="/opt/claude/sovereign-ai/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344]        █     █     █▄   ▄█
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.22.1
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344]   █▄█▀ █     █     █     █  model   Qwen/Qwen-7B-Chat
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:43:18 [utils.py:278] non-default args: {'port': 8002, 'model': 'Qwen/Qwen-7B-Chat', 'dtype': 'float16', 'gpu_memory_utilization': 0.4}
+vllm-t4-1  | (APIServer pid=72) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+vllm-t4-1  | (APIServer pid=72) Traceback (most recent call last):
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+vllm-t4-1  | (APIServer pid=72)     return _run_code(code, main_globals, None,
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+vllm-t4-1  | (APIServer pid=72)     exec(code, run_globals)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 718, in <module>
+vllm-t4-1  | (APIServer pid=72)     uvloop.run(run_server(args))
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 69, in run
+vllm-t4-1  | (APIServer pid=72)     return loop.run_until_complete(wrapper())
+vllm-t4-1  | (APIServer pid=72)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 48, in wrapper
+vllm-t4-1  | (APIServer pid=72)     return await main
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 678, in run_server
+vllm-t4-1  | (APIServer pid=72)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 692, in run_server_worker
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 100, in build_async_engine_client
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client_from_engine_args(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 124, in build_async_engine_client_from_engine_args
+vllm-t4-1  | (APIServer pid=72)     vllm_config = engine_args.create_engine_config(usage_context=usage_context)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/engine/arg_utils.py", line 1730, in create_engine_config
+vllm-t4-1  | (APIServer pid=72)     model_config = self.create_model_config()
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/engine/arg_utils.py", line 1560, in create_model_config
+vllm-t4-1  | (APIServer pid=72)     return ModelConfig(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+vllm-t4-1  | (APIServer pid=72)     s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+vllm-t4-1  | (APIServer pid=72) pydantic_core._pydantic_core.ValidationError: 1 validation error for ModelConfig
+vllm-t4-1  | (APIServer pid=72)   Value error, The repository Qwen/Qwen-7B-Chat contains custom code which must be executed to correctly load the model. You can inspect the repository content at https://hf.co/Qwen/Qwen-7B-Chat .
+vllm-t4-1  | (APIServer pid=72)  You can inspect the repository content at https://hf.co/Qwen/Qwen-7B-Chat.
+vllm-t4-1  | (APIServer pid=72) Please pass the argument `trust_remote_code=True` to allow custom code to be run. [type=value_error, input_value=ArgsKwargs((), {'model': ...nderer_num_workers': 1}), input_type=ArgsKwargs]
+vllm-t4-1  | (APIServer pid=72)     For further information visit https://errors.pydantic.dev/2.13/v/value_error
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344]        █     █     █▄   ▄█
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.22.1
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344]   █▄█▀ █     █     █     █  model   Qwen/Qwen-7B-Chat
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:22 [utils.py:278] non-default args: {'port': 8002, 'model': 'Qwen/Qwen-7B-Chat', 'trust_remote_code': True, 'dtype': 'float16', 'gpu_memory_utilization': 0.4}
+vllm-t4-1  | (APIServer pid=71) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+vllm-t4-1  | (APIServer pid=71) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=71) - configuration_qwen.py
+vllm-t4-1  | (APIServer pid=71) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:44:25 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_emb_base'. Please use the preferred attribute name 'rope_theta' instead.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:44:25 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_pct'. Please use the preferred attribute name 'partial_rotary_factor' instead.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:32 [model.py:617] Resolved architecture: QWenLMHeadModel
+vllm-t4-1  | (APIServer pid=71) Parse safetensors files:   0%|          | 0/8 [00:00<?, ?it/s]Parse safetensors files:  12%|█▎        | 1/8 [00:01<00:10,  1.52s/it]Parse safetensors files: 100%|██████████| 8/8 [00:01<00:00,  5.20it/s]
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:44:35 [model.py:2090] Casting torch.bfloat16 to torch.float16.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:35 [model.py:1752] Using max model len 8192
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:35 [vllm.py:977] Asynchronous scheduling is enabled.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:35 [kernel.py:270] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+vllm-t4-1  | (APIServer pid=71) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=71) - tokenization_qwen.py
+vllm-t4-1  | (APIServer pid=71) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:44:43 [registry.py:253] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:48 [core.py:112] Initializing a V1 LLM engine (v0.22.1) with config: model='Qwen/Qwen-7B-Chat', speculative_config=None, tokenizer='Qwen/Qwen-7B-Chat', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.float16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=Qwen/Qwen-7B-Chat, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:49 [parallel_state.py:1422] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.18.0.6:36583 backend=nccl
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:49 [parallel_state.py:1735] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:50 [topk_topp_sampler.py:45] Using FlashInfer for top-p & top-k sampling.
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:50 [gpu_model_runner.py:5037] Starting to load model Qwen/Qwen-7B-Chat...
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:50 [cuda.py:378] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+vllm-t4-1  | (EngineCore pid=155) INFO 06-11 20:44:50 [flash_attn.py:636] Using FlashAttention version 2
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [gpu_model_runner.py:5130] Failed to load model - not enough GPU memory. Try lowering --gpu-memory-utilization to free memory for weights, increasing --tensor-parallel-size, or using --quantization. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more tips. (original error: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 139998 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf))
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165] EngineCore failed to start.
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165] Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     super().__init__(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=155) Process EngineCore:
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self._init_executor()
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     raise e
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) ERROR 06-11 20:44:51 [core.py:1165] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 139998 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | (EngineCore pid=155) Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+vllm-t4-1  | (EngineCore pid=155)     self.run()
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/lib/python3.10/multiprocessing/process.py", line 108, in run
+vllm-t4-1  | (EngineCore pid=155)     self._target(*self._args, **self._kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1169, in run_engine_core
+vllm-t4-1  | (EngineCore pid=155)     raise e
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=155)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=155)     super().__init__(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self._init_executor()
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=155)     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=155)     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=155)     raise e
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=155)     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=155)     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=155)     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=155)     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=155)     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=155)     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=155)     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=155)     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=155)     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=155)     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=155)     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=155)   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=155)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=155) torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 139998 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | [rank0]:[W611 20:44:51.453339264 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+vllm-t4-1  | (APIServer pid=71) Traceback (most recent call last):
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+vllm-t4-1  | (APIServer pid=71)     return _run_code(code, main_globals, None,
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+vllm-t4-1  | (APIServer pid=71)     exec(code, run_globals)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 718, in <module>
+vllm-t4-1  | (APIServer pid=71)     uvloop.run(run_server(args))
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 69, in run
+vllm-t4-1  | (APIServer pid=71)     return loop.run_until_complete(wrapper())
+vllm-t4-1  | (APIServer pid=71)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 48, in wrapper
+vllm-t4-1  | (APIServer pid=71)     return await main
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 678, in run_server
+vllm-t4-1  | (APIServer pid=71)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 692, in run_server_worker
+vllm-t4-1  | (APIServer pid=71)     async with build_async_engine_client(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=71)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 100, in build_async_engine_client
+vllm-t4-1  | (APIServer pid=71)     async with build_async_engine_client_from_engine_args(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=71)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 136, in build_async_engine_client_from_engine_args
+vllm-t4-1  | (APIServer pid=71)     async_llm = AsyncLLM.from_vllm_config(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+vllm-t4-1  | (APIServer pid=71)     return cls(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+vllm-t4-1  | (APIServer pid=71)     self.engine_core = EngineCoreClient.make_async_mp_client(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=71)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 131, in make_async_mp_client
+vllm-t4-1  | (APIServer pid=71)     return AsyncMPClient(*client_args)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=71)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 932, in __init__
+vllm-t4-1  | (APIServer pid=71)     super().__init__(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 567, in __init__
+vllm-t4-1  | (APIServer pid=71)     with launch_core_engines(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+vllm-t4-1  | (APIServer pid=71)     next(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1150, in launch_core_engines
+vllm-t4-1  | (APIServer pid=71)     wait_for_engine_startup(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1209, in wait_for_engine_startup
+vllm-t4-1  | (APIServer pid=71)     raise RuntimeError(
+vllm-t4-1  | (APIServer pid=71) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+[Kvllm-t4-1 exited with code 1
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344]        █     █     █▄   ▄█
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.22.1
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344]   █▄█▀ █     █     █     █  model   Qwen/Qwen-7B-Chat
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:44:59 [utils.py:278] non-default args: {'port': 8002, 'model': 'Qwen/Qwen-7B-Chat', 'trust_remote_code': True, 'dtype': 'float16', 'gpu_memory_utilization': 0.4}
+vllm-t4-1  | (APIServer pid=71) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+vllm-t4-1  | (APIServer pid=71) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=71) - configuration_qwen.py
+vllm-t4-1  | (APIServer pid=71) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:45:02 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_emb_base'. Please use the preferred attribute name 'rope_theta' instead.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:45:02 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_pct'. Please use the preferred attribute name 'partial_rotary_factor' instead.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:45:09 [model.py:617] Resolved architecture: QWenLMHeadModel
+vllm-t4-1  | (APIServer pid=71) Parse safetensors files:   0%|          | 0/8 [00:00<?, ?it/s]Parse safetensors files:  12%|█▎        | 1/8 [00:01<00:07,  1.03s/it]Parse safetensors files:  25%|██▌       | 2/8 [00:01<00:03,  1.68it/s]Parse safetensors files:  75%|███████▌  | 6/8 [00:02<00:00,  2.64it/s]Parse safetensors files: 100%|██████████| 8/8 [00:02<00:00,  3.10it/s]
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:45:13 [model.py:2090] Casting torch.bfloat16 to torch.float16.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:45:13 [model.py:1752] Using max model len 8192
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:45:13 [vllm.py:977] Asynchronous scheduling is enabled.
+vllm-t4-1  | (APIServer pid=71) INFO 06-11 20:45:13 [kernel.py:270] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+vllm-t4-1  | (APIServer pid=71) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=71) - tokenization_qwen.py
+vllm-t4-1  | (APIServer pid=71) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=71) WARNING 06-11 20:45:20 [registry.py:253] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:25 [core.py:112] Initializing a V1 LLM engine (v0.22.1) with config: model='Qwen/Qwen-7B-Chat', speculative_config=None, tokenizer='Qwen/Qwen-7B-Chat', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.float16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=Qwen/Qwen-7B-Chat, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:26 [parallel_state.py:1422] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.18.0.6:49647 backend=nccl
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:26 [parallel_state.py:1735] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:26 [topk_topp_sampler.py:45] Using FlashInfer for top-p & top-k sampling.
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:26 [gpu_model_runner.py:5037] Starting to load model Qwen/Qwen-7B-Chat...
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:27 [cuda.py:378] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+vllm-t4-1  | (EngineCore pid=161) INFO 06-11 20:45:27 [flash_attn.py:636] Using FlashAttention version 2
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [gpu_model_runner.py:5130] Failed to load model - not enough GPU memory. Try lowering --gpu-memory-utilization to free memory for weights, increasing --tensor-parallel-size, or using --quantization. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more tips. (original error: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 141833 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf))
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165] EngineCore failed to start.
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165] Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     super().__init__(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161) Process EngineCore:
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self._init_executor()
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     raise e
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) ERROR 06-11 20:45:27 [core.py:1165] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 141833 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | (EngineCore pid=161) Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+vllm-t4-1  | (EngineCore pid=161)     self.run()
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/lib/python3.10/multiprocessing/process.py", line 108, in run
+vllm-t4-1  | (EngineCore pid=161)     self._target(*self._args, **self._kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1169, in run_engine_core
+vllm-t4-1  | (EngineCore pid=161)     raise e
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=161)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=161)     super().__init__(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self._init_executor()
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=161)     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=161)     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=161)     raise e
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=161)     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=161)     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=161)     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=161)     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=161)     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=161)     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=161)     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=161)     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=161)     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=161)     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=161)     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=161)   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=161)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=161) torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 141833 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | [rank0]:[W611 20:45:28.920064560 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+vllm-t4-1  | (APIServer pid=71) Traceback (most recent call last):
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+vllm-t4-1  | (APIServer pid=71)     return _run_code(code, main_globals, None,
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+vllm-t4-1  | (APIServer pid=71)     exec(code, run_globals)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 718, in <module>
+vllm-t4-1  | (APIServer pid=71)     uvloop.run(run_server(args))
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 69, in run
+vllm-t4-1  | (APIServer pid=71)     return loop.run_until_complete(wrapper())
+vllm-t4-1  | (APIServer pid=71)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 48, in wrapper
+vllm-t4-1  | (APIServer pid=71)     return await main
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 678, in run_server
+vllm-t4-1  | (APIServer pid=71)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 692, in run_server_worker
+vllm-t4-1  | (APIServer pid=71)     async with build_async_engine_client(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=71)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 100, in build_async_engine_client
+vllm-t4-1  | (APIServer pid=71)     async with build_async_engine_client_from_engine_args(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=71)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 136, in build_async_engine_client_from_engine_args
+vllm-t4-1  | (APIServer pid=71)     async_llm = AsyncLLM.from_vllm_config(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+vllm-t4-1  | (APIServer pid=71)     return cls(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+vllm-t4-1  | (APIServer pid=71)     self.engine_core = EngineCoreClient.make_async_mp_client(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=71)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 131, in make_async_mp_client
+vllm-t4-1  | (APIServer pid=71)     return AsyncMPClient(*client_args)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=71)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 932, in __init__
+vllm-t4-1  | (APIServer pid=71)     super().__init__(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 567, in __init__
+vllm-t4-1  | (APIServer pid=71)     with launch_core_engines(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+vllm-t4-1  | (APIServer pid=71)     next(self.gen)
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1150, in launch_core_engines
+vllm-t4-1  | (APIServer pid=71)     wait_for_engine_startup(
+vllm-t4-1  | (APIServer pid=71)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1209, in wait_for_engine_startup
+vllm-t4-1  | (APIServer pid=71)     raise RuntimeError(
+vllm-t4-1  | (APIServer pid=71) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+[Kvllm-t4-1 exited with code 1
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344]        █     █     █▄   ▄█
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.22.1
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344]   █▄█▀ █     █     █     █  model   Qwen/Qwen-7B-Chat
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:43 [utils.py:278] non-default args: {'port': 8002, 'model': 'Qwen/Qwen-7B-Chat', 'trust_remote_code': True, 'dtype': 'float16', 'gpu_memory_utilization': 0.3}
+vllm-t4-1  | (APIServer pid=72) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+vllm-t4-1  | (APIServer pid=72) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=72) - configuration_qwen.py
+vllm-t4-1  | (APIServer pid=72) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:47:46 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_emb_base'. Please use the preferred attribute name 'rope_theta' instead.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:47:46 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_pct'. Please use the preferred attribute name 'partial_rotary_factor' instead.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:53 [model.py:617] Resolved architecture: QWenLMHeadModel
+vllm-t4-1  | (APIServer pid=72) Parse safetensors files:   0%|          | 0/8 [00:00<?, ?it/s]Parse safetensors files:  12%|█▎        | 1/8 [00:01<00:07,  1.07s/it]Parse safetensors files:  25%|██▌       | 2/8 [00:01<00:03,  1.66it/s]Parse safetensors files:  75%|███████▌  | 6/8 [00:02<00:00,  3.19it/s]Parse safetensors files: 100%|██████████| 8/8 [00:02<00:00,  3.55it/s]
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:47:57 [model.py:2090] Casting torch.bfloat16 to torch.float16.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:57 [model.py:1752] Using max model len 8192
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:57 [vllm.py:977] Asynchronous scheduling is enabled.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:47:57 [kernel.py:270] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+vllm-t4-1  | (APIServer pid=72) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=72) - tokenization_qwen.py
+vllm-t4-1  | (APIServer pid=72) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:48:03 [registry.py:253] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:08 [core.py:112] Initializing a V1 LLM engine (v0.22.1) with config: model='Qwen/Qwen-7B-Chat', speculative_config=None, tokenizer='Qwen/Qwen-7B-Chat', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.float16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=Qwen/Qwen-7B-Chat, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:09 [parallel_state.py:1422] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.18.0.6:44433 backend=nccl
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:10 [parallel_state.py:1735] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:10 [topk_topp_sampler.py:45] Using FlashInfer for top-p & top-k sampling.
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:10 [gpu_model_runner.py:5037] Starting to load model Qwen/Qwen-7B-Chat...
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:10 [cuda.py:378] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+vllm-t4-1  | (EngineCore pid=186) INFO 06-11 20:48:10 [flash_attn.py:636] Using FlashAttention version 2
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [gpu_model_runner.py:5130] Failed to load model - not enough GPU memory. Try lowering --gpu-memory-utilization to free memory for weights, increasing --tensor-parallel-size, or using --quantization. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more tips. (original error: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 148937 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf))
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165] EngineCore failed to start.
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165] Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     super().__init__(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self._init_executor()
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186) Process EngineCore:
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     raise e
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) ERROR 06-11 20:48:11 [core.py:1165] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 148937 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | (EngineCore pid=186) Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+vllm-t4-1  | (EngineCore pid=186)     self.run()
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/lib/python3.10/multiprocessing/process.py", line 108, in run
+vllm-t4-1  | (EngineCore pid=186)     self._target(*self._args, **self._kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1169, in run_engine_core
+vllm-t4-1  | (EngineCore pid=186)     raise e
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=186)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=186)     super().__init__(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self._init_executor()
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=186)     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=186)     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=186)     raise e
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=186)     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=186)     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=186)     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=186)     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=186)     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=186)     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=186)     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=186)     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=186)     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 174, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.mlp = QWenMLP(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 69, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.c_proj = RowParallelLinear(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1464, in __init__
+vllm-t4-1  | (EngineCore pid=186)     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=186)     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=186)   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=186)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=186) torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 13.81 MiB is free. Process 148937 has 11.60 GiB memory in use. Of the allocated memory 11.28 GiB is allocated by PyTorch, and 12.26 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | [rank0]:[W611 20:48:11.560749048 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+vllm-t4-1  | (APIServer pid=72) Traceback (most recent call last):
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+vllm-t4-1  | (APIServer pid=72)     return _run_code(code, main_globals, None,
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+vllm-t4-1  | (APIServer pid=72)     exec(code, run_globals)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 718, in <module>
+vllm-t4-1  | (APIServer pid=72)     uvloop.run(run_server(args))
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 69, in run
+vllm-t4-1  | (APIServer pid=72)     return loop.run_until_complete(wrapper())
+vllm-t4-1  | (APIServer pid=72)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 48, in wrapper
+vllm-t4-1  | (APIServer pid=72)     return await main
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 678, in run_server
+vllm-t4-1  | (APIServer pid=72)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 692, in run_server_worker
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 100, in build_async_engine_client
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client_from_engine_args(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 136, in build_async_engine_client_from_engine_args
+vllm-t4-1  | (APIServer pid=72)     async_llm = AsyncLLM.from_vllm_config(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+vllm-t4-1  | (APIServer pid=72)     return cls(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+vllm-t4-1  | (APIServer pid=72)     self.engine_core = EngineCoreClient.make_async_mp_client(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=72)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 131, in make_async_mp_client
+vllm-t4-1  | (APIServer pid=72)     return AsyncMPClient(*client_args)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=72)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 932, in __init__
+vllm-t4-1  | (APIServer pid=72)     super().__init__(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 567, in __init__
+vllm-t4-1  | (APIServer pid=72)     with launch_core_engines(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+vllm-t4-1  | (APIServer pid=72)     next(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1150, in launch_core_engines
+vllm-t4-1  | (APIServer pid=72)     wait_for_engine_startup(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1209, in wait_for_engine_startup
+vllm-t4-1  | (APIServer pid=72)     raise RuntimeError(
+vllm-t4-1  | (APIServer pid=72) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+[Kvllm-t4-1 exited with code 1
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | usage: api_server.py [-h] [--headless] [--api-server-count API_SERVER_COUNT]
+vllm-t4-1  |                      [--config CONFIG] [--grpc]
+vllm-t4-1  |                      [--lora-modules LORA_MODULES [LORA_MODULES ...]]
+vllm-t4-1  |                      [--chat-template CHAT_TEMPLATE]
+vllm-t4-1  |                      [--chat-template-content-format {auto,openai,string}]
+vllm-t4-1  |                      [--trust-request-chat-template | --no-trust-request-chat-template]
+vllm-t4-1  |                      [--default-chat-template-kwargs DEFAULT_CHAT_TEMPLATE_KWARGS]
+vllm-t4-1  |                      [--response-role RESPONSE_ROLE]
+vllm-t4-1  |                      [--return-tokens-as-token-ids | --no-return-tokens-as-token-ids]
+vllm-t4-1  |                      [--enable-auto-tool-choice | --no-enable-auto-tool-choice]
+vllm-t4-1  |                      [--exclude-tools-when-tool-choice-none | --no-exclude-tools-when-tool-choice-none]
+vllm-t4-1  |                      [--tool-call-parser {apertus,cohere_command3,cohere_command4,deepseek_v3,deepseek_v31,deepseek_v32,deepseek_v4,ernie45,functiongemma,gemma4,gigachat3,glm45,glm47,granite,granite-20b-fc,granite4,hermes,hunyuan_a13b,hy_v3,internlm,jamba,kimi_k2,lfm2,llama3_json,llama4_json,llama4_pythonic,longcat,mimo,minimax,minimax_m2,mistral,olmo3,openai,phi4_mini_json,poolside_v1,pythonic,qwen3_coder,qwen3_xml,seed_oss,step3,step3p5,xlam} or name registered in --tool-parser-plugin]
+vllm-t4-1  |                      [--tool-parser-plugin TOOL_PARSER_PLUGIN]
+vllm-t4-1  |                      [--tool-server TOOL_SERVER]
+vllm-t4-1  |                      [--log-config-file LOG_CONFIG_FILE]
+vllm-t4-1  |                      [--max-log-len MAX_LOG_LEN]
+vllm-t4-1  |                      [--enable-prompt-tokens-details | --no-enable-prompt-tokens-details]
+vllm-t4-1  |                      [--enable-server-load-tracking | --no-enable-server-load-tracking]
+vllm-t4-1  |                      [--enable-force-include-usage | --no-enable-force-include-usage]
+vllm-t4-1  |                      [--enable-tokenizer-info-endpoint | --no-enable-tokenizer-info-endpoint]
+vllm-t4-1  |                      [--enable-log-outputs | --no-enable-log-outputs]
+vllm-t4-1  |                      [--enable-log-deltas | --no-enable-log-deltas]
+vllm-t4-1  |                      [--log-error-stack | --no-log-error-stack]
+vllm-t4-1  |                      [--tokens-only | --no-tokens-only]
+vllm-t4-1  |                      [--fingerprint-mode {custom,full,hash,none}]
+vllm-t4-1  |                      [--fingerprint-value FINGERPRINT_VALUE] [--host HOST]
+vllm-t4-1  |                      [--port PORT]
+vllm-t4-1  |                      [--data-parallel-supervisor-port DATA_PARALLEL_SUPERVISOR_PORT]
+vllm-t4-1  |                      [--dp-supervisor-probe-interval-s DP_SUPERVISOR_PROBE_INTERVAL_S]
+vllm-t4-1  |                      [--dp-supervisor-probe-timeout-s DP_SUPERVISOR_PROBE_TIMEOUT_S]
+vllm-t4-1  |                      [--dp-supervisor-probe-failure-threshold DP_SUPERVISOR_PROBE_FAILURE_THRESHOLD]
+vllm-t4-1  |                      [--uds UDS]
+vllm-t4-1  |                      [--uvicorn-log-level {critical,debug,error,info,trace,warning}]
+vllm-t4-1  |                      [--disable-uvicorn-access-log | --no-disable-uvicorn-access-log]
+vllm-t4-1  |                      [--disable-access-log-for-endpoints DISABLE_ACCESS_LOG_FOR_ENDPOINTS]
+vllm-t4-1  |                      [--allow-credentials | --no-allow-credentials]
+vllm-t4-1  |                      [--allowed-origins ALLOWED_ORIGINS]
+vllm-t4-1  |                      [--allowed-methods ALLOWED_METHODS]
+vllm-t4-1  |                      [--allowed-headers ALLOWED_HEADERS]
+vllm-t4-1  |                      [--api-key API_KEY [API_KEY ...]]
+vllm-t4-1  |                      [--ssl-keyfile SSL_KEYFILE] [--ssl-certfile SSL_CERTFILE]
+vllm-t4-1  |                      [--ssl-ca-certs SSL_CA_CERTS]
+vllm-t4-1  |                      [--enable-ssl-refresh | --no-enable-ssl-refresh]
+vllm-t4-1  |                      [--ssl-cert-reqs SSL_CERT_REQS]
+vllm-t4-1  |                      [--ssl-ciphers SSL_CIPHERS] [--root-path ROOT_PATH]
+vllm-t4-1  |                      [--middleware MIDDLEWARE]
+vllm-t4-1  |                      [--enable-request-id-headers | --no-enable-request-id-headers]
+vllm-t4-1  |                      [--disable-fastapi-docs | --no-disable-fastapi-docs]
+vllm-t4-1  |                      [--h11-max-incomplete-event-size H11_MAX_INCOMPLETE_EVENT_SIZE]
+vllm-t4-1  |                      [--h11-max-header-count H11_MAX_HEADER_COUNT]
+vllm-t4-1  |                      [--enable-offline-docs | --no-enable-offline-docs]
+vllm-t4-1  |                      [--enable-flash-late-interaction | --no-enable-flash-late-interaction]
+vllm-t4-1  |                      [--model MODEL] [--runner {auto,draft,generate,pooling}]
+vllm-t4-1  |                      [--convert {auto,classify,embed,none}]
+vllm-t4-1  |                      [--tokenizer TOKENIZER]
+vllm-t4-1  |                      [--tokenizer-mode ['auto', 'deepseek_v32', 'deepseek_v4', 'hf', 'mistral', 'slow']]
+vllm-t4-1  |                      [--trust-remote-code | --no-trust-remote-code]
+vllm-t4-1  |                      [--dtype {auto,bfloat16,float,float16,float32,half}]
+vllm-t4-1  |                      [--seed SEED] [--hf-config-path HF_CONFIG_PATH]
+vllm-t4-1  |                      [--allowed-local-media-path ALLOWED_LOCAL_MEDIA_PATH]
+vllm-t4-1  |                      [--allowed-media-domains ALLOWED_MEDIA_DOMAINS [ALLOWED_MEDIA_DOMAINS ...]]
+vllm-t4-1  |                      [--revision REVISION] [--code-revision CODE_REVISION]
+vllm-t4-1  |                      [--tokenizer-revision TOKENIZER_REVISION]
+vllm-t4-1  |                      [--max-model-len MAX_MODEL_LEN]
+vllm-t4-1  |                      [--quantization QUANTIZATION]
+vllm-t4-1  |                      [--quantization-config QUANTIZATION_CONFIG]
+vllm-t4-1  |                      [--allow-deprecated-quantization | --no-allow-deprecated-quantization]
+vllm-t4-1  |                      [--enforce-eager | --no-enforce-eager]
+vllm-t4-1  |                      [--enable-return-routed-experts | --no-enable-return-routed-experts]
+vllm-t4-1  |                      [--max-logprobs MAX_LOGPROBS]
+vllm-t4-1  |                      [--logprobs-mode {processed_logits,processed_logprobs,raw_logits,raw_logprobs}]
+vllm-t4-1  |                      [--use-fp64-gumbel | --no-use-fp64-gumbel]
+vllm-t4-1  |                      [--disable-sliding-window | --no-disable-sliding-window]
+vllm-t4-1  |                      [--disable-cascade-attn | --no-disable-cascade-attn]
+vllm-t4-1  |                      [--skip-tokenizer-init | --no-skip-tokenizer-init]
+vllm-t4-1  |                      [--enable-prompt-embeds | --no-enable-prompt-embeds]
+vllm-t4-1  |                      [--served-model-name SERVED_MODEL_NAME [SERVED_MODEL_NAME ...]]
+vllm-t4-1  |                      [--config-format ['auto', 'hf', 'mistral']]
+vllm-t4-1  |                      [--hf-token [HF_TOKEN]] [--hf-overrides HF_OVERRIDES]
+vllm-t4-1  |                      [--pooler-config POOLER_CONFIG]
+vllm-t4-1  |                      [--generation-config GENERATION_CONFIG]
+vllm-t4-1  |                      [--override-generation-config OVERRIDE_GENERATION_CONFIG]
+vllm-t4-1  |                      [--enable-sleep-mode | --no-enable-sleep-mode]
+vllm-t4-1  |                      [--enable-cumem-allocator | --no-enable-cumem-allocator]
+vllm-t4-1  |                      [--model-impl ['auto', 'terratorch', 'transformers', 'vllm']]
+vllm-t4-1  |                      [--override-attention-dtype OVERRIDE_ATTENTION_DTYPE]
+vllm-t4-1  |                      [--logits-processors LOGITS_PROCESSORS [LOGITS_PROCESSORS ...]]
+vllm-t4-1  |                      [--io-processor-plugin IO_PROCESSOR_PLUGIN]
+vllm-t4-1  |                      [--renderer-num-workers RENDERER_NUM_WORKERS]
+vllm-t4-1  |                      [--load-format LOAD_FORMAT] [--download-dir DOWNLOAD_DIR]
+vllm-t4-1  |                      [--safetensors-load-strategy SAFETENSORS_LOAD_STRATEGY]
+vllm-t4-1  |                      [--safetensors-prefetch-num-threads SAFETENSORS_PREFETCH_NUM_THREADS]
+vllm-t4-1  |                      [--safetensors-prefetch-block-size SAFETENSORS_PREFETCH_BLOCK_SIZE]
+vllm-t4-1  |                      [--model-loader-extra-config MODEL_LOADER_EXTRA_CONFIG]
+vllm-t4-1  |                      [--ignore-patterns IGNORE_PATTERNS [IGNORE_PATTERNS ...]]
+vllm-t4-1  |                      [--use-tqdm-on-load | --no-use-tqdm-on-load]
+vllm-t4-1  |                      [--pt-load-map-location PT_LOAD_MAP_LOCATION]
+vllm-t4-1  |                      [--attention-backend ATTENTION_BACKEND]
+vllm-t4-1  |                      [--mamba-backend MAMBA_BACKEND]
+vllm-t4-1  |                      [--enable-mamba-cache-stochastic-rounding | --no-enable-mamba-cache-stochastic-rounding]
+vllm-t4-1  |                      [--mamba-cache-philox-rounds MAMBA_CACHE_PHILOX_ROUNDS]
+vllm-t4-1  |                      [--reasoning-parser REASONING_PARSER]
+vllm-t4-1  |                      [--reasoning-parser-plugin REASONING_PARSER_PLUGIN]
+vllm-t4-1  |                      [--distributed-executor-backend ['external_launcher', 'mp', 'ray', 'uni']]
+vllm-t4-1  |                      [--pipeline-parallel-size PIPELINE_PARALLEL_SIZE]
+vllm-t4-1  |                      [--master-addr MASTER_ADDR] [--master-port MASTER_PORT]
+vllm-t4-1  |                      [--nnodes NNODES] [--node-rank NODE_RANK]
+vllm-t4-1  |                      [--distributed-timeout-seconds DISTRIBUTED_TIMEOUT_SECONDS]
+vllm-t4-1  |                      [--cpu-distributed-timeout-seconds CPU_DISTRIBUTED_TIMEOUT_SECONDS]
+vllm-t4-1  |                      [--numa-bind | --no-numa-bind]
+vllm-t4-1  |                      [--numa-bind-nodes NUMA_BIND_NODES [NUMA_BIND_NODES ...]]
+vllm-t4-1  |                      [--numa-bind-cpus NUMA_BIND_CPUS [NUMA_BIND_CPUS ...]]
+vllm-t4-1  |                      [--tensor-parallel-size TENSOR_PARALLEL_SIZE]
+vllm-t4-1  |                      [--decode-context-parallel-size DECODE_CONTEXT_PARALLEL_SIZE]
+vllm-t4-1  |                      [--dcp-comm-backend {a2a,ag_rs}]
+vllm-t4-1  |                      [--dcp-kv-cache-interleave-size DCP_KV_CACHE_INTERLEAVE_SIZE]
+vllm-t4-1  |                      [--cp-kv-cache-interleave-size CP_KV_CACHE_INTERLEAVE_SIZE]
+vllm-t4-1  |                      [--prefill-context-parallel-size PREFILL_CONTEXT_PARALLEL_SIZE]
+vllm-t4-1  |                      [--data-parallel-size DATA_PARALLEL_SIZE]
+vllm-t4-1  |                      [--data-parallel-rank DATA_PARALLEL_RANK]
+vllm-t4-1  |                      [--data-parallel-start-rank DATA_PARALLEL_START_RANK]
+vllm-t4-1  |                      [--data-parallel-size-local DATA_PARALLEL_SIZE_LOCAL]
+vllm-t4-1  |                      [--data-parallel-address DATA_PARALLEL_ADDRESS]
+vllm-t4-1  |                      [--data-parallel-rpc-port DATA_PARALLEL_RPC_PORT]
+vllm-t4-1  |                      [--data-parallel-backend DATA_PARALLEL_BACKEND]
+vllm-t4-1  |                      [--data-parallel-hybrid-lb | --no-data-parallel-hybrid-lb | -dph]
+vllm-t4-1  |                      [--data-parallel-external-lb | --no-data-parallel-external-lb | -dpe]
+vllm-t4-1  |                      [--data-parallel-multi-port-external-lb]
+vllm-t4-1  |                      [--enable-expert-parallel | --no-enable-expert-parallel | -ep]
+vllm-t4-1  |                      [--enable-ep-weight-filter | --no-enable-ep-weight-filter]
+vllm-t4-1  |                      [--all2all-backend {allgather_reducescatter,deepep_high_throughput,deepep_low_latency,flashinfer_all2allv,flashinfer_nvlink_one_sided,flashinfer_nvlink_two_sided,mori,naive,nixl_ep,pplx}]
+vllm-t4-1  |                      [--enable-dbo | --no-enable-dbo]
+vllm-t4-1  |                      [--ubatch-size UBATCH_SIZE]
+vllm-t4-1  |                      [--enable-elastic-ep | --no-enable-elastic-ep]
+vllm-t4-1  |                      [--dbo-decode-token-threshold DBO_DECODE_TOKEN_THRESHOLD]
+vllm-t4-1  |                      [--dbo-prefill-token-threshold DBO_PREFILL_TOKEN_THRESHOLD]
+vllm-t4-1  |                      [--disable-nccl-for-dp-synchronization | --no-disable-nccl-for-dp-synchronization]
+vllm-t4-1  |                      [--enable-eplb | --no-enable-eplb]
+vllm-t4-1  |                      [--eplb-config EPLB_CONFIG]
+vllm-t4-1  |                      [--expert-placement-strategy {linear,round_robin}]
+vllm-t4-1  |                      [--max-parallel-loading-workers MAX_PARALLEL_LOADING_WORKERS]
+vllm-t4-1  |                      [--ray-workers-use-nsight | --no-ray-workers-use-nsight]
+vllm-t4-1  |                      [--disable-custom-all-reduce | --no-disable-custom-all-reduce]
+vllm-t4-1  |                      [--worker-cls WORKER_CLS]
+vllm-t4-1  |                      [--worker-extension-cls WORKER_EXTENSION_CLS]
+vllm-t4-1  |                      [--block-size BLOCK_SIZE]
+vllm-t4-1  |                      [--gpu-memory-utilization GPU_MEMORY_UTILIZATION]
+vllm-t4-1  |                      [--kv-cache-memory-bytes KV_CACHE_MEMORY_BYTES]
+vllm-t4-1  |                      [--kv-cache-dtype {auto,bfloat16,float16,fp8,fp8_ds_mla,fp8_e4m3,fp8_e5m2,fp8_inc,fp8_per_token_head,int8_per_token_head,nvfp4,turboquant_3bit_nc,turboquant_4bit_nc,turboquant_k3v4_nc,turboquant_k8v4}]
+vllm-t4-1  |                      [--num-gpu-blocks-override NUM_GPU_BLOCKS_OVERRIDE]
+vllm-t4-1  |                      [--enable-prefix-caching | --no-enable-prefix-caching]
+vllm-t4-1  |                      [--prefix-caching-hash-algo {sha256,sha256_cbor,xxhash,xxhash_cbor}]
+vllm-t4-1  |                      [--calculate-kv-scales | --no-calculate-kv-scales]
+vllm-t4-1  |                      [--kv-cache-dtype-skip-layers KV_CACHE_DTYPE_SKIP_LAYERS [KV_CACHE_DTYPE_SKIP_LAYERS ...]]
+vllm-t4-1  |                      [--kv-sharing-fast-prefill | --no-kv-sharing-fast-prefill]
+vllm-t4-1  |                      [--mamba-cache-dtype {auto,bfloat16,float16,float32}]
+vllm-t4-1  |                      [--mamba-ssm-cache-dtype {auto,bfloat16,float16,float32}]
+vllm-t4-1  |                      [--mamba-block-size MAMBA_BLOCK_SIZE]
+vllm-t4-1  |                      [--mamba-cache-mode {align,all,none}]
+vllm-t4-1  |                      [--kv-offloading-size KV_OFFLOADING_SIZE]
+vllm-t4-1  |                      [--kv-offloading-backend {lmcache,native}]
+vllm-t4-1  |                      [--offload-backend {auto,prefetch,uva}]
+vllm-t4-1  |                      [--cpu-offload-gb CPU_OFFLOAD_GB]
+vllm-t4-1  |                      [--cpu-offload-params CPU_OFFLOAD_PARAMS [CPU_OFFLOAD_PARAMS ...]]
+vllm-t4-1  |                      [--offload-group-size OFFLOAD_GROUP_SIZE]
+vllm-t4-1  |                      [--offload-num-in-group OFFLOAD_NUM_IN_GROUP]
+vllm-t4-1  |                      [--offload-prefetch-step OFFLOAD_PREFETCH_STEP]
+vllm-t4-1  |                      [--offload-params OFFLOAD_PARAMS [OFFLOAD_PARAMS ...]]
+vllm-t4-1  |                      [--language-model-only | --no-language-model-only]
+vllm-t4-1  |                      [--limit-mm-per-prompt LIMIT_MM_PER_PROMPT]
+vllm-t4-1  |                      [--enable-mm-embeds | --no-enable-mm-embeds]
+vllm-t4-1  |                      [--media-io-kwargs MEDIA_IO_KWARGS]
+vllm-t4-1  |                      [--mm-processor-kwargs MM_PROCESSOR_KWARGS]
+vllm-t4-1  |                      [--mm-processor-cache-gb MM_PROCESSOR_CACHE_GB]
+vllm-t4-1  |                      [--mm-processor-cache-type {lru,shm}]
+vllm-t4-1  |                      [--mm-shm-cache-max-object-size-mb MM_SHM_CACHE_MAX_OBJECT_SIZE_MB]
+vllm-t4-1  |                      [--mm-encoder-only | --no-mm-encoder-only]
+vllm-t4-1  |                      [--mm-encoder-tp-mode {data,weights}]
+vllm-t4-1  |                      [--mm-encoder-attn-backend MM_ENCODER_ATTN_BACKEND]
+vllm-t4-1  |                      [--mm-encoder-attn-dtype {fp8,None}]
+vllm-t4-1  |                      [--mm-encoder-fp8-scale-path MM_ENCODER_FP8_SCALE_PATH]
+vllm-t4-1  |                      [--mm-encoder-fp8-scale-save-path MM_ENCODER_FP8_SCALE_SAVE_PATH]
+vllm-t4-1  |                      [--mm-encoder-fp8-scale-save-margin MM_ENCODER_FP8_SCALE_SAVE_MARGIN]
+vllm-t4-1  |                      [--interleave-mm-strings | --no-interleave-mm-strings]
+vllm-t4-1  |                      [--skip-mm-profiling | --no-skip-mm-profiling]
+vllm-t4-1  |                      [--video-pruning-rate VIDEO_PRUNING_RATE]
+vllm-t4-1  |                      [--mm-tensor-ipc {direct_rpc,torch_shm}]
+vllm-t4-1  |                      [--enable-lora | --no-enable-lora]
+vllm-t4-1  |                      [--max-loras MAX_LORAS]
+vllm-t4-1  |                      [--max-lora-rank {1,8,16,32,64,128,256,320,512}]
+vllm-t4-1  |                      [--lora-dtype {auto,bfloat16,float16}]
+vllm-t4-1  |                      [--enable-tower-connector-lora | --no-enable-tower-connector-lora]
+vllm-t4-1  |                      [--max-cpu-loras MAX_CPU_LORAS]
+vllm-t4-1  |                      [--fully-sharded-loras | --no-fully-sharded-loras]
+vllm-t4-1  |                      [--lora-target-modules LORA_TARGET_MODULES [LORA_TARGET_MODULES ...]]
+vllm-t4-1  |                      [--default-mm-loras DEFAULT_MM_LORAS]
+vllm-t4-1  |                      [--specialize-active-lora | --no-specialize-active-lora]
+vllm-t4-1  |                      [--enable-mixed-moe-lora-format | --no-enable-mixed-moe-lora-format]
+vllm-t4-1  |                      [--show-hidden-metrics-for-version SHOW_HIDDEN_METRICS_FOR_VERSION]
+vllm-t4-1  |                      [--otlp-traces-endpoint OTLP_TRACES_ENDPOINT]
+vllm-t4-1  |                      [--collect-detailed-traces {all,model,worker,None} [{all,model,worker,None} ...]]
+vllm-t4-1  |                      [--kv-cache-metrics | --no-kv-cache-metrics]
+vllm-t4-1  |                      [--kv-cache-metrics-sample KV_CACHE_METRICS_SAMPLE]
+vllm-t4-1  |                      [--cudagraph-metrics | --no-cudagraph-metrics]
+vllm-t4-1  |                      [--enable-layerwise-nvtx-tracing | --no-enable-layerwise-nvtx-tracing]
+vllm-t4-1  |                      [--enable-mfu-metrics | --no-enable-mfu-metrics]
+vllm-t4-1  |                      [--enable-logging-iteration-details | --no-enable-logging-iteration-details]
+vllm-t4-1  |                      [--max-num-batched-tokens MAX_NUM_BATCHED_TOKENS]
+vllm-t4-1  |                      [--max-num-seqs MAX_NUM_SEQS]
+vllm-t4-1  |                      [--max-num-partial-prefills MAX_NUM_PARTIAL_PREFILLS]
+vllm-t4-1  |                      [--max-long-partial-prefills MAX_LONG_PARTIAL_PREFILLS]
+vllm-t4-1  |                      [--long-prefill-token-threshold LONG_PREFILL_TOKEN_THRESHOLD]
+vllm-t4-1  |                      [--scheduling-policy {fcfs,priority}]
+vllm-t4-1  |                      [--enable-chunked-prefill | --no-enable-chunked-prefill]
+vllm-t4-1  |                      [--disable-chunked-mm-input | --no-disable-chunked-mm-input]
+vllm-t4-1  |                      [--scheduler-cls SCHEDULER_CLS]
+vllm-t4-1  |                      [--scheduler-reserve-full-isl | --no-scheduler-reserve-full-isl]
+vllm-t4-1  |                      [--disable-hybrid-kv-cache-manager | --no-disable-hybrid-kv-cache-manager]
+vllm-t4-1  |                      [--async-scheduling | --no-async-scheduling]
+vllm-t4-1  |                      [--stream-interval STREAM_INTERVAL]
+vllm-t4-1  |                      [--cudagraph-capture-sizes CUDAGRAPH_CAPTURE_SIZES [CUDAGRAPH_CAPTURE_SIZES ...]]
+vllm-t4-1  |                      [--max-cudagraph-capture-size MAX_CUDAGRAPH_CAPTURE_SIZE]
+vllm-t4-1  |                      [--ir-op-priority IR_OP_PRIORITY]
+vllm-t4-1  |                      [--enable-flashinfer-autotune | --no-enable-flashinfer-autotune]
+vllm-t4-1  |                      [--moe-backend {aiter,auto,cutlass,deep_gemm,deep_gemm_mega_moe,emulation,flashinfer_b12x,flashinfer_cutedsl,flashinfer_cutlass,flashinfer_trtllm,humming,marlin,triton,triton_unfused}]
+vllm-t4-1  |                      [--linear-backend {aiter,auto,conch,cutlass,deep_gemm,emulation,exllama,fbgemm,flashinfer_cudnn,flashinfer_cutlass,flashinfer_trtllm,machete,marlin,torch,triton}]
+vllm-t4-1  |                      [--speculative-config SPECULATIVE_CONFIG]
+vllm-t4-1  |                      [--spec-method {custom_class,deepseek_mtp,dflash,draft_model,eagle,eagle3,ernie_mtp,exaone4_5_mtp,exaone_moe_mtp,extract_hidden_states,gemma4_mtp,glm4_moe_lite_mtp,glm4_moe_mtp,glm_ocr_mtp,hy_v3_mtp,longcat_flash_mtp,medusa,mimo_mtp,mimo_v2_mtp,mlp_speculator,mtp,nemotron_h_mtp,ngram,ngram_gpu,pangu_ultra_moe_mtp,qwen3_5_mtp,qwen3_next_mtp,step3p5_mtp,suffix,None}]
+vllm-t4-1  |                      [--spec-model SPEC_MODEL] [--spec-tokens SPEC_TOKENS]
+vllm-t4-1  |                      [--kv-transfer-config KV_TRANSFER_CONFIG]
+vllm-t4-1  |                      [--kv-events-config KV_EVENTS_CONFIG]
+vllm-t4-1  |                      [--ec-transfer-config EC_TRANSFER_CONFIG]
+vllm-t4-1  |                      [--compilation-config COMPILATION_CONFIG]
+vllm-t4-1  |                      [--attention-config ATTENTION_CONFIG]
+vllm-t4-1  |                      [--reasoning-config REASONING_CONFIG]
+vllm-t4-1  |                      [--kernel-config KERNEL_CONFIG]
+vllm-t4-1  |                      [--additional-config ADDITIONAL_CONFIG]
+vllm-t4-1  |                      [--structured-outputs-config STRUCTURED_OUTPUTS_CONFIG]
+vllm-t4-1  |                      [--profiler-config PROFILER_CONFIG]
+vllm-t4-1  |                      [--optimization-level OPTIMIZATION_LEVEL]
+vllm-t4-1  |                      [--performance-mode {balanced,interactivity,throughput}]
+vllm-t4-1  |                      [--weight-transfer-config WEIGHT_TRANSFER_CONFIG]
+vllm-t4-1  |                      [--disable-log-stats] [--aggregate-engine-logging]
+vllm-t4-1  |                      [--fail-on-environ-validation | --no-fail-on-environ-validation]
+vllm-t4-1  |                      [--shutdown-timeout SHUTDOWN_TIMEOUT]
+vllm-t4-1  |                      [--gdn-prefill-backend {flashinfer,triton,cutedsl}]
+vllm-t4-1  |                      [--enable-log-requests | --no-enable-log-requests]
+vllm-t4-1  |                      [model_tag]
+vllm-t4-1  | api_server.py: error: unrecognized arguments: --worker-use-ray
+[Kvllm-t4-1 exited with code 2
+vllm-t4-1  | 
+vllm-t4-1  | ==========
+vllm-t4-1  | == CUDA ==
+vllm-t4-1  | ==========
+vllm-t4-1  | 
+vllm-t4-1  | CUDA Version 12.1.0
+vllm-t4-1  | 
+vllm-t4-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+vllm-t4-1  | 
+vllm-t4-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+vllm-t4-1  | By pulling and using the container, you accept the terms and conditions of this license:
+vllm-t4-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+vllm-t4-1  | 
+vllm-t4-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+vllm-t4-1  | 
+vllm-t4-1  | *************************
+vllm-t4-1  | ** DEPRECATION NOTICE! **
+vllm-t4-1  | *************************
+vllm-t4-1  | THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
+vllm-t4-1  |     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
+vllm-t4-1  | 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344]        █     █     █▄   ▄█
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.22.1
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344]   █▄█▀ █     █     █     █  model   Qwen/Qwen-7B-Chat
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:344] 
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:50:58 [utils.py:278] non-default args: {'port': 8002, 'model': 'Qwen/Qwen-7B-Chat', 'trust_remote_code': True, 'dtype': 'float16', 'max_model_len': 512, 'gpu_memory_utilization': 0.3}
+vllm-t4-1  | (APIServer pid=72) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+vllm-t4-1  | (APIServer pid=72) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=72) - configuration_qwen.py
+vllm-t4-1  | (APIServer pid=72) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:51:01 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_emb_base'. Please use the preferred attribute name 'rope_theta' instead.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:51:01 [utils.py:149] QWenConfig contains a deprecated attribute name 'rotary_pct'. Please use the preferred attribute name 'partial_rotary_factor' instead.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:51:08 [model.py:617] Resolved architecture: QWenLMHeadModel
+vllm-t4-1  | (APIServer pid=72) Parse safetensors files:   0%|          | 0/8 [00:00<?, ?it/s]Parse safetensors files:  12%|█▎        | 1/8 [00:01<00:07,  1.09s/it]Parse safetensors files:  62%|██████▎   | 5/8 [00:01<00:00,  5.39it/s]Parse safetensors files: 100%|██████████| 8/8 [00:01<00:00,  6.67it/s]
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:51:10 [model.py:2090] Casting torch.bfloat16 to torch.float16.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:51:10 [model.py:1752] Using max model len 512
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:51:10 [vllm.py:977] Asynchronous scheduling is enabled.
+vllm-t4-1  | (APIServer pid=72) INFO 06-11 20:51:10 [kernel.py:270] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+vllm-t4-1  | (APIServer pid=72) [transformers] A new version of the following files was downloaded from https://huggingface.co/Qwen/Qwen-7B-Chat:
+vllm-t4-1  | (APIServer pid=72) - tokenization_qwen.py
+vllm-t4-1  | (APIServer pid=72) . Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+vllm-t4-1  | (APIServer pid=72) WARNING 06-11 20:51:17 [registry.py:253] Using a slow tokenizer. This might cause a significant slowdown. Consider using a fast tokenizer instead.
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:22 [core.py:112] Initializing a V1 LLM engine (v0.22.1) with config: model='Qwen/Qwen-7B-Chat', speculative_config=None, tokenizer='Qwen/Qwen-7B-Chat', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.float16, max_seq_len=512, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=Qwen/Qwen-7B-Chat, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:23 [parallel_state.py:1422] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.18.0.6:48341 backend=nccl
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:23 [parallel_state.py:1735] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:23 [topk_topp_sampler.py:45] Using FlashInfer for top-p & top-k sampling.
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:23 [gpu_model_runner.py:5037] Starting to load model Qwen/Qwen-7B-Chat...
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:24 [cuda.py:378] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+vllm-t4-1  | (EngineCore pid=156) INFO 06-11 20:51:24 [flash_attn.py:636] Using FlashAttention version 2
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [gpu_model_runner.py:5130] Failed to load model - not enough GPU memory. Try lowering --gpu-memory-utilization to free memory for weights, increasing --tensor-parallel-size, or using --quantization. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more tips. (original error: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 46.50 MiB is free. Process 158199 has 648.00 MiB memory in use. Process 158229 has 10.93 GiB memory in use. Of the allocated memory 10.61 GiB is allocated by PyTorch, and 12.81 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf))
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165] EngineCore failed to start.
+vllm-t4-1  | (EngineCore pid=156) Process EngineCore:
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165] Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     super().__init__(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self._init_executor()
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     raise e
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 162, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.attn = QWenAttention(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 107, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.c_attn = QKVParallelLinear(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1047, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     super().__init__(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 477, in __init__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165]     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) ERROR 06-11 20:51:24 [core.py:1165] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 46.50 MiB is free. Process 158199 has 648.00 MiB memory in use. Process 158229 has 10.93 GiB memory in use. Of the allocated memory 10.61 GiB is allocated by PyTorch, and 12.81 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | (EngineCore pid=156) Traceback (most recent call last):
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+vllm-t4-1  | (EngineCore pid=156)     self.run()
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/lib/python3.10/multiprocessing/process.py", line 108, in run
+vllm-t4-1  | (EngineCore pid=156)     self._target(*self._args, **self._kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1169, in run_engine_core
+vllm-t4-1  | (EngineCore pid=156)     raise e
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 1139, in run_engine_core
+vllm-t4-1  | (EngineCore pid=156)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 905, in __init__
+vllm-t4-1  | (EngineCore pid=156)     super().__init__(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core.py", line 121, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.model_executor = executor_class(vllm_config)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self._init_executor()
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/executor/uniproc_executor.py", line 65, in _init_executor
+vllm-t4-1  | (EngineCore pid=156)     self.driver_worker.load_model()
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_worker.py", line 342, in load_model
+vllm-t4-1  | (EngineCore pid=156)     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5131, in load_model
+vllm-t4-1  | (EngineCore pid=156)     raise e
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/worker/gpu_model_runner.py", line 5053, in load_model
+vllm-t4-1  | (EngineCore pid=156)     self.model = model_loader.load_model(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+vllm-t4-1  | (EngineCore pid=156)     model = initialize_model(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/model_loader/utils.py", line 61, in initialize_model
+vllm-t4-1  | (EngineCore pid=156)     model = model_class(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 365, in __init__
+vllm-t4-1  | (EngineCore pid=156)     super().__init__(vllm_config=vllm_config, prefix=prefix)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 280, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.transformer = transformer_type(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/compilation/decorators.py", line 383, in __init__
+vllm-t4-1  | (EngineCore pid=156)     old_init(self, *args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 220, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.start_layer, self.end_layer, self.h = make_layers(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 643, in make_layers
+vllm-t4-1  | (EngineCore pid=156)     + get_offloader().wrap_modules(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+vllm-t4-1  | (EngineCore pid=156)     return list(modules_generator)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/utils.py", line 644, in <genexpr>
+vllm-t4-1  | (EngineCore pid=156)     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 222, in <lambda>
+vllm-t4-1  | (EngineCore pid=156)     lambda prefix: QWenBlock(config, cache_config, quant_config, prefix=prefix),
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 162, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.attn = QWenAttention(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/models/qwen.py", line 107, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.c_attn = QKVParallelLinear(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 1047, in __init__
+vllm-t4-1  | (EngineCore pid=156)     super().__init__(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 477, in __init__
+vllm-t4-1  | (EngineCore pid=156)     self.quant_method.create_weights(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/vllm/model_executor/layers/linear.py", line 201, in create_weights
+vllm-t4-1  | (EngineCore pid=156)     data=torch.empty(
+vllm-t4-1  | (EngineCore pid=156)   File "/usr/local/lib/python3.10/dist-packages/torch/utils/_device.py", line 116, in __torch_function__
+vllm-t4-1  | (EngineCore pid=156)     return func(*args, **kwargs)
+vllm-t4-1  | (EngineCore pid=156) torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 11.63 GiB of which 46.50 MiB is free. Process 158199 has 648.00 MiB memory in use. Process 158229 has 10.93 GiB memory in use. Of the allocated memory 10.61 GiB is allocated by PyTorch, and 12.81 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+vllm-t4-1  | [rank0]:[W611 20:51:25.916857177 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+vllm-t4-1  | (APIServer pid=72) Traceback (most recent call last):
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+vllm-t4-1  | (APIServer pid=72)     return _run_code(code, main_globals, None,
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+vllm-t4-1  | (APIServer pid=72)     exec(code, run_globals)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 718, in <module>
+vllm-t4-1  | (APIServer pid=72)     uvloop.run(run_server(args))
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 69, in run
+vllm-t4-1  | (APIServer pid=72)     return loop.run_until_complete(wrapper())
+vllm-t4-1  | (APIServer pid=72)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/uvloop/__init__.py", line 48, in wrapper
+vllm-t4-1  | (APIServer pid=72)     return await main
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 678, in run_server
+vllm-t4-1  | (APIServer pid=72)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 692, in run_server_worker
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 100, in build_async_engine_client
+vllm-t4-1  | (APIServer pid=72)     async with build_async_engine_client_from_engine_args(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 199, in __aenter__
+vllm-t4-1  | (APIServer pid=72)     return await anext(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/entrypoints/openai/api_server.py", line 136, in build_async_engine_client_from_engine_args
+vllm-t4-1  | (APIServer pid=72)     async_llm = AsyncLLM.from_vllm_config(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+vllm-t4-1  | (APIServer pid=72)     return cls(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+vllm-t4-1  | (APIServer pid=72)     self.engine_core = EngineCoreClient.make_async_mp_client(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=72)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 131, in make_async_mp_client
+vllm-t4-1  | (APIServer pid=72)     return AsyncMPClient(*client_args)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+vllm-t4-1  | (APIServer pid=72)     return func(*args, **kwargs)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 932, in __init__
+vllm-t4-1  | (APIServer pid=72)     super().__init__(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/core_client.py", line 567, in __init__
+vllm-t4-1  | (APIServer pid=72)     with launch_core_engines(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+vllm-t4-1  | (APIServer pid=72)     next(self.gen)
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1150, in launch_core_engines
+vllm-t4-1  | (APIServer pid=72)     wait_for_engine_startup(
+vllm-t4-1  | (APIServer pid=72)   File "/usr/local/lib/python3.10/dist-packages/vllm/v1/engine/utils.py", line 1209, in wait_for_engine_startup
+vllm-t4-1  | (APIServer pid=72)     raise RuntimeError(
+vllm-t4-1  | (APIServer pid=72) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+[Kvllm-t4-1 exited with code 1
+

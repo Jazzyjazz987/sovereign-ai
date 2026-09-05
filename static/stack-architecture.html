@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign AI Stack - Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        /* Stack Container */
+        .stack-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Tier Box */
+        .tier {
+            background: rgba(30, 58, 138, 0.3);
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .tier:hover {
+            border-color: #60a5fa;
+            background: rgba(30, 58, 138, 0.5);
+            transform: translateX(5px);
+        }
+
+        .tier.tier1 { border-left: 4px solid #10b981; }
+        .tier.tier2 { border-left: 4px solid #f59e0b; }
+        .tier.tier3 { border-left: 4px solid #8b5cf6; }
+        .tier.tier4 { border-left: 4px solid #ef4444; }
+        .tier.tier5 { border-left: 4px solid #06b6d4; }
+
+        .tier-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .tier1 .tier-badge { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .tier2 .tier-badge { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .tier3 .tier-badge { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .tier4 .tier-badge { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .tier5 .tier-badge { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+
+        .tier-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .tier-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .info-value {
+            font-size: 13px;
+            color: #cbd5e1;
+            flex: 1;
+        }
+
+        .tier-description {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(100, 116, 139, 0.2);
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(100, 116, 139, 0.2);
+            border-radius: 4px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        /* Services Section */
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .service-box {
+            background: rgba(30, 58, 138, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+
+        .service-box:hover {
+            border-color: #60a5fa;
+            background: rgba(30, 58, 138, 0.4);
+        }
+
+        .service-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #60a5fa;
+        }
+
+        .service-info {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .service-port {
+            display: inline-block;
+            background: rgba(96, 165, 250, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #60a5fa;
+        }
+
+        /* Linux Daemons */
+        .daemons-section {
+            background: rgba(30, 58, 138, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .daemons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .daemon-card {
+            background: rgba(51, 65, 85, 0.5);
+            border-left: 3px solid #60a5fa;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .daemon-name {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .daemon-description {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .daemon-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .daemon-status.active::before {
+            content: '●';
+            color: #10b981;
+            font-size: 14px;
+        }
+
+        .daemon-status.config::before {
+            content: '⚙️';
+            margin-right: 2px;
+        }
+
+        /* Data Flow */
+        .data-flow {
+            background: rgba(30, 58, 138, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .flow-step {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #e2e8f0;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 20px;
+            color: #60a5fa;
+        }
+
+        /* Specs */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .spec-item {
+            background: rgba(30, 58, 138, 0.3);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .spec-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 4px;
+        }
+
+        .spec-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(100, 116, 139, 0.2);
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .tier-info {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-diagram {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <h1>🚀 Sovereign AI Stack Architecture</h1>
+        <p class="subtitle">DSI Polynésie française - Infrastructure complète T1→T5</p>
+
+        <!-- Stack Diagram -->
+        <div class="stack-diagram">
+            <!-- T1 -->
+            <div class="tier tier1">
+                <div class="tier-header">
+                    <span class="tier-badge">Tier 1</span>
+                    <span class="tier-title">⚡ Mistral 7B (Ollama)</span>
+                </div>
+                <div class="tier-info">
+                    <div class="info-item">
+                        <span class="info-label">VRAM:</span>
+                        <span class="info-value">4.4 GB (GGUF Q4)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Latence:</span>
+                        <span class="info-value">3-4 secondes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value">11434 (Ollama)</span>
+                    </div>
+                </div>
+                <div class="tier-description">
+                    Réponse rapide et français natif. Idéal pour les questions simples et reformulation.
+                    <div class="features">
+                        <span class="feature-tag">🇫🇷 Français</span>
+                        <span class="feature-tag">⚡ Rapide</span>
+                        <span class="feature-tag">💬 Chat</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T2 -->
+            <div class="tier tier2">
+                <div class="tier-header">
+                    <span class="tier-badge">Tier 2</span>
+                    <span class="tier-title">📚 Llama 3.3 8B (Ollama)</span>
+                </div>
+                <div class="tier-info">
+                    <div class="info-item">
+                        <span class="info-label">VRAM:</span>
+                        <span class="info-value">3.8 GB (GGUF Q4)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Latence:</span>
+                        <span class="info-value">4-5 secondes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value">11434 (Ollama)</span>
+                    </div>
+                </div>
+                <div class="tier-description">
+                    Analyse approfondie et code. Escalade automatique pour questions complexes.
+                    <div class="features">
+                        <span class="feature-tag">💻 Code</span>
+                        <span class="feature-tag">📊 Analyse</span>
+                        <span class="feature-tag">📝 Synthèse</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T3 -->
+            <div class="tier tier3">
+                <div class="tier-header">
+                    <span class="tier-badge">Tier 3</span>
+                    <span class="tier-title">🔮 Qwen 3 14B (vLLM)</span>
+                </div>
+                <div class="tier-info">
+                    <div class="info-item">
+                        <span class="info-label">VRAM:</span>
+                        <span class="info-value">10.8 GB (AWQ 4-bit)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Latence:</span>
+                        <span class="info-value">5-8 secondes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value">8001 (vLLM)</span>
+                    </div>
+                </div>
+                <div class="tier-description">
+                    Code et programmation avancée. PowerShell et Graph API.
+                    <div class="features">
+                        <span class="feature-tag">🐍 Python</span>
+                        <span class="feature-tag">🔧 PowerShell</span>
+                        <span class="feature-tag">📡 API</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T4 -->
+            <div class="tier tier4">
+                <div class="tier-header">
+                    <span class="tier-badge">Tier 4</span>
+                    <span class="tier-title">⚖️ Mistral Small 22B (vLLM)</span>
+                </div>
+                <div class="tier-info">
+                    <div class="info-item">
+                        <span class="info-label">VRAM:</span>
+                        <span class="info-value">10.8 GB (AWQ 4-bit)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Latence:</span>
+                        <span class="info-value">6-9 secondes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value">8002 (vLLM)</span>
+                    </div>
+                </div>
+                <div class="tier-description">
+                    Légal et conformité. RGPD, administratif, décisions gouvernementales.
+                    <div class="features">
+                        <span class="feature-tag">⚖️ RGPD</span>
+                        <span class="feature-tag">📋 Légal</span>
+                        <span class="feature-tag">🏛️ Gouvernance</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T5 -->
+            <div class="tier tier5">
+                <div class="tier-header">
+                    <span class="tier-badge">Tier 5</span>
+                    <span class="tier-title">☁️ Claude Sonnet (Anthropic API)</span>
+                </div>
+                <div class="tier-info">
+                    <div class="info-item">
+                        <span class="info-label">Mode:</span>
+                        <span class="info-value">Cloud (Conditionnel)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Proxy:</span>
+                        <span class="info-value">Agent Anone (PII)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Port:</span>
+                        <span class="info-value">API Cloud</span>
+                    </div>
+                </div>
+                <div class="tier-description">
+                    Décisions stratégiques críticas. PII toujours anonymisée via Agent Anone avant envoi cloud.
+                    <div class="features">
+                        <span class="feature-tag">🔒 Sécurisé</span>
+                        <span class="feature-tag">🎯 Stratégique</span>
+                        <span class="feature-tag">☁️ Cloud</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Section -->
+        <h2 class="section-title">🛠️ Services de Support</h2>
+        <div class="services-grid">
+            <div class="service-box">
+                <div class="service-name">LangGraph Orchestrator</div>
+                <div class="service-info">Routing intelligent et cascade T1→T5</div>
+                <div class="service-port">Port 8888</div>
+            </div>
+            <div class="service-box">
+                <div class="service-name">Agent Anone</div>
+                <div class="service-info">PII detection & anonymisation (GLiNER)</div>
+                <div class="service-port">Port 8080</div>
+            </div>
+            <div class="service-box">
+                <div class="service-name">LiteLLM Gateway</div>
+                <div class="service-info">OpenAI-compatible router T1→T5</div>
+                <div class="service-port">Port 4000</div>
+            </div>
+            <div class="service-box">
+                <div class="service-name">PostgreSQL</div>
+                <div class="service-info">State persistence & logging</div>
+                <div class="service-port">Port 5432</div>
+            </div>
+            <div class="service-box">
+                <div class="service-name">Prometheus</div>
+                <div class="service-info">Métriques GPU/CPU/latence</div>
+                <div class="service-port">Port 9090</div>
+            </div>
+            <div class="service-box">
+                <div class="service-name">Grafana</div>
+                <div class="service-info">Dashboards observabilité</div>
+                <div class="service-port">Port 3000</div>
+            </div>
+        </div>
+
+        <!-- Linux Daemons -->
+        <h2 class="section-title">🐧 Daemons Linux Utilisés</h2>
+        <div class="daemons-section">
+            <div class="daemons-grid">
+                <div class="daemon-card">
+                    <div class="daemon-name">ollama</div>
+                    <div class="daemon-description">
+                        Serveur d'inférence local pour T1/T2. Gère le VRAM GPU et le cache des modèles.
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours actif (services critiques)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">vllm-t3</div>
+                    <div class="daemon-description">
+                        Serveur vLLM pour Qwen 14B. Optimisé pour batch processing et code.
+                    </div>
+                    <div class="daemon-status config">
+                        À la demande (escalade T2→T3)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">vllm-t4</div>
+                    <div class="daemon-description">
+                        Serveur vLLM pour Mistral Small 22B. Décisions légales et stratégiques.
+                    </div>
+                    <div class="daemon-status config">
+                        À la demande (escalade T3→T4)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">langgraph</div>
+                    <div class="daemon-description">
+                        Orchestrateur de cascade. Détecte la complexité et route vers le bon tier.
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours actif (router principal)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">anone</div>
+                    <div class="daemon-description">
+                        Agent de détection/anonymisation PII. Filtre avant T5 cloud.
+                    </div>
+                    <div class="daemon-status config">
+                        À la demande (avant cloud)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">postgres</div>
+                    <div class="daemon-description">
+                        Base de données persistance. Logs, état LangGraph, historique chats.
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours actif (données critiques)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">prometheus</div>
+                    <div class="daemon-description">
+                        Collecteur de métriques. GPU VRAM, CPU, latences, tokens/sec.
+                    </div>
+                    <div class="daemon-status config">
+                        Optionnel (monitoring)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">grafana</div>
+                    <div class="daemon-description">
+                        Dashboards d'observabilité. Alertes oncall et performances.
+                    </div>
+                    <div class="daemon-status config">
+                        Optionnel (dashboards)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">sovereign-chat</div>
+                    <div class="daemon-description">
+                        Application web chat FastAPI. WebSocket streaming + cascade automatique.
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours actif (interface utilisateur)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">litellm</div>
+                    <div class="daemon-description">
+                        Gateway OpenAI-compatible. Fallback si Ollama non disponible.
+                    </div>
+                    <div class="daemon-status config">
+                        À la demande (backup router)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">nvidia-smi</div>
+                    <div class="daemon-description">
+                        Monitoring GPU temps réel. Watch -n 2 nvidia-smi pour surveiller.
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours disponible (GPU tracking)
+                    </div>
+                </div>
+
+                <div class="daemon-card">
+                    <div class="daemon-name">docker</div>
+                    <div class="daemon-description">
+                        Runtime de conteneurs. Orchestre tous les services (compose).
+                    </div>
+                    <div class="daemon-status active">
+                        Toujours actif (infrastructure)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow -->
+        <h2 class="section-title">🔄 Flux de Données</h2>
+        <div class="data-flow">
+            <div class="flow-diagram">
+                <div class="flow-step">User Input</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">LangGraph (Détecte complexité)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">T1 ou T2?</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">Ollama Inference</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">Response Stream</div>
+            </div>
+        </div>
+
+        <!-- Hardware Specs -->
+        <h2 class="section-title">💾 Spécifications Matériel</h2>
+        <div class="specs-grid">
+            <div class="spec-item">
+                <div class="spec-value">NVIDIA RTX 3090</div>
+                <div class="spec-label">GPU (24 GB VRAM)</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">~22.6 GB</div>
+                <div class="spec-label">Budget VRAM Utilisé</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">Ubuntu 24.04</div>
+                <div class="spec-label">Système d'exploitation</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">Docker Compose</div>
+                <div class="spec-label">Orchestration</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">1.4 GB Buffer</div>
+                <div class="spec-label">Marge de Sécurité</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">Offline-capable</div>
+                <div class="spec-label">Souveraineté</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🇵🇫 Sovereign AI Stack - DSI Polynésie française | RGPD Compliant | Données Gouvernementales Sécurisées</p>
+            <p style="margin-top: 10px; font-size: 11px;">T1 & T2 tourne localement | T3-T4 Optionnel | T5 Cloud Conditionnel (PII Anonymisé)</p>
+        </div>
+    </div>
+</body>
+</html>

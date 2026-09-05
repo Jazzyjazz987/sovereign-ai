@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.langgraph.txt .
+RUN pip install --no-cache-dir -r requirements.langgraph.txt
+
+COPY main.py .
+
+EXPOSE 8888
+
+CMD ["python", "main.py"]
