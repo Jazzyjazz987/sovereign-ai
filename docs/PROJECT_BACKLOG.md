@@ -134,8 +134,21 @@ forced model "t9" (bogus) → defaults to T1, status ok
 MAX_LOADED_MODELS=2, incl. 46B dolphin-mixtral) wedged Ollama (model stuck "Stopping...").
 `docker compose restart ollama` cleared it. → new backlog B12; loop must serialise inference tests.
 
-## B4 — T5 path + mandatory PII anonymisation gate [CODE DONE 2026-09-05 · LIVE TEST BLOCKED]
-**Blocked-by:** live cloud test blocked on `ANTHROPIC_API_KEY` (see below)
+## B4 — T5 path + mandatory PII anonymisation gate [DONE 2026-09-05]
+**E2E verified 2026-09-05** (operator supplied a real `ANTHROPIC_API_KEY`):
+```
+Query (complexity 5.0): "Le fonctionnaire Teiva Hauata (NIR 1 82 09 987 156 023) conteste
+  une sanction disciplinaire de la DSI. Obligations RGPD et voies de recours ?"
+→ Anone masks it to: "Le fonctionnaire <PERSON_0> (<NIR_0>) ... de la <ORG_0> ..."
+→ T5 response: tier=T5, model_used=claude-sonnet-5, anonymized=true, coherent FR legal
+  analysis (RGPD art. 6/13-16/21/30, recours gracieux/hiérarchique/contentieux, TA Papeete)
+→ response de-anonymised (real "Teiva Hauata" / "DSI" restored from pii_mapping)
+→ LOG CHECK: 0 occurrences of "Hauata"/"Teiva"/the NIR in langgraph, litellm or anone logs
+→ anone logs: POST /anonymize 200 then POST /deanonymize 200 (correct order)
+```
+The full T1→T5 cascade now works with the mandatory PII gate. Key validity confirmed
+(`claude-sonnet-5` direct call → "OK").
+**Historical blocker (resolved):** live cloud test was blocked on `ANTHROPIC_API_KEY=disabled`.
 **Done:**
 - Traced `route_t5_with_anonymization` in `api/main.py`: order is `/anonymize` (Agent Anone) →
   Claude API → `/deanonymize`. If Anone is unreachable or non-200, the function returns an error

@@ -46,7 +46,13 @@ existing `origin`. The remote URL still embeds a GitHub PAT in cleartext in `.gi
 rewrite the remote URL on its own — say the word and it will.
 **Needed from you:** rotate the token; confirm if the loop should switch the remote to SSH.
 
-## D5 — T5 cloud key is disabled (operator priority 5)
+## D5 — T5 cloud key [RESOLVED 2026-09-05]
+Operator supplied a real `ANTHROPIC_API_KEY` in `.env`. `claude-sonnet-5` verified working.
+Full B4 E2E passed (PII masked → cloud → de-anonymised → no leak in logs). Cloud T5 is now ON.
+`T5_MODEL` stays `claude-sonnet-5` (CLAUDE.md). Nothing further needed here.
+
+<details><summary>original entry</summary>
+
 **Status:** BLOCKER for priority 5 ("T5 cloud integration testing").
 `.env` contains `ANTHROPIC_API_KEY=disabled` (literal 8-char string). Every T5 call returns
 401 `invalid x-api-key`. The code is ready (anonymise → cloud → deanonymise, `claude-sonnet-5`,
@@ -54,13 +60,9 @@ graceful T4 fallback), but cloud T5 cannot be tested without a real key.
 **Options:**
 - (a) Provide a real Anthropic API key in `.env` (`ANTHROPIC_API_KEY=sk-ant-...`) → the loop
   will run the full B4 verification (PII gate + no-leak check).
-- (b) Keep cloud OFF by design (pure-sovereign posture) — then say so and the loop will mark T5
-  as "intentionally disabled, local-only" and stop treating it as a gap.
-**Your mid-session note clarified 2026-09-05:** "use opus 5 model for this session" = reading
-(ii) — run THIS Claude Code session on Opus 5. That is a client setting the loop cannot change;
-the operator runs `/model opus` (or `/model claude-opus-5`) in the terminal. The stack's T5
-tier stays `T5_MODEL=claude-sonnet-5` per CLAUDE.md unless you say otherwise.
-STILL OPEN: provide a real Anthropic API key to test T5, or declare cloud OFF by design?
+- (b) Keep cloud OFF by design (pure-sovereign posture).
+Operator chose (a). Key posée, E2E passed.
+</details>
 
 ## D6 — Docker vs native — "l'utilisation de docker alourdit-elle notre IA ?"
 **Status:** open architecture question raised by operator 2026-09-05.

@@ -28,8 +28,9 @@ cat api/main.py | sed -n '1,20p'   # add prometheus_client /metrics
 - **B2 ✅** Ollama healthcheck fixed (`ollama ps`), container now `healthy`.
 - **B3 ✅** Cascade routing rewritten: `TIERS` single source, `complexity` override, cap 5.0,
   `query_ollama_with_fallback` chain, `tier` field.
-- **B4 ~** T5 code complete (`claude-sonnet-5` via `T5_MODEL`). LIVE test blocked: `.env`
-  `ANTHROPIC_API_KEY=disabled` → D5.
+- **B4 ✅** T5 E2E verified — operator supplied a real key. PII query → masked
+  (`<PERSON_0>`/`<NIR_0>`/`<ORG_0>`) → `claude-sonnet-5` → de-anonymised response → 0 PII in
+  any service log. Full T1→T5 cascade operational with the RGPD gate. D5 resolved.
 - **B5 ✅** pytest suite `api/tests/` — 12 passed (run in the langgraph image).
 - **B13a ✅ (CRITICAL RGPD)** — `main.py` was sending raw PII to the cloud when Anone errored.
   `route_t5_with_anonymization` now fail-closed (cloud only if `status==ok` + `anonymized_text`).
@@ -46,5 +47,5 @@ cat api/main.py | sed -n '1,20p'   # add prometheus_client /metrics
 - Open decisions: D1 GPU presence, D2 model spec, D4 git token, D5 T5 key, D6 docker-vs-native.
 
 ## Backlog status
-B1 ✅  B2 ✅  B3 ✅  B4 ~(blocked D5 — key)  B5 ✅  B13a ✅  B13b ✅
+B1 ✅  B2 ✅  B3 ✅  B4 ✅(E2E, key posée)  B5 ✅  B13a ✅  B13b ✅
 B6 ☐←NEXT  B7 ☐  B8 ☐  B9 ☐(GPU)  B10 ☐(pg backup)  B11 ☐(TLS)  B12 ☐(ollama CPU)  B14 ☐(HF cache)
