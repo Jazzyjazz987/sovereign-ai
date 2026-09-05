@@ -6,3 +6,6 @@ httpx==0.25.2
 # main.py importe `requests` mais requirements.langgraph.txt ne le liste pas (bug,
 # voir rapport B5). Ajouté ici pour rendre les tests exécutables.
 requests==2.31.0
+# main.py / anone_api.py exposent /metrics (B6) ; l'image de test doit pouvoir importer
+# prometheus_client (pas présent dans l'image langgraph tant qu'elle n'est pas rebuild).
+prometheus-client==0.21.0

@@ -10,12 +10,22 @@ import logging
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from gliner import GLiNER
+from prometheus_client import Counter, CONTENT_TYPE_LATEST, generate_latest
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("anone")
 
 app = FastAPI()
+
+# --- Métriques Prometheus (B6) — exposées sur GET /metrics --------------------------
+ANONYMIZE_REQUESTS = Counter(
+    "anonymize_requests_total", "Appels /anonymize par statut", ["status"]
+)
+ANONYMIZE_PII_MASKED = Counter(
+    "anonymize_pii_masked_total", "Entités PII masquées cumulées"
+)
 
 # Modèle GLiNER multi-langue spécialisé PII (surchargeable pour les tests / mirroirs).
 MODEL_NAME = os.getenv("ANONE_MODEL", "urchade/gliner_multi_pii-v1")
@@ -51,6 +61,7 @@ async def anonymize(request: dict):
     HTTP 503 si le modèle n'est pas chargé ou en cas d'erreur interne.
     """
     if ner is None:
+        ANONYMIZE_REQUESTS.labels(status="503").inc()
         raise HTTPException(status_code=503, detail="GLiNER non chargé")
 
     text = request.get("text", "")
@@ -82,8 +93,11 @@ async def anonymize(request: dict):
         raise
     except Exception as exc:  # noqa: BLE001
         logger.exception("Erreur interne /anonymize : %s", exc)
+        ANONYMIZE_REQUESTS.labels(status="503").inc()
         raise HTTPException(status_code=503, detail=f"erreur anonymisation: {exc}")
 
+    ANONYMIZE_REQUESTS.labels(status="ok").inc()
+    ANONYMIZE_PII_MASKED.inc(len(entities))
     return {
         "status": "ok",
         "anonymized_text": anonymized,
@@ -113,6 +127,12 @@ async def deanonymize(request: dict):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/metrics")
+async def metrics():
+    """Métriques Prometheus (B6) — scrapées par le job 'anone'."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/health")

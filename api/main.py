@@ -7,12 +7,14 @@ import time
 import httpx
 import asyncio
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import re
 import anthropic
 import requests
+from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 
@@ -26,6 +28,17 @@ T5_MODEL = os.getenv("T5_MODEL", "claude-sonnet-5")
 T5_MAX_TOKENS = int(os.getenv("T5_MAX_TOKENS", "700"))
 T5_MAX_CALLS = int(os.getenv("T5_MAX_CALLS", "150"))  # plafond d'appels cloud par process
 _t5_calls = 0
+
+# --- Métriques Prometheus (B6) — exposées sur GET /metrics ---------------------------
+QUERY_REQUESTS = Counter(
+    "query_requests_total", "Requêtes /query traitées", ["tier", "status"]
+)
+QUERY_LATENCY = Histogram(
+    "query_latency_seconds", "Latence de traitement d'une requête /query (secondes)"
+)
+T5_CLOUD_CALLS = Counter(
+    "t5_cloud_calls_total", "Appels cloud T5 (API Anthropic) effectués"
+)
 
 # --- Modération humaine des appels T5 -------------------------------------------------
 # Si activée, chaque appel T5 est mis en attente : une notification part (webhook), et
@@ -285,6 +298,7 @@ async def route_t5_with_anonymization(query: str) -> dict:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
         _t5_calls += 1
+        T5_CLOUD_CALLS.inc()
         message = client.messages.create(
             model=T5_MODEL,
             max_tokens=T5_MAX_TOKENS,
@@ -327,9 +341,29 @@ async def route_t5_with_anonymization(query: str) -> dict:
         return await _fallback_local(query, f"API Anthropic indisponible: {e}")
 
 # API Endpoints
+@app.get("/metrics")
+async def metrics():
+    """Métriques Prometheus (B6) — scrapées par le job 'langgraph'."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.post("/query")
 async def query_cascade(request: QueryRequest):
-    """Route et répond à une requête via la cascade T1→T5."""
+    """Route et répond à une requête via la cascade T1→T5.
+
+    Fine enveloppe autour de `_query_cascade` : mesure la latence et incrémente
+    les compteurs Prometheus (tier + statut) sans toucher à la logique de cascade.
+    """
+    start = time.perf_counter()
+    result = await _query_cascade(request)
+    QUERY_LATENCY.observe(time.perf_counter() - start)
+    QUERY_REQUESTS.labels(
+        tier=str(result.get("tier", "?")), status=result.get("status", "error")
+    ).inc()
+    return result
+
+
+async def _query_cascade(request: QueryRequest):
     forced = request.model if request.model != "auto" else None
     model, complexity, tier = router.route(request.query, forced, request.complexity)
 

@@ -184,20 +184,20 @@ Host has no `pip`/`venv`/network → suite runs inside `sovereign-ai-langgraph:l
 `docker run --rm -v $PWD/api:/work -w /work sovereign-ai-langgraph:latest sh -c "pip install -q -r requirements.dev.txt && python -m pytest tests/ -q"` → **12 passed**.
 Surfaced the B13 anonymisation bugs.
 
-## B6 — Prometheus /metrics endpoints [DONE? no]
-**Blocked-by:** B3
-**Problem:** `config/prometheus.yml` scrapes langgraph/anone/litellm but none expose `/metrics`,
-so Grafana dashboards are empty.
-**Do:** Add a `/metrics` endpoint (prometheus_client) to `api/main.py` and `api/anone_api.py`
-exposing at minimum: request count, request latency histogram, per-tier selection count.
-Keep it minimal.
-**Verify:**
+## B6 — Prometheus /metrics endpoints [DONE 2026-09-05]
+`prometheus-client==0.21.0` in all 3 requirements. `api/main.py`: `/query` wrapped by a thin
+`query_cascade` that observes `query_latency_seconds` + `query_requests_total{tier,status}`;
+`t5_cloud_calls_total` incremented at the T5 call. `api/anone_api.py`:
+`anonymize_requests_total{status}` + `anonymize_pii_masked_total`. Both expose `GET /metrics`.
+**Verify (2026-09-05):**
 ```
-curl -sf http://localhost:8888/metrics | head -5
-curl -sf http://localhost:8080/metrics | head -5
-curl -sf 'http://localhost:9090/api/v1/targets' | grep -o '"health":"[a-z]*"' | sort | uniq -c
+langgraph /metrics → query_requests_total{status="ok",tier="T1"} 1.0 ; query_latency_seconds_count 1.0 ; t5_cloud_calls_total 0.0
+anone /metrics     → anonymize_requests_total{status="ok"} 1.0 ; anonymize_pii_masked_total 1.0
+prometheus targets → langgraph up, anone up   (were down)
 ```
-Both `/metrics` return prometheus text; at least langgraph + anone targets show `"health":"up"`.
+**Follow-up (B6b, minor):** litellm + ollama `/metrics` still `down` — litellm needs the
+prometheus callback enabled in `litellm_config.yaml`; ollama exposes metrics at a different
+path/format. Out of B6 core scope.
 
 ## B7 — Documentation accuracy pass [DONE? no]
 **Blocked-by:** B1, B2, B3, B4, B6
