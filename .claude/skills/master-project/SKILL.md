@@ -33,7 +33,9 @@ If these files disagree with each other, trust git + a live check of the system,
    subagent's transcript. If it does not pass, either iterate once more or move the task to
    `Blocked` with a note. No partial credit in the backlog.
 5. **Checkpoint.** Only if verification passed or the state meaningfully advanced:
-   - `git add -A && git commit` with a structured message (template below), then
+   - `git add <explicit paths>` — **never `git add -A`/`git add .`** (`.env` history incident
+     2026-09-05: `.env` was tracked and a real key got committed). Run `git status` first and
+     stage only files you changed this iteration. `git commit` with a structured message, then
      `git push origin master` (operator wants GitHub kept current — priority 7). If the push
      fails, record it in `AUTONOMOUS_STATE.md` and keep going; local commits are the source of truth.
    - Update `PROJECT_BACKLOG.md` (check the box, add the result line + date).
