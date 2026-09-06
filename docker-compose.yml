@@ -91,6 +91,36 @@ services:
     networks:
       - sovereign-ai
 
+  rag:
+    restart: unless-stopped
+    build:
+      context: ./rag
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
+      - RAG_PG_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
+      - HF_HOME=/models/hf
+      - RAG_RERANK=${RAG_RERANK:-on}
+      - RAG_TORCH_THREADS=${RAG_TORCH_THREADS:-8}
+    volumes:
+      # cache HF persistant (e5-base ~440 Mo + bge-reranker-base ~1,1 Go)
+      - rag_hf_cache:/models/hf
+      # corpus monté en lecture seule pour la ré-ingestion via POST /ingest
+      - ./corpus:/corpus:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sovereign-ai
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8090/health',timeout=3).status==200 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 180s
+
   langgraph:
     restart: unless-stopped
     build:
@@ -106,6 +136,9 @@ services:
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
       - LITELLM_API_KEY=${LITELLM_MASTER_KEY}
       - OLLAMA_URL=http://ollama:11434
+      - RAG_URL=${RAG_URL:-http://rag:8090}
+      - RAG_ENABLED=${RAG_ENABLED:-on}
+      - RAG_MIN_RERANK=${RAG_MIN_RERANK:--2.0}
       - T5_MODEL=${T5_MODEL:-claude-sonnet-5}
       - T5_MAX_TOKENS=${T5_MAX_TOKENS:-700}
       - T5_MAX_CALLS=${T5_MAX_CALLS:-150}
@@ -120,6 +153,8 @@ services:
       ollama:
         condition: service_started
       anone:
+        condition: service_started
+      rag:
         condition: service_started
     networks:
       - sovereign-ai
@@ -160,6 +195,7 @@ volumes:
   prometheus_data:
   grafana_data:
   anone_hf_cache:
+  rag_hf_cache:
 
 networks:
   sovereign-ai:

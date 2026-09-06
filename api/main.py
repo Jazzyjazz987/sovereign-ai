@@ -24,6 +24,24 @@ app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 litellm_api_key = os.getenv("LITELLM_API_KEY")
 
+# --- RAG (portail à fiches citées) — DESIGN_REVIEW : la base de fiches EST le produit,
+# la cascade LLM est le repli du long tail. Avant toute cascade, on cherche des fiches ;
+# si on en trouve, la réponse est rédigée UNIQUEMENT à partir d'elles et les cite.
+RAG_URL = os.getenv("RAG_URL", "http://rag:8090")
+RAG_ENABLED = os.getenv("RAG_ENABLED", "on").lower() in ("1", "true", "on", "yes")
+RAG_MIN_RERANK = float(os.getenv("RAG_MIN_RERANK", "0.0"))  # score reranker mini pour retenir une fiche
+RAG_MODEL = os.getenv("RAG_MODEL", "qwen2.5:7b")             # modèle local de rédaction
+RAG_K = int(os.getenv("RAG_K", "5"))
+
+RAG_SYSTEM = (
+    "Tu es l'assistant interne de la cellule Parc & Assistance (support informatique) de la "
+    "DSI de Polynésie française. Tu aides un AGENT DE SUPPORT.\n"
+    "Réponds UNIQUEMENT à partir des EXTRAITS DE FICHES fournis. Si l'information demandée n'y "
+    "figure pas, réponds exactement : « Je n'ai pas de fiche sur ce point. » et rien d'autre.\n"
+    "N'invente aucune référence, aucun code de procédure, aucune étape. Ne commente pas les "
+    "fiches non pertinentes. Termine par la liste des codes de fiches réellement utilisés."
+)
+
 # --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
 PROMPTS_PATH = os.getenv("PROMPTS_PATH", "/app/config/prompts.yaml")
 
@@ -232,10 +250,11 @@ router = CascadeRouter()
 class OllamaError(Exception):
     """Erreur d'appel Ollama — déclenche le repli vers le tier inférieur."""
 
-async def query_ollama(model: str, prompt: str, tier: str = None) -> str:
+async def query_ollama(model: str, prompt: str, tier: str = None,
+                       system_override: str = None) -> str:
     """Interroge un modèle Ollama avec le prompt système du tier. Lève OllamaError si échec."""
     payload = {"model": model, "prompt": prompt, "stream": False}
-    system = TIER_PROMPTS.get(tier)
+    system = system_override or TIER_PROMPTS.get(tier)
     if system:
         payload["system"] = system
     try:
@@ -267,6 +286,101 @@ async def query_ollama_with_fallback(start_tier: str, prompt: str) -> tuple[str,
         except OllamaError as e:
             errors.append(str(e))
     raise OllamaError("tous les tiers locaux ont échoué: " + " | ".join(errors))
+
+# --- RAG : recherche de fiches + rédaction citée --------------------------------------
+RAG_ANSWERS = Counter("rag_answers_total", "Réponses servies par le RAG", ["outcome"])
+
+
+# Salutations / méta-questions triviales : ne passent pas par le RAG (pas de fiche à citer).
+_SMALLTALK = re.compile(
+    r"^\s*(bonjour|bonsoir|salut|coucou|hello|hi|merci|au revoir|ça va|ca va|"
+    r"qui es[- ]tu|tu fais quoi|c'est quoi ton (r[oô]le|travail)|présente[- ]toi)\b",
+    re.IGNORECASE,
+)
+
+
+async def _rag_answer(query: str) -> Optional[dict]:
+    """Cherche des fiches CPA et rédige une réponse citée. None => on passe à la cascade."""
+    if not RAG_ENABLED or (_SMALLTALK.match(query) and len(query) < 60):
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(f"{RAG_URL}/search", json={"query": query, "k": RAG_K})
+        r.raise_for_status()
+        hits = r.json().get("hits", [])
+    except Exception as e:  # noqa: BLE001 — RAG indisponible => cascade normale
+        print(f"[rag] indisponible: {e}", flush=True)
+        RAG_ANSWERS.labels(outcome="unavailable").inc()
+        return None
+
+    def _sc(h):
+        return h.get("rerank_score") if h.get("rerank_score") is not None else h.get("score", 0)
+
+    scored = [h for h in hits if _sc(h) >= RAG_MIN_RERANK]
+    if not scored:
+        RAG_ANSWERS.labels(outcome="no_fiche").inc()
+        return None
+
+    # Regroupement par fiche. La fiche PRIMAIRE = celle qui a le plus de chunks dans le
+    # top-k (puis, à égalité, le meilleur score) : plus robuste que « meilleur chunk seul »
+    # quand le reranker sur-note une table « Étapes » d'une procédure hors-sujet.
+    # Fiches secondaires retenues seulement si MÊME DOMAINE que la primaire et signal net.
+    by_fiche: dict = {}
+    for h in scored:
+        by_fiche.setdefault(h.get("proc_code") or h.get("doc_id"), []).append(h)
+    ranked = sorted(by_fiche.items(),
+                    key=lambda kv: (len(kv[1]), max(_sc(x) for x in kv[1])), reverse=True)
+    primary_code, primary_hits = ranked[0]
+    primary_dom = (primary_hits[0].get("domaine") or "").strip().lower()
+    keep = {primary_code}
+    for code, hs in ranked[1:]:
+        dom = (hs[0].get("domaine") or "").strip().lower()
+        if dom == primary_dom and (len(hs) >= 2 or max(_sc(x) for x in hs) >= 0.6):
+            keep.add(code)
+    usable = [h for h in scored if (h.get("proc_code") or h.get("doc_id")) in keep]
+
+    extraits = "\n\n".join(
+        f"[{h.get('proc_code') or h.get('doc_id')} §{h.get('section')}]\n"
+        f"{(h.get('text') or '').split(chr(10), 1)[-1]}"
+        for h in usable
+    )
+    prompt = f"EXTRAITS DE FICHES :\n{extraits}\n\nQUESTION : {query}\n\nRÉPONSE :"
+    try:
+        text = await query_ollama(RAG_MODEL, prompt, tier=None, system_override=RAG_SYSTEM)
+    except OllamaError as e:
+        RAG_ANSWERS.labels(outcome="model_error").inc()
+        print(f"[rag] modèle KO: {e}", flush=True)
+        return None
+
+    fiches = []
+    seen = set()
+    for h in usable:
+        code = h.get("proc_code") or h.get("doc_id")
+        if code in seen:
+            continue
+        seen.add(code)
+        fiches.append({"code": code, "titre": h.get("titre"), "section": h.get("section"),
+                       "source_url": h.get("source_url"),
+                       "score": round(h.get("rerank_score") if h.get("rerank_score") is not None
+                                      else h.get("score", 0), 3)})
+
+    no_fiche = text.strip().lower().startswith("je n'ai pas de fiche")
+    RAG_ANSWERS.labels(outcome="no_fiche" if no_fiche else "answered").inc()
+    if no_fiche:
+        return None  # le modèle juge les extraits non pertinents => cascade
+
+    return {
+        "status": "ok",
+        "query": query,
+        "response": text,
+        "model_used": RAG_MODEL,
+        "tier": "RAG",
+        "label": "Fondé sur fiches CPA",
+        "fiches": fiches,
+        "prompt_set": PROMPT_SET_FP,
+        "message": f"Répondu par le portail à fiches citées ({len(fiches)} fiche(s))",
+    }
+
 
 # T5 Handler with Anonymization
 async def _fallback_local(query: str, raison: str) -> dict:
@@ -395,6 +509,14 @@ async def query_cascade(request: QueryRequest):
 
 async def _query_cascade(request: QueryRequest):
     forced = request.model if request.model != "auto" else None
+
+    # Étape 1 — portail à fiches citées. Sans modèle forcé, on interroge d'abord le RAG :
+    # une réponse fondée sur des fiches CPA prime sur la génération libre (DESIGN_REVIEW).
+    if not forced:
+        rag = await _rag_answer(request.query)
+        if rag is not None:
+            return rag
+
     model, complexity, tier = router.route(request.query, forced, request.complexity)
 
     # T5 (Claude Sonnet) : passage obligatoire par l'anonymisation Agent Anone.
@@ -414,6 +536,7 @@ async def _query_cascade(request: QueryRequest):
         "response": response,
         "model_used": model,
         "tier": tier,
+        "label": "Généré localement — à vérifier",
         "complexity": round(complexity, 2),
         "prompt_set": PROMPT_SET_FP,
         "message": f"Traité par {tier} ({model})"
@@ -422,12 +545,23 @@ async def _query_cascade(request: QueryRequest):
 @app.get("/health")
 async def health():
     """Health check"""
+    rag_status = "disabled"
+    if RAG_ENABLED:
+        try:
+            async with httpx.AsyncClient(timeout=3) as client:
+                hr = await client.get(f"{RAG_URL}/health")
+            rag_status = hr.json().get("status", "unknown") if hr.status_code == 200 else "down"
+        except Exception:  # noqa: BLE001
+            rag_status = "down"
+
     return {
         "status": "healthy",
         "service": "langgraph",
         "version": "2.0",
-        "cascade": "T1→T2→T3→T4→T5",
+        "cascade": "fiches(RAG) → T1→T2→T3→T4→T5",
         "prompt_set": PROMPT_SET_FP,
+        "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
+                "min_rerank": RAG_MIN_RERANK, "model": RAG_MODEL},
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
                "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
                "pending": len(_t5_pending)}

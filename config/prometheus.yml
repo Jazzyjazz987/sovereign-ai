@@ -34,3 +34,8 @@ scrape_configs:
     static_configs:
       - targets: ['anone:8080']
     metrics_path: '/metrics'
+
+  - job_name: 'rag'
+    static_configs:
+      - targets: ['rag:8090']
+    metrics_path: '/metrics'
