@@ -16,11 +16,15 @@ def test_smalltalk_regex_matche_les_salutations():
 
 # --- voie de sauvegarde ------------------------------------------------------------
 def test_safeguarding_declenche_sur_signal_de_detresse():
-    for s in ["je pense au suicide", "j'ai envie d'en finir", "un agent veut se faire du mal"]:
+    # E5 : variantes de formulation qui échouaient auparavant
+    for s in ["je pense au suicide", "j'ai envie d'en finir", "un agent veut se faire du mal",
+              "je veux en finir avec tout ça", "je n'en peux plus, je pense à en finir",
+              "je suis à bout, je craque, je n'ai plus goût à rien"]:
         r = screening.safeguarding(s)
         assert r is not None and r["tier"] == "sauvegarde" and r["model_used"] is None
 
-    for s in ["mon poste ne démarre plus", "créer une boîte partagée"]:
+    for s in ["mon poste ne démarre plus", "créer une boîte partagée",
+              "comment débloquer un compte verrouillé ?"]:
         assert screening.safeguarding(s) is None
 
 
@@ -71,3 +75,22 @@ async def test_rag_answer_none_si_hits_sous_le_seuil(monkeypatch):
     hits = [{"proc_code": "PROC-X", "section": "Étapes", "text": "p: x\ncorps",
              "rerank_score": -5.0, "domaine": "Test"}]
     assert await main._rag_answer("question", hits) is None
+
+
+@pytest.mark.asyncio
+async def test_rag_answer_ignore_les_pages_00_comme_primaire(monkeypatch):
+    """E1 : une page sans proc_code ne peut pas être la fiche primaire -> None."""
+    monkeypatch.setattr(main, "RAG_MIN_RERANK", 0.0)
+    hits = [{"doc_id": "00-registre-rgpd", "proc_code": None, "section": "Fiche",
+             "text": "p: x\ncorps", "rerank_score": 0.9, "domaine": "RGPD"}]
+    assert await main._rag_answer("question", hits) is None
+
+
+def test_no_fiche_response():
+    hits = [{"proc_code": "PROC-ID-003", "titre": "Désactivation", "section": "Étapes",
+             "rerank_score": 0.2, "source_url": "http://x"},
+            {"doc_id": "00-index", "proc_code": None, "rerank_score": 0.9}]
+    r = main._no_fiche_response("q", hits)
+    assert r["tier"] == "aucune-fiche" and r["model_used"] is None
+    assert [f["code"] for f in r["fiches"]] == ["PROC-ID-003"]  # 00-* exclu
+    assert "je n'ai pas de fiche" in r["response"].lower()

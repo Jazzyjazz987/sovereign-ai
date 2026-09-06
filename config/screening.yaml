@@ -10,18 +10,26 @@ version: 1
 safeguarding:
   # ⚠️ NUMÉROS À VÉRIFIER / COMPLÉTER PAR L'OPÉRATEUR avant mise en service réelle.
   # Correspondance insensible à la casse et aux accents ; sous-chaîne simple.
+  # NOYAUX courts (pas des phrases entières) : le coût d'un faux positif (carte d'aide
+  # affichée à tort) est sans commune mesure avec celui d'un faux négatif. Voir E5.
   patterns:
     - suicide
-    - me suicider
-    - envie d'en finir
+    - suicider
+    - en finir           # « je pense à en finir », « en finir avec tout ça »
+    - mettre fin a mes jours
     - envie de mourir
+    - envie de disparaitre
     - plus envie de vivre
+    - plus envie de rien
+    - plus gout a rien
+    - je craque
+    - je n'en peux plus de vivre
+    - je n'ai plus la force
     - me faire du mal
     - se faire du mal
     - faire du mal
     - me tuer
     - passer a l'acte
-    - je vais mourir
     - mettre fin a mes jours
     - violence conjugale
     - il me frappe

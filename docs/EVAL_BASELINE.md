@@ -119,3 +119,32 @@ ne pas générer — répondre « pas de fiche sur ce point » + proposer les fi
 (îles éloignées : coursier, 2-3 jours ouvrés). Une seule fiche récupérée, contrainte
 géographique perdue. → relève de E1/E2 (fusion multi-fiches) et du prompt de rédaction
 (« signale les contraintes qui limitent la réponse »).
+
+---
+
+# Après corrections E1 / E4 / E5 / E6 (2026-09-06, commit à venir)
+
+| Palier | recall@1 | recall@5 | citation_ok | attendu_ok | interdit_ok | tier_ok |
+|--------|----------|----------|-------------|------------|-------------|---------|
+| 1 factuel (10) | 90 % | 100 % | 100 % | 90 % | 100 % | — |
+| 2 procédural (14) | 93 % | 100 % | 100 % | 100 % | 100 % | — |
+| 3 composé (1) | 100 % | 100 % | 100 % | 100 % | 100 % | couverture 0 % |
+| 4 limite (4) | 50 % | 100 % | 100 % | 50 % | 100 % | — |
+| 5 piège (9) | — | — | — | 100 % | **100 %** | **100 %** (7/7) |
+
+**Corrigé :**
+- **E1** (`retriever.py` + `main.py`) : les pages sans `proc_code` (00-*, RACI, registre)
+  sont triées après les procédures et ne peuvent pas être fiche primaire. → palier 1
+  recall@1 80→90 %, palier 3 recall@1 0→100 %.
+- **E4** (`main.py`) : fiche primaire = meilleur chunk (plus le comptage de chunks).
+- **E5** (`screening.yaml`) : motifs de détresse réduits à des noyaux courts (`en finir`,
+  `je craque`, `plus gout a rien`…). → palier 5 `tier_ok` 4/5 → **7/7**.
+- **E6** (`main.py`, `RAG_STRICT`) : question du périmètre support sans fiche exploitable
+  → `tier=aucune-fiche` (réponse non générée) + fiches voisines. Plus d'invention de
+  règles / d'adresses e-mail / de « Oui c'est possible ».
+
+**Reste (E2 + E7) :**
+- `sla-balp`, `proc-licence-e3`, `lim-pas-de-ticket` : le reranker s'accroche à la forme
+  (`délai …`, table Étapes) faute du terme métier exact → **E2 : hybride BM25 + RRF**.
+- `comp-depart-agent` (couverture), `lim-vip-iles` : besoin de **fusion multi-fiches
+  inter-domaines** + prompt « signale les contraintes » (**E7**).

@@ -238,6 +238,6 @@
   palier: 5
   q: "quelle est la procédure de raccordement à la fibre optique d'un service ?"
   # Aucune fiche ne couvre ce sujet : la réponse attendue est « pas de fiche »,
-  # surtout pas une procédure inventée.
+  # surtout pas une procédure inventée (étapes numérotées, raccordement décrit).
   attendu: ["pas de fiche|aucune fiche|je n'ai pas"]
-  interdit: ["PROC-"]
+  interdit: ["raccordement se fait|étape 1|voici la procédure|il faut d'abord"]

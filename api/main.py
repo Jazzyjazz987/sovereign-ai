@@ -33,14 +33,19 @@ RAG_ENABLED = os.getenv("RAG_ENABLED", "on").lower() in ("1", "true", "on", "yes
 RAG_MIN_RERANK = float(os.getenv("RAG_MIN_RERANK", "0.0"))  # score reranker mini pour retenir une fiche
 RAG_MODEL = os.getenv("RAG_MODEL", "qwen2.5:7b")             # modèle local de rédaction
 RAG_K = int(os.getenv("RAG_K", "5"))
+# Strict : une question du périmètre support sans fiche → « aucune fiche » plutôt que
+# génération libre (qui invente des règles — E3/E6). Désactivable pour comparaison.
+RAG_STRICT = os.getenv("RAG_STRICT", "on").lower() in ("1", "true", "on", "yes")
 
 RAG_SYSTEM = (
     "Tu es l'assistant interne de la cellule Parc & Assistance (support informatique) de la "
     "DSI de Polynésie française. Tu aides un AGENT DE SUPPORT.\n"
     "Réponds UNIQUEMENT à partir des EXTRAITS DE FICHES fournis. Si l'information demandée n'y "
-    "figure pas, réponds exactement : « Je n'ai pas de fiche sur ce point. » et rien d'autre.\n"
-    "N'invente aucune référence, aucun code de procédure, aucune étape. Ne commente pas les "
-    "fiches non pertinentes. Termine par la liste des codes de fiches réellement utilisés."
+    "figure pas, commence ta réponse par exactement : « Je n'ai pas de fiche sur ce point. »\n"
+    "N'invente aucune référence, aucun code de procédure, aucune étape, aucune adresse e-mail.\n"
+    "Signale explicitement toute contrainte qui limite la réponse (délai, rôle habilité, "
+    "site isolé / île éloignée, contrainte RGPD).\n"
+    "Ne commente pas les fiches non pertinentes. Termine par la liste des codes de fiches utilisés."
 )
 
 # --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
@@ -323,28 +328,28 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
     def _sc(h):
         return h.get("rerank_score") if h.get("rerank_score") is not None else h.get("score", 0)
 
-    scored = [h for h in hits if _sc(h) >= RAG_MIN_RERANK]
+    # Seules les vraies procédures (proc_code) peuvent être « fiche primaire » citée.
+    # Les pages 00-* sont des index : elles peuvent renforcer le contexte mais pas
+    # servir de source (E1).
+    scored = [h for h in hits if _sc(h) >= RAG_MIN_RERANK and h.get("proc_code")]
     if not scored:
         RAG_ANSWERS.labels(outcome="no_fiche").inc()
         return None
 
-    # Regroupement par fiche. La fiche PRIMAIRE = celle qui a le plus de chunks dans le
-    # top-k (puis, à égalité, le meilleur score) : plus robuste que « meilleur chunk seul »
-    # quand le reranker sur-note une table « Étapes » d'une procédure hors-sujet.
-    # Fiches secondaires retenues seulement si MÊME DOMAINE que la primaire et signal net.
+    # Regroupement par fiche. PRIMAIRE = fiche au meilleur chunk (E4 : le comptage de
+    # chunks élisait la mauvaise fiche). Secondaires : même domaine + signal net.
     by_fiche: dict = {}
     for h in scored:
-        by_fiche.setdefault(h.get("proc_code") or h.get("doc_id"), []).append(h)
-    ranked = sorted(by_fiche.items(),
-                    key=lambda kv: (len(kv[1]), max(_sc(x) for x in kv[1])), reverse=True)
+        by_fiche.setdefault(h["proc_code"], []).append(h)
+    ranked = sorted(by_fiche.items(), key=lambda kv: max(_sc(x) for x in kv[1]), reverse=True)
     primary_code, primary_hits = ranked[0]
     primary_dom = (primary_hits[0].get("domaine") or "").strip().lower()
     keep = {primary_code}
     for code, hs in ranked[1:]:
         dom = (hs[0].get("domaine") or "").strip().lower()
-        if dom == primary_dom and (len(hs) >= 2 or max(_sc(x) for x in hs) >= 0.6):
+        if dom == primary_dom and (len(hs) >= 2 or max(_sc(x) for x in hs) >= 0.5):
             keep.add(code)
-    usable = [h for h in scored if (h.get("proc_code") or h.get("doc_id")) in keep]
+    usable = [h for h in scored if h["proc_code"] in keep]
 
     extraits = "\n\n".join(
         f"[{h.get('proc_code') or h.get('doc_id')} §{h.get('section')}]\n"
@@ -371,10 +376,13 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
                        "score": round(h.get("rerank_score") if h.get("rerank_score") is not None
                                       else h.get("score", 0), 3)})
 
-    no_fiche = text.strip().lower().startswith("je n'ai pas de fiche")
+    # Le modèle a bâclé (formule d'échec + réponse courte) => voie « pas de fiche ».
+    # S'il enchaîne sur une vraie réponse substantielle, on la garde.
+    t = text.strip()
+    no_fiche = t.lower().startswith("je n'ai pas de fiche") and len(t) < 130
     RAG_ANSWERS.labels(outcome="no_fiche" if no_fiche else "answered").inc()
     if no_fiche:
-        return None  # le modèle juge les extraits non pertinents => cascade
+        return None
 
     return {
         "status": "ok",
@@ -386,6 +394,39 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         "fiches": fiches,
         "prompt_set": PROMPT_SET_FP,
         "message": f"Répondu par le portail à fiches citées ({len(fiches)} fiche(s))",
+    }
+
+
+def _no_fiche_response(query: str, hits: Optional[list]) -> dict:
+    """Question du périmètre support mais aucune fiche exploitable : on ne génère PAS
+    (le repli libre invente — E3/E6). On renvoie l'absence + les fiches voisines."""
+    voisines = []
+    seen = set()
+    for h in sorted(hits or [], key=lambda x: -(x.get("rerank_score") or x.get("score") or 0)):
+        code = h.get("proc_code")
+        sc = h.get("rerank_score") if h.get("rerank_score") is not None else h.get("score", 0)
+        if not code or code in seen or sc <= 0:   # pas de voisine hors sujet
+            continue
+        seen.add(code)
+        voisines.append({"code": code, "titre": h.get("titre"),
+                         "section": h.get("section"), "source_url": h.get("source_url")})
+        if len(voisines) == 3:
+            break
+    txt = "Je n'ai pas de fiche CPA qui réponde précisément à cette demande."
+    if voisines:
+        txt += " Fiches proches, à vérifier : " + ", ".join(v["code"] for v in voisines) + "."
+    txt += (" Si ce sujet devrait être couvert, signalez-le au chef de cellule pour "
+            "compléter la documentation.")
+    RAG_ANSWERS.labels(outcome="no_fiche_strict").inc()
+    return {
+        "status": "ok",
+        "query": query,
+        "response": txt,
+        "model_used": None,
+        "tier": "aucune-fiche",
+        "label": "Aucune fiche — non généré",
+        "fiches": voisines,
+        "message": "Périmètre support mais aucune fiche exploitable — réponse non générée (E3/E6).",
     }
 
 
@@ -537,6 +578,11 @@ async def _query_cascade(request: QueryRequest):
         rag = await _rag_answer(q, hits)
         if rag is not None:
             return rag
+        # Question du périmètre support mais aucune fiche : NE PAS générer librement
+        # (le repli invente des règles/procédures — E3/E6). hits is None => RAG KO,
+        # on laisse la cascade tenter.
+        if RAG_STRICT and hits is not None and not smalltalk and screening.looks_in_scope(q):
+            return _no_fiche_response(q, hits)
 
     model, complexity, tier = router.route(q, forced, request.complexity)
 
