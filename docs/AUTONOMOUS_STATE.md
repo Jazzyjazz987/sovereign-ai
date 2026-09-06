@@ -5,7 +5,18 @@
 **Loop prompt:** `/loop continue autonomous project completion for the Sovereign AI stack`
 **Full handoff:** `docs/RESUME_AUTONOMOUS.md`
 
+## DESIGN REVIEW COMPLETE (2026-09-05, ~2h20)
+`docs/DESIGN_REVIEW.md` — 5 multi-agent rounds, 30 facets, ~113 proposals, ~110 survived
+adversarial critique (65 agents, ~3.4M tokens). Per-round detail in `docs/design-review/`.
+**Two reframing findings:** (1) the ~0.5 FTE + DPO/DGRH/DAF recurring cost of the adopted design
+is unfunded and unowned — constitute `compliance/launch_dossier/` with the PF DPO as named owner;
+(2) ship v1 with **no cloud/T5 tier** (curated FAQ + French search + constrained local verbes),
+prove the behaviour-change bet with a ~15-25 person consent pilot; realistic launch Q1-Q2 2027.
+45 operator questions, 8 hard gates — all in the CONSOLIDATION section. The design review is a
+planning artefact; it did NOT change any running code.
+
 ## RESUME HERE
+_(implementation backlog — paused by the operator for the design review; resume when they ask)_
 Next task: **B12 — Ollama CPU concurrency tuning** (`OLLAMA_MAX_LOADED_MODELS=1`,
 `OLLAMA_NUM_PARALLEL=1` defaults for CPU mode in docker-compose). Then B7 (doc accuracy pass),
 B6b (litellm/ollama /metrics), B9 (GPU probe), B10 (pg backup), B11 (TLS), B18 (RAG — see below).
