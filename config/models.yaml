@@ -30,28 +30,30 @@ actifs:
 # ⚠️ Entraînés sur le droit MÉTROPOLITAIN, pas le droit polynésien (Lexpol / JOPF).
 # La valeur = le comportement de citation + registre admin-FR ; le corpus RAG (Lexpol +
 # service-public.pf + fiches CPA internes) est le vrai différenciateur.
+# Comparaison faite le 2026-09-05 -> docs/design-review/model-comparison-2026-09-05.md
+# Verdict : les 2 sont des modèles RAG-only, INUTILISABLES NUS. À reprendre quand la couche
+# RAG existe (POC SHORTLIST B5) + un GGUF au bon template.
 candidats_juridique_admin:
   - tag_ollama: "hf.co/mradermacher/guillaumetell-7b-GGUF:Q4_K_M"
-    base: "OpenHermes-2.5-Mistral-7B (fine-tune LoRA, ~9k instructions RAG service-public.fr)"
-    quant: "Q4_K_M (~4,4 Go)"
+    base: "OpenHermes-2.5-Mistral-7B (fine-tune LoRA RAG service-public.fr)"
     licence: "Apache-2.0"
     provenance: "AgentPublic / Etalab / DINUM (souverain FR)"
-    optimise_pour: "RAG + citation de source, format d'explicabilité, ~5 docs sources"
-    note: "1er niveau administratif uniquement ; français uniquement ; ChatML"
-    date_modele: "2024-04"
-    eval_fr: null                    # à mesurer sur jeu de tickets CPA
-    statut: "candidat — non encore pullé"
+    optimise_pour: "RAG + citation de source (~5 docs sources)"
+    statut: "PULLÉ — écarté pour l'instant : GGUF mradermacher au template cassé (boucle fanfic
+             sur prompts non juridiques) ; hallucine un contexte RAG ('EncycloLQ'). Reprendre avec
+             un autre GGUF (EZPK / Marmeelade / officiel) + Modelfile ChatML + couche RAG."
 
   - tag_ollama: "hf.co/mradermacher/albert-spp-8b-GGUF:Q4_K_M"
-    base: "Llama 3 8B (fine-tune Albert, 'spp')"
-    quant: "Q4_K_M (~5 Go)"
-    licence: "Llama 3 Community License (vérifier compat. usage gouvernemental)"
+    base: "Llama 3 8B (fine-tune Albert 'spp', janv. 2025)"
+    licence: "Llama 3 Community License (à vérifier)"
     provenance: "AgentPublic / Etalab / DINUM (souverain FR)"
-    optimise_pour: "assistance conversationnelle agents administratifs, RAG"
-    note: "modèle Albert le plus récent (janv. 2025) ; base Llama 3 = licence à vérifier"
-    date_modele: "2025-01"
-    eval_fr: null
-    statut: "candidat — non encore pullé"
+    statut: "PULLÉ — écarté : bloqué en persona 'réponse auto à réclamation citoyenne', répond
+             hors-sujet à tout. RAG-only."
+
+# Prochaine piste tier généraliste (mistral:7b est faible) :
+candidats_generaliste:
+  - "Qwen2.5-7B-Instruct GGUF Q4_K_M — fort en français, licence Apache-2.0"
+  - "Ministral-8B-Instruct GGUF — Mistral, français natif (licence de recherche à vérifier)"
 
 # --- Écartés ----------------------------------------------------------------------
 ecartes:

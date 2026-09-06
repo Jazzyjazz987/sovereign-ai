@@ -11,18 +11,19 @@ import main
 from main import OllamaError, query_ollama_with_fallback
 
 
-def _model_of(tier):
-    return next(m for label, m in main.TIERS if label == tier)
+# TIERS de test : modèles distincts par tier pour vérifier la logique de repli
+# indépendamment de la config de prod (où plusieurs tiers peuvent partager un modèle).
+_TEST_TIERS = [
+    ("T1", "m1"), ("T2", "m2"), ("T3", "m3"), ("T4", "m4"), ("T5", "claude-sonnet"),
+]
 
 
 def test_repli_vers_le_tier_inferieur(monkeypatch):
-    """Le tier de départ (T4) échoue, T3 répond -> réponse de T3, préfixée [repli T4→T3].
-    Robuste aux changements de modèles : on lit main.TIERS."""
-    t4_model = _model_of("T4")
-    t3_model = _model_of("T3")
+    """Le tier de départ (T4) échoue, T3 répond -> réponse de T3, préfixée [repli T4→T3]."""
+    monkeypatch.setattr(main, "TIERS", _TEST_TIERS)
 
     async def fake_query_ollama(model, prompt):
-        if model == t4_model:
+        if model == "m4":  # T4
             raise OllamaError("T4 simulé indisponible")
         return f"réponse de {model}"
 
@@ -31,7 +32,7 @@ def test_repli_vers_le_tier_inferieur(monkeypatch):
     text, model, tier = asyncio.run(query_ollama_with_fallback("T4", "bonjour"))
 
     assert tier == "T3"
-    assert model == t3_model
+    assert model == "m3"
     assert text.startswith("[repli T4→T3]")
 
 

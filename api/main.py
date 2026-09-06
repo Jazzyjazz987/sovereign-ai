@@ -119,15 +119,21 @@ class QueryRequest(BaseModel):
 
 # Cascade — cible (voir docs/DESIGN_REVIEW.md § POC SHORTLIST + config/models.yaml).
 # Chaque tier pointe vers un tag Ollama, sauf T5 (réseau). L'ordre sert aussi de chaîne de repli.
-# 2026-09-05 : retrait de `dolphin-mixtral` (fine-tune non censuré) et `neural-chat` (repack non
-# maintenu) — inacceptables comme tier juridique/code. T4 → guillaumetell-7b (Albert/DINUM,
-# RAG + citation de source, Apache-2.0). T3 (code) reste sur mistral:7b en attendant un modèle
-# code dédié (ex. qwen2.5-coder). Sur RTX 3080 Ti 12 Go : 2 modèles résidents (T1-T3 + T4).
+# 2026-09-05 :
+#  - retrait de `dolphin-mixtral` (fine-tune non censuré) et `neural-chat` (repack non maintenu).
+#  - T4 : essayé guillaumetell-7b / albert-spp-8b (Albert/DINUM). Verdict (voir
+#    docs/design-review/model-comparison-2026-09-05.md) : ce sont des modèles RAG-only, inutilisables
+#    NUS (guillaumetell boucle en fanfic sur les prompts non juridiques — GGUF mradermacher au
+#    template cassé ; albert-spp répond à tout comme à une réclamation citoyenne). À reprendre
+#    quand la couche RAG (fiches) existe + un GGUF au bon template ChatML.
+#  - En attendant : tous les tiers locaux = mistral:7b (faible, à remplacer par un meilleur 7-8B FR
+#    — Qwen2.5-7B-Instruct / Ministral-8B). Le vrai levier = base de fiches canoniques + portail
+#    à fiches citées (POC SHORTLIST B5 / B10).
 TIERS = [
     ("T1", "mistral:7b"),
     ("T2", "mistral:7b"),
     ("T3", "mistral:7b"),
-    ("T4", "hf.co/mradermacher/guillaumetell-7b-GGUF:Q4_K_M"),
+    ("T4", "mistral:7b"),
     ("T5", "claude-sonnet"),
 ]
 
