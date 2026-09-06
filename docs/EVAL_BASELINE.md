@@ -148,3 +148,34 @@ géographique perdue. → relève de E1/E2 (fusion multi-fiches) et du prompt de
   (`délai …`, table Étapes) faute du terme métier exact → **E2 : hybride BM25 + RRF**.
 - `comp-depart-agent` (couverture), `lim-vip-iles` : besoin de **fusion multi-fiches
   inter-domaines** + prompt « signale les contraintes » (**E7**).
+
+---
+
+# Après E2 (hybride vecteur + lexical + reranker, RRF) — 2026-09-06
+
+`rag/store.py` : colonne générée `tsv` (`to_tsvector('french', proc_code||titre||text)`) +
+index GIN ; `search_lexical()` (termes en OR, `ts_rank_cd`). `rag/retriever.py` : fusion
+RRF de 3 classements (vecteur, lexical, reranker), `k=60`. `api/main.py` : `_rag_answer`
+respecte l'ordre du récupérateur (fiche primaire = 1er hit), plus de re-tri par score
+reranker (qui recréait le décalage E4).
+
+| Palier | recall@1 | recall@5 | citation_ok | attendu_ok | interdit_ok | tier_ok |
+|--------|----------|----------|-------------|------------|-------------|---------|
+| 1 factuel (10) | **100 %** | 100 % | 100 % | **100 %** | 100 % | — |
+| 2 procédural (14) | 93 % | 100 % | 100 % | 100 % | 100 % | — |
+| 3 composé (1) | 0 % | 100 % | 100 % | 100 % | 100 % | couverture 0 % |
+| 4 limite (4) | **100 %** | 100 % | 100 % | **75 %** | 100 % | — |
+| 5 piège (9) | — | — | — | 100 % | 100 % | **100 %** (7/7) |
+
+Récupération seule : **recall@1 = 100 %** sur les paliers 1-4.
+
+## Résiduel (3 cas) — cible du fine-tuning reranker + fusion multi-fiches
+
+| cas | problème | levier |
+|-----|----------|--------|
+| `proc-iles-eloignees` | « Marquises » → `PROC-TER-002` au lieu de `PROC-TER-005` (les deux = terrain) | fine-tuning reranker (vocabulaire géographique) |
+| `comp-depart-agent` | réponse ne cite que `PROC-STOCK-005`, pas `PROC-ID-003` (question multi-domaine) | **fusion multi-fiches inter-domaines** (E7) |
+| `lim-vip-iles` | « VIP aux Australes » → « Oui » sans la contrainte coursier / 2-3 j | E7 + `PROC-TER-005` absent du top (reranker) |
+
+→ Ces 3 cas relèvent du **Jalon C fine-tuning** (`docs/RAG_ROADMAP.md`) : ~300-500 paires
+`(requête, chunk)` de l'éval + tickets + mails, fine-tune `bge-reranker-base` sur GPU.

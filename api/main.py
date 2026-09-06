@@ -40,12 +40,16 @@ RAG_STRICT = os.getenv("RAG_STRICT", "on").lower() in ("1", "true", "on", "yes")
 RAG_SYSTEM = (
     "Tu es l'assistant interne de la cellule Parc & Assistance (support informatique) de la "
     "DSI de Polynésie française. Tu aides un AGENT DE SUPPORT.\n"
-    "Réponds UNIQUEMENT à partir des EXTRAITS DE FICHES fournis. Si l'information demandée n'y "
-    "figure pas, commence ta réponse par exactement : « Je n'ai pas de fiche sur ce point. »\n"
-    "N'invente aucune référence, aucun code de procédure, aucune étape, aucune adresse e-mail.\n"
-    "Signale explicitement toute contrainte qui limite la réponse (délai, rôle habilité, "
-    "site isolé / île éloignée, contrainte RGPD).\n"
-    "Ne commente pas les fiches non pertinentes. Termine par la liste des codes de fiches utilisés."
+    "Réponds de façon concise, UNIQUEMENT à partir des EXTRAITS DE FICHES fournis, en citant "
+    "les procédures par leur code.\n"
+    "Si AUCUN extrait ne traite le sujet demandé, réponds seulement : « Je n'ai pas de fiche "
+    "sur ce point. »\n"
+    "Si la demande propose de contourner une règle présente dans les extraits (agir sans "
+    "ticket, réformer sans détruire les données, agir hors de son rôle…), réponds « Non » et "
+    "rappelle la règle et la marche à suivre correcte — ne décris jamais le contournement.\n"
+    "N'invente aucune référence, aucun code, aucune étape, aucune adresse e-mail.\n"
+    "Signale toute contrainte qui limite la réponse (délai, rôle habilité, île éloignée, RGPD).\n"
+    "Termine par la liste des codes de fiches utilisés."
 )
 
 # --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
@@ -336,18 +340,26 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         RAG_ANSWERS.labels(outcome="no_fiche").inc()
         return None
 
-    # Regroupement par fiche. PRIMAIRE = fiche au meilleur chunk (E4 : le comptage de
-    # chunks élisait la mauvaise fiche). Secondaires : même domaine + signal net.
+    # On respecte l'ORDRE du récupérateur (RRF hybride déjà classé). PRIMAIRE = fiche du
+    # 1er hit. Secondaires = fiches suivantes, dans l'ordre, avec signal net (E4).
     by_fiche: dict = {}
+    order: list = []
     for h in scored:
-        by_fiche.setdefault(h["proc_code"], []).append(h)
-    ranked = sorted(by_fiche.items(), key=lambda kv: max(_sc(x) for x in kv[1]), reverse=True)
-    primary_code, primary_hits = ranked[0]
-    primary_dom = (primary_hits[0].get("domaine") or "").strip().lower()
+        c = h["proc_code"]
+        if c not in by_fiche:
+            order.append(c)
+        by_fiche.setdefault(c, []).append(h)
+    primary_code = order[0]
+    primary_dom = (by_fiche[primary_code][0].get("domaine") or "").strip().lower()
     keep = {primary_code}
-    for code, hs in ranked[1:]:
+    for code in order[1:]:
+        if len(keep) >= 3:
+            break
+        hs = by_fiche[code]
         dom = (hs[0].get("domaine") or "").strip().lower()
-        if dom == primary_dom and (len(hs) >= 2 or max(_sc(x) for x in hs) >= 0.5):
+        strong = max(_sc(x) for x in hs) >= 0.5
+        multi = len(hs) >= 2
+        if (dom == primary_dom and (strong or multi)) or multi:
             keep.add(code)
     usable = [h for h in scored if h["proc_code"] in keep]
 

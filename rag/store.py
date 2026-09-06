@@ -43,6 +43,13 @@ CREATE INDEX IF NOT EXISTS chunks_domaine_idx  ON rag.chunks (domaine);
 CREATE INDEX IF NOT EXISTS chunks_proc_idx     ON rag.chunks (proc_code);
 CREATE INDEX IF NOT EXISTS chunks_embed_idx    ON rag.chunks
     USING hnsw (embedding vector_cosine_ops);
+-- Recherche lexicale (BM25-like) pour l'hybride — E2. Colonne générée : maintenue seule.
+-- Le nom du code de procédure est ajouté au texte indexé pour matcher « PROC-ID-007 ».
+ALTER TABLE rag.chunks ADD COLUMN IF NOT EXISTS tsv tsvector
+    GENERATED ALWAYS AS (
+        to_tsvector('french', coalesce(proc_code,'') || ' ' || coalesce(titre,'') || ' ' || text)
+    ) STORED;
+CREATE INDEX IF NOT EXISTS chunks_tsv_idx ON rag.chunks USING gin (tsv);
 """
 
 
@@ -111,6 +118,40 @@ def search(query_vec: list[float], k: int = 5, domaine: str | None = None,
     params = [_vec(query_vec), *params, _vec(query_vec), k]
     with connect() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(sql, params)
+        return [dict(r) for r in cur.fetchall()]
+
+
+def _or_tsquery(cur, query: str):
+    """Transforme la requête en tsquery OR (récupération large) ; None si vide."""
+    cur.execute("SELECT plainto_tsquery('french', %s)::text AS q", (query,))
+    plain = (cur.fetchone()["q"] or "").strip()
+    if not plain:
+        return None
+    return plain.replace(" & ", " | ")
+
+
+def search_lexical(query: str, k: int = 20, domaine: str | None = None,
+                   corpora: tuple[str, ...] = DEFAULT_CORPORA) -> list[dict]:
+    """Recherche plein-texte français (BM25-like), termes en OR — volet lexical (E2)."""
+    with connect() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        tsq = _or_tsquery(cur, query)
+        if tsq is None:
+            return []
+        where = ["corpus = ANY(%s)", "tsv @@ to_tsquery('french', %s)"]
+        params: list = [tsq, list(corpora), tsq]
+        if domaine:
+            where.append("domaine = %s")
+            params.append(domaine)
+        params.append(k)
+        cur.execute(f"""
+            SELECT chunk_id, doc_id, proc_code, titre, domaine, section, sla, criticite,
+                   contrainte_rgpd, source_url, source_file, related, text,
+                   ts_rank_cd(tsv, to_tsquery('french', %s)) AS score
+            FROM rag.chunks
+            WHERE {' AND '.join(where)}
+            ORDER BY score DESC
+            LIMIT %s
+        """, params)
         return [dict(r) for r in cur.fetchall()]
 
 

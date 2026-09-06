@@ -73,7 +73,7 @@
 - id: outil-itsm
   palier: 1
   q: "avec quel outil trace-t-on une dotation de materiel ?"
-  gold: [PROC-STOCK-004]
+  gold: [PROC-STOCK-004, PROC-TER-002]
   attendu: ["tauturu"]
 
 - id: proc-balp
