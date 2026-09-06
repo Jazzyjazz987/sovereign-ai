@@ -15,11 +15,13 @@
 >   *target* is the future **PF administration collaborative inference server**; T5 re-points to
 >   it the day it exists → a fully sovereign chain. **In the interim (POC + until that server
 >   ships): T5 → Anthropic Claude API** (public model), with Agent Anone anonymisation mandatory
->   upstream — an accepted stand-in. **Open point for the operator:** does the badge-room box get
->   a *single controlled network link* to the T5 endpoint (Claude API now, PF server later), or
->   is T5 unavailable while the box is truly isolated? This determines whether the cloud-legal
->   work (Article 46 / SCC / TIA for the *interim* Claude API leg) is needed for the POC/interim
->   or only from the sovereign-server state.
+>   upstream. The T5 production network link is **decided by the operator** (out of our scope).
+> - **DATA MANAGEMENT / RGPD GOVERNANCE IS OUT OF SCOPE** (operator decision, 2026-09-05). Not
+>   treated further in build or docs: DPIA/AIPD, `data_manifest.yaml`, retention policy,
+>   `erase_subject()` / data-subject rights, log-data governance, CSE/CTP, the arrêté. Every
+>   question and roadmap item below tagged RGPD/DPIA/retention/erasure/data-lifecycle is
+>   **shelved**. Kept: *product* safeguards — the safeguarding lane (distress → help card), the
+>   cited-fiche gate (liability on legal answers), answer quality. Focus = the operational build.
 > - **Current phase = POC preparation.** Goal: build and **present an operational solution
 >   first**; the regulatory validation (DPIA, CSE/CTP, arrêté, DPO sign-off) is **deliberately
 >   sequenced *after*** the technical solution is validated.
@@ -105,17 +107,18 @@ real" value.
 8. **Chat UI** — the existing `static/chat.html` is enough for the POC; add the labels + the
    degradation banner.
 
-### C. Responsible-by-design, cheap versions (days)
+### C. Responsible-by-design, cheap versions (days) — *product* safeguards only
 9. **Safeguarding lane** — a deterministic French lexicon screen as the *first* step
    (harcèlement / souffrance au travail / détresse) → returns a Polynesia-localised help card,
    calls no model. A support agent *will* eventually type one of these.
-10. **Cited-fiche gate for legal/RGPD/statutaire questions** — the tier returns only quoted +
+10. **Cited-fiche gate for legal / statutaire / RH questions** — the tier returns only quoted +
     linked fiche text, or a "consultez le service juridique / RH" card — never free model prose on
     a legal question. Protects the CPA agent (and the DSI) from relaying a confident wrong answer.
-11. **Small eval set** — ~30-50 anonymised real CPA tickets with a gold expected answer/route.
-    Run it in CI. This is what lets you say "the change improved routing by X" instead of guessing.
-12. **Retention + erasure** — a short TTL on stored tickets/queries + one `erase_subject()`
-    function. One page, not a DPIA epic — but real, because tickets are personal data.
+11. **Small eval set** — ~30-50 real CPA tickets with a gold expected answer/route. Run it in CI.
+    This is what lets you say "the change improved routing by X" instead of guessing.
+
+_(former item 12 — retention + `erase_subject()` — removed: data-management workstream is out of
+scope per operator decision.)_
 
 ### D. T5 — the "central sovereign inference" tier
 - **Architecture role is permanent.** Target = the future **PF administration collaborative
