@@ -8,12 +8,18 @@
 >   a *small known team*, **not 5500 agents**. They use it as a **support copilot** to help
 >   them answer/assist the ~5500 end-users / ~3500 workstations they support. The 5500 figure
 >   is the *supported population*, not the AI's user base.
-> - **Production = physically isolated & off-network.** Single box, locked **badge-access
->   room**, **air-gapped** (no inbound/outbound network). Updates + backups are **manual, via a
+> - **Production = physically isolated.** Single box, locked **badge-access room**, **off the
+>   general internet** (no exposure, no internet access). Updates + backups are **manual, via a
 >   secured USB disk**.
-> - **T5 / Anthropic cloud is a POC-phase capability only.** Air-gapped production has **no
->   network path to any cloud** — the cloud tier is a demo feature, physically impossible in
->   production. (Round 5's "ship v1 with no cloud tier" is therefore not a choice — it's a given.)
+> - **T5 is not "the cloud" — it is the "central sovereign inference" escalation tier.** Its
+>   *target* is the future **PF administration collaborative inference server**; T5 re-points to
+>   it the day it exists → a fully sovereign chain. **In the interim (POC + until that server
+>   ships): T5 → Anthropic Claude API** (public model), with Agent Anone anonymisation mandatory
+>   upstream — an accepted stand-in. **Open point for the operator:** does the badge-room box get
+>   a *single controlled network link* to the T5 endpoint (Claude API now, PF server later), or
+>   is T5 unavailable while the box is truly isolated? This determines whether the cloud-legal
+>   work (Article 46 / SCC / TIA for the *interim* Claude API leg) is needed for the POC/interim
+>   or only from the sovereign-server state.
 > - **Current phase = POC preparation.** Goal: build and **present an operational solution
 >   first**; the regulatory validation (DPIA, CSE/CTP, arrêté, DPO sign-off) is **deliberately
 >   sequenced *after*** the technical solution is validated.
@@ -21,10 +27,13 @@
 >   is transformed: air-gap removes the exfiltration path, physical access control, small known
 >   user set, **no cloud transfer at all in production**.
 >
-> ### What this collapses (moot for production — keep only as POC-phase notes)
-> The entire **cloud-legal workstream** (Article 46 / SCC / TIA / Anthropic DPA / EU-hosted
-> Claude / `cloud_authorization.yaml` runtime / egress ledger / outbound-PII-re-scan-for-cloud):
-> Q4 Q5 Q6 Q7 Q8 Q9 Q10 Q41 Q42, most of Q2 Q20.
+> ### What this collapses (moot or heavily rescaled for the corrected context)
+> **Cloud-legal workstream** (Article 46 / SCC / TIA / Anthropic DPA / `cloud_authorization.yaml`
+> / egress ledger / outbound-PII-re-scan): Q4-Q10, Q41, Q42, most of Q2, Q20 — **still required
+> for the *interim* Claude-API leg of T5 IF a controlled link exists**, but proportionate to a
+> small CPA user base, not 5500; and it **disappears entirely once T5 points at the sovereign PF
+> server**. So: keep the SCC+TIA track for the interim, scoped small; it is not a launch blocker
+> for a POC that runs T5 only in the (networked) demo phase.
 > **Identity / auth infra** (oauth2-proxy / Entra OIDC / no-identity lane / app roles / Graph
 > credential / roster CSV): Q43, most of Q45 → replaced by physical badge access + a short local
 > user list.
@@ -108,11 +117,15 @@ real" value.
 12. **Retention + erasure** — a short TTL on stored tickets/queries + one `erase_subject()`
     function. One page, not a DPIA epic — but real, because tickets are personal data.
 
-### D. POC-phase only (has network, remove before the air-gap)
-- **T5 / Anthropic cloud** with the moderation gate you already built — fine as a *demo* of "what
-  a bigger model would add", explicitly labelled and **removed for the isolated production build**.
-- Anything that needs the internet (model pulls, package installs) — do it all *before* the box
-  goes into the room; document the exact offline provisioning steps for the USB-update workflow.
+### D. T5 — the "central sovereign inference" tier
+- **Architecture role is permanent.** Target = the future **PF administration collaborative
+  inference server**; interim = **Anthropic Claude API** (public model) with Agent Anone
+  anonymisation mandatory upstream + the moderation gate already built.
+- **Operator to confirm:** does the badge-room box get one controlled network link to the T5
+  endpoint, or is T5 networked-demo-only until the sovereign server exists? This scopes the
+  interim SCC+TIA work.
+- Anything else that needs the internet (model pulls, package installs) — do it all *before* the
+  box goes into the room; document the exact offline provisioning steps for the USB-update workflow.
 
 ### Deferred to post-POC (regulatory phase, by operator decision)
 DPIA / registre Art. 30 / arrêté / CSE-CTP consultation / DPO sign-off · formal retention
