@@ -1,7 +1,19 @@
 # Reprendre après un redémarrage
 
-Mis en place le 2026-09-05 pour installer le GPU (carte ASUS TUF Gaming RTX à enficher dans
-`SI35960` / carte mère ASUS Pro Q570M-C) et reprendre la discussion Claude Code en cours.
+Mis en place le 2026-09-05 pour installer le GPU et reprendre la discussion Claude Code en cours.
+
+## ✅ FAIT (2026-09-05) — GPU installé et opérationnel
+
+- **Carte : NVIDIA GeForce RTX 3080 Ti — 12 Go VRAM** (11,6 Gio dispo). Driver 580.173.02, CUDA 13.0.
+- Kernel passé à **7.0.0-31** au reboot → module DKMS nvidia reconstruit
+  (`apt install linux-headers-7.0.0-31-generic && dkms autoinstall && modprobe nvidia`).
+- Stack en **mode GPU** : `.env` a `OLLAMA_CPU_ONLY=0`, `GPU_DEVICE_COUNT=1`,
+  `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_KEEP_ALIVE=30m`.
+- **2 modèles résidents en VRAM** (10,1 Go / 12) : `mistral:7b` + `guillaumetell-7b` → pas de swap
+  entre le tier généraliste et le tier juridique.
+- Vitesse : **~145 tok/s** sur un 7B (×48 vs CPU).
+- **Si le kernel change encore** au boot : refaire `apt install linux-headers-$(uname -r) &&
+  dkms autoinstall && modprobe nvidia`, puis `docker compose up -d`.
 
 ## Procédure de redémarrage
 

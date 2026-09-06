@@ -1,7 +1,9 @@
 # config/models.yaml — source de vérité « quels poids tournent »
 # Voir docs/DESIGN_REVIEW.md § POC SHORTLIST A1 + round 3.
-# Contrainte matériel : serveur cible = 16 Go VRAM (PAS 24). Budget résident ~11,5 Go :
-# 2 modèles 7-8B GGUF Q4 (~5 Go ch.) + GLiNER (~1 Go) + e5-base (~0,5 Go).
+# Matériel (confirmé 2026-09-05) : NVIDIA GeForce RTX 3080 Ti, 12 Go VRAM (11,6 Gio dispo),
+# driver 580.173.02 / CUDA 13.0. ~145 tok/s sur un 7B.
+# Budget : OLLAMA_MAX_LOADED_MODELS=1, UN modèle 7-8B GGUF Q4 sur GPU à la fois (~5-6 Go),
+# swap à la demande. GLiNER + e5-base restent sur CPU.
 
 # --- Modèles actifs -----------------------------------------------------------------
 actifs:
