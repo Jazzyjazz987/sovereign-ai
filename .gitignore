@@ -31,3 +31,8 @@ Thumbs.db
 
 # Secrets réels — ne jamais committer
 .env
+
+# Corpus RAG — documents internes CPA (procédures, mails, tickets), contiennent des
+# données nominatives → JAMAIS dans git. Seul le README de structure est suivi.
+corpus/*
+!corpus/README.md

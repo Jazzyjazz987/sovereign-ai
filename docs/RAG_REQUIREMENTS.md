@@ -22,6 +22,14 @@ Le RAG sert **deux gestes** de l'agent CPA, pas un chatbot ouvert :
 
 ---
 
+> **Décisions opérateur (2026-09-06) :**
+> - **Périmètre POC = les procédures de traitement des agents de la CPA** (support informatique).
+> - Sources, dans l'ordre : (1) **procédures « legacy » CPA**, (2) **mails de la BAL partagée**
+>   envoyés aux utilisateurs, (3) tickets résolus (plus tard).
+> - Juridique / statutaire PF : **hors périmètre POC** (DÉCISION 1 tranchée).
+> - Dépôt des fichiers : `corpus/01-procedures-legacy/`, `corpus/02-mails-bal-partagee/`,
+>   `corpus/03-tickets/` (dossier hors git — cf. `corpus/README.md`).
+
 ## 2. Domaines couverts (POC vs cible)
 
 | Domaine | POC ? | Corpus |
