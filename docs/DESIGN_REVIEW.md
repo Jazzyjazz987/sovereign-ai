@@ -179,8 +179,98 @@ named "no auth on :8888" as the blocker for all ACL/quota/RAG-ACL/cache work).
 
 ---
 
+### Round 03 — model-supply-chain-vetting · production-answer-quality-loop · acceptable-use-safety-incident · measured-capacity-harness · pwa-client-and-notification · tco-budget-governance
+23 proposals, 21 survived. **Highest-leverage:** a *metadata-only capacity request journal* — one
+JSONL line per query (token counts, tier, cold/warm, queue depth, per-phase wall-times; **zero
+query text, no client id**), async fire-and-forget, ~50-line weekly pandas fit. ~1.5 days, no RGPD
+downside (strengthens the CNIL story with verifiable volume figures), and it's the only way to get
+the arrival-rate data that **every** capacity / staffing / SLA / interim-VM decision currently
+guesses at.
+
+**Top 6:**
+1. **Metadata-only capacity request journal + weekly arrival-rate fit** — `api/obs/journal.py`,
+   wired into the existing metrics wrapper; reaper + manifest entry; `api/bench/fit_arrival.py`
+   writes an "observed" block into `config/capacity_profile.yaml`.
+2. **Remove the uncensored community weights NOW; add `config/models.yaml` scoped fail-closed
+   admission control** — `dolphin-mixtral` (deliberately de-safety-trained "uncensored" fine-tune)
+   is the legal/administratif tier answering RGPD & HR questions for 5500 agents *with no system
+   prompt*, and it's Mixtral 8x7B (~26 GB — doesn't fit the budget, unusable at 3 tok/s). Delete it
+   + `neural-chat` from `ollama_init.sh` and `TIERS` now (local cascade caps at T2 until the GPU).
+   `config/models.yaml`: one entry per resident weight with an immutable content digest; startup
+   check fails-closed **only** on GLiNER or T4 mismatch (T1-T3 log + banner + serve — a stack that
+   won't boot at 2am is its own hazard); never auto-write the CLAUDE.md table.
+3. **Minimal cloud-egress substrate** — re-run the R1.2 deterministic PII detector over the
+   *outbound anonymised text* right before the Anthropic call (fail-closed to local on any hit) +
+   an **append-only transfer journal** (HMAC of the payload, gliner_version, rescan_result,
+   request/approval id, token count, 3-year retention). Turns "did subject X's data leave in clear?"
+   from a worst-case assumption into a hash lookup.
+4. **PWA as an identity-owned server-side ticket store ("corbeille") + zero-JS
+   progressive-enhancement client** — at 3 tok/s a synchronous chat UI is a lie; the ticket model
+   makes latency a first-class fact. **Decisive property:** if the answer is only ever pulled over
+   the authenticated on-prem channel, the notification never carries content → its transport (plain
+   M365 email) falls entirely outside the CNIL/sovereignty boundary. Zero-JS server-rendered
+   semantic HTML makes **RGAA 4.1** an architectural property, not a bug backlog, and runs on the
+   oldest workstations over satellite. **The only round-3 proposal that dissolves a hard constraint
+   instead of working around it.** ~2-3 weeks, gated on the R2.1 proxy.
+5. **Consolidated AI TCO line + durable Postgres spend/transfer ledger + two-tier overrun
+   authority** — `_t5_calls` is an in-process counter that resets on every restart, so a crash-loop
+   or a second replica has **no ceiling**; overspend is found on the monthly invoice. One
+   `t5_ledger` table on the existing Postgres: post-pay check before each call (over → local; ledger
+   unreachable → fail-closed to local); Prometheus spend gauge + 70/90/100% alerts;
+   `config/budget_envelopes.yaml` in git, one named holder, ops may alert but not raise a ceiling.
+6. **Hardware-fingerprinted `config/capacity_profile.yaml`** — `main.py` hardcodes `timeout=120`
+   with no basis; every latency constant is silently invalidated the day the 3090 arrives. Split
+   into a "measured" block (only the harness writes it) + a hand-owned "policy" block; startup
+   fingerprint mismatch → **concrete conservative static profile** (serial, worker pool 1, hard
+   queue cap, reject-over-capacity with a typed reason — NOT "no deadline", which is fail-open).
+
+**Cross-cutting R3 findings:**
+- CPU-era UX = coarse "réponse différée, ~N min" only, measured at concurrency 1; precise per-query
+  ETA + tokenizer-in-hot-path deferred to post-3090. "Never multi-GPU" (hardware) ≠ request
+  concurrency (unrelated) — don't cap request concurrency at 2 post-3090, it kills vLLM batching.
+- **One access-control policy for ALL identity-linked query data** (corbeille, transfer journal, any
+  abuse dataset): named access only, logged reason, retention cap, RoPA entry, **CSE/CST
+  consultation before go-live**. Do NOT build a standalone per-agent query log.
+- Abuse detection: **drop** "near-duplicate burst" / "templated fan-out" signals (they collide with
+  the canonical-answer + templated-workflow direction); keep only a structured-citizen-identifier
+  -count tripwire (throttle-and-review, never auto-block, tuned so a benefits clerk clearing 200
+  dossiers isn't flagged). Ship only a user-facing charte-reminder banner + anonymous weekly
+  aggregate counter — **no per-identity risk tagging** without CSE sign-off + an eval-proven FP rate.
+- Field-failure corpus **augments but never merges into** the hand-built offline eval set;
+  field entries are reviewer-paraphrased to synthetic wording before any git commit (pseudonymised
+  user text in git history is permanent and un-erasable).
+
+---
+
 ## Open design questions for the operator
 _(accumulated across rounds)_
+
+### From round 3
+20. **Chapter V transfer basis** — does the marché public with the (EU-)Claude provider carry signed
+    SCCs + a documented TIA (or DPF), DPO-signed, **before any production T5 call**? Until yes, T5
+    stays disabled — the egress journal is forensics, not a lawful basis.
+21. **French labour law** — is prior **CSE/CST consultation + formal information des agents**
+    required before the authenticated PWA can launch with per-agent logging? Who runs it, what
+    timeline? This may gate the whole identity-bound design.
+22. **Interim CPU worker-VM hosting** — contractually/legally acceptable for government-agent
+    personal data (SecNumCloud / EU sovereignty)? If not, inference stays on the on-prem box at
+    ~3 tok/s until the 3090.
+23. **Approve the frozen-cascade amendment**: `neural-chat` + `dolphin-mixtral` removed now; T3/T4
+    become named official vendor weights when the 3090 lands. Changes the CLAUDE.md table — needs
+    Jazzy's signature.
+24. **Named holder of the consolidated AI TCO line** + concrete euro caps (T5/day, T5/month, total
+    stack/month) + monthly kWh assumption.
+25. **reo Tahiti UI-chrome locale** (not model output) — committed v1+ deliverable with a named
+    translation owner + Fare Vāna'a review cadence, or explicitly out of scope? (Build the
+    string-pack seam either way.)
+26. **Named-people capacity check on a 3-person team**: confirm or descope the 2 rotating quality
+    reviewers (~0.2 FTE), the canonical-answer editorial owner (~0.3 FTE), the 2 dual-control
+    unseal authorities. Permanent commitments, not project tasks.
+27. **SLA posture** — prepared to publish "heures ouvrées, best effort, no number" to 5500 agents
+    until 6-8 weeks of request-journal data exist, and defend that to leadership?
+28. **Access-control + retention for identity-linked query data** — who may read the corbeille /
+    transfer journal / abuse dataset, under what logged justification, for how long, and **who can
+    compel disclosure** (a manager, a court order, a future administration)?
 
 ### From round 2
 11. **Is cloud T5 actually required by the directions métier**, or is "T4 is the ceiling, fully
