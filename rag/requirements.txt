@@ -1,0 +1,8 @@
+# Service RAG — embeddings locaux CPU + pgvector. Versions figées pour l'air-gap.
+# torch CPU : installer via  --index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0
+sentence-transformers==3.3.1
+psycopg2-binary==2.9.9
+fastapi==0.115.6
+uvicorn==0.34.0
+httpx==0.28.1
