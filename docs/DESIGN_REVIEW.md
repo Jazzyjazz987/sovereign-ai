@@ -1,5 +1,127 @@
 # DESIGN REVIEW — Sovereign AI stack (conception)
 
+> ## ⚠️ CONTEXT CORRECTION — 2026-09-05 (operator, after rounds 1-5)
+>
+> Rounds 1-5 were run against an **overstated context**. The corrected picture:
+>
+> - **Users of the AI = the CPA team** (Cellule Parc et Assistance — the support desk),
+>   a *small known team*, **not 5500 agents**. They use it as a **support copilot** to help
+>   them answer/assist the ~5500 end-users / ~3500 workstations they support. The 5500 figure
+>   is the *supported population*, not the AI's user base.
+> - **Production = physically isolated & off-network.** Single box, locked **badge-access
+>   room**, **air-gapped** (no inbound/outbound network). Updates + backups are **manual, via a
+>   secured USB disk**.
+> - **T5 / Anthropic cloud is a POC-phase capability only.** Air-gapped production has **no
+>   network path to any cloud** — the cloud tier is a demo feature, physically impossible in
+>   production. (Round 5's "ship v1 with no cloud tier" is therefore not a choice — it's a given.)
+> - **Current phase = POC preparation.** Goal: build and **present an operational solution
+>   first**; the regulatory validation (DPIA, CSE/CTP, arrêté, DPO sign-off) is **deliberately
+>   sequenced *after*** the technical solution is validated.
+> - **RGPD still applies** (support tickets can carry agent + citizen PII) but the risk surface
+>   is transformed: air-gap removes the exfiltration path, physical access control, small known
+>   user set, **no cloud transfer at all in production**.
+>
+> ### What this collapses (moot for production — keep only as POC-phase notes)
+> The entire **cloud-legal workstream** (Article 46 / SCC / TIA / Anthropic DPA / EU-hosted
+> Claude / `cloud_authorization.yaml` runtime / egress ledger / outbound-PII-re-scan-for-cloud):
+> Q4 Q5 Q6 Q7 Q8 Q9 Q10 Q41 Q42, most of Q2 Q20.
+> **Identity / auth infra** (oauth2-proxy / Entra OIDC / no-identity lane / app roles / Graph
+> credential / roster CSV): Q43, most of Q45 → replaced by physical badge access + a short local
+> user list.
+> **Capacity / scaling** (queueing / batching / two-lane sync-async / SLA-with-no-number /
+> arrival-rate journal / worker VMs / `OLLAMA_NUM_PARALLEL` tuning): Q28 Q29 Q30 Q32 Q33 Q34 →
+> a handful of users on one RTX 3090 is trivially served; ~3 tok/s is fine at this concurrency.
+> **DR / resilience infra** (second-island DR box / quarterly game-day / continuous off-box
+> shipping / 3-class state split / breach tripwires / sovereign-kill / 72h breach playbook /
+> hash-chained scoping ledger): Q40 Q44, most of Q45 → replaced by manual USB backup; the box has
+> no remote attack surface.
+> **5500-agent adoption** (onboarding front door / shadow-egress KPI / big-bang-vs-phased /
+> consent pilot): Q35 Q36 Q39 → a small team, onboarded in a room.
+> **Compliance-dossier-as-a-hard-gate** (arrêté / CSE-CTP / DPO-owner-before-build): Q1 Q2 Q21
+> Q22 Q23 → deferred to post-POC *by operator decision* (still real work, just re-sequenced).
+> **Secrets vault complexity** (SOPS/age / Docker file-secrets / departure-rotation-in-48h) →
+> reduced to file permissions on a locked, off-network box.
+>
+> ### What rescales (still relevant, smaller)
+> FTE / editorial owner (Q15-Q20) → ~0.1-0.2 FTE *within the CPA* to curate canonical answers,
+> not 0.5 + DPO/DGRH/DAF queues. Retention & data-subject rights (Q24-Q27, Q31) → a retention
+> policy + one erasure primitive over ~3 stores, not a cross-11-store DPIA epic. reo Mā'ohi /
+> languages (Q37 Q38) → still a real safeguarding-gate + equity question, CPA-scale. Latency
+> (Q29) → fine at this concurrency.
+>
+> ### What stays FULLY relevant — the POC shortlist (see § POC SHORTLIST below)
+> Remove `dolphin-mixtral` + `neural-chat` (Q11 Q14 Q19) · prompt pack (no system prompt today) ·
+> fix the escalate-or-degrade fallback · small eval set of anonymised CPA tickets (Q6 Q27) ·
+> safeguarding lane · cited-fiche gate for legal/RGPD answers · **curated canonical answer base +
+> strong French search + a "rédiger la réponse au ticket" lane — this is the actual product** ·
+> typed degradation contract · `config/models.yaml` digest pinning · answer labels · the frozen
+> cascade amendment (Q12 Q13 Q23) now reads: T-cloud is POC-only, local tiers are the product.
+>
+> **`CLAUDE.md` also needs a matching correction** (its "Identité du projet" / "Périmètre" and
+> the air-gap / off-network production constraint). Ask the operator before editing CLAUDE.md.
+
+---
+
+# POC SHORTLIST — what to build now (corrected context)
+
+Goal: a **presentable, operational** support copilot for the CPA team. Air-gapped in prod, small
+user set, no cloud in production, regulatory work sequenced after. Ordered by "makes the demo
+real" value.
+
+### A. Fix what's actually broken (days)
+1. **Remove `dolphin-mixtral` + `neural-chat`** from `scripts/ollama_init.sh` and `api/main.py`
+   `TIERS`. They are uncensored community fine-tunes serving as the legal/code tiers; `dolphin-mixtral`
+   (46 GB) doesn't fit and is unusable on CPU anyway. Local cascade = `mistral:7b` +
+   `llama2:7b` for now (or pull `qwen2.5-coder:7b` for code if wanted). Correct the CLAUDE.md
+   cascade table (the phantom "Llama 3.3 8B").
+2. **Prompt pack** — `config/prompts.yaml`, one system prompt per tier. Today `query_ollama` sends
+   the user text raw: no French enforcement, no "réponse indicative — vérifiez la source", no
+   safety framing. Fingerprint it into the `/query` response.
+3. **Fix the fallback** — `query_ollama_with_fallback` currently walks *down* to the weakest model.
+   Make it **escalate-or-degrade**: on failure, return a typed `service_level: degraded` with an
+   honest banner, never a silent downgrade.
+4. **`config/models.yaml`** — pin each model to a content digest; startup logs a divergence
+   warning. Cheap; ends "which weights are actually running?".
+
+### B. The actual product (weeks)
+5. **Curated canonical answer base + strong French search** — for a support desk this *is* the
+   product: the recurring "reset MDP / VPN / Outlook F3 / licence / imprimante" procedures, each a
+   human-validated fiche, served instantly. Seed from the real Parc & Assistance ticket history.
+   Reuses the planned pgvector + `multilingual-e5-base`.
+6. **A "rédiger la réponse au ticket" lane** — the second core use: paste the user's problem →
+   local model drafts a clear French reply the support agent edits and sends. Constrained, local,
+   no cloud.
+7. **Answer labels** — 3 badges: "Fiche validée CPA" / "Généré localement — à vérifier" /
+   (POC only) "Réponse cloud". Calibrated trust from day one.
+8. **Chat UI** — the existing `static/chat.html` is enough for the POC; add the labels + the
+   degradation banner.
+
+### C. Responsible-by-design, cheap versions (days)
+9. **Safeguarding lane** — a deterministic French lexicon screen as the *first* step
+   (harcèlement / souffrance au travail / détresse) → returns a Polynesia-localised help card,
+   calls no model. A support agent *will* eventually type one of these.
+10. **Cited-fiche gate for legal/RGPD/statutaire questions** — the tier returns only quoted +
+    linked fiche text, or a "consultez le service juridique / RH" card — never free model prose on
+    a legal question. Protects the CPA agent (and the DSI) from relaying a confident wrong answer.
+11. **Small eval set** — ~30-50 anonymised real CPA tickets with a gold expected answer/route.
+    Run it in CI. This is what lets you say "the change improved routing by X" instead of guessing.
+12. **Retention + erasure** — a short TTL on stored tickets/queries + one `erase_subject()`
+    function. One page, not a DPIA epic — but real, because tickets are personal data.
+
+### D. POC-phase only (has network, remove before the air-gap)
+- **T5 / Anthropic cloud** with the moderation gate you already built — fine as a *demo* of "what
+  a bigger model would add", explicitly labelled and **removed for the isolated production build**.
+- Anything that needs the internet (model pulls, package installs) — do it all *before* the box
+  goes into the room; document the exact offline provisioning steps for the USB-update workflow.
+
+### Deferred to post-POC (regulatory phase, by operator decision)
+DPIA / registre Art. 30 / arrêté / CSE-CTP consultation / DPO sign-off · formal retention
+schedule · RGAA audit + déclaration d'accessibilité · the model-licensing legal review.
+**None of these block the POC** — but they block *production go-live with real personal data*,
+so start the paperwork in parallel once the POC is validated.
+
+---
+
 Continuous multi-agent review of the **global design** of the sovereign AI system for
 DSI Polynésie française. Not bug-hunting — architecture-level improvements: different
 structure, different boundary, a capability that changes what's possible, a simplification
