@@ -117,13 +117,17 @@ class QueryRequest(BaseModel):
     # à partir des mots-clés de la requête. Utile pour les tests de cascade déterministes.
     complexity: Optional[float] = None
 
-# Cascade figée (CLAUDE.md). Chaque tier pointe vers un tag Ollama, sauf T5 (cloud).
-# L'ordre sert aussi de chaîne de repli : si un tier échoue, on descend d'un cran.
+# Cascade — cible (voir docs/DESIGN_REVIEW.md § POC SHORTLIST + config/models.yaml).
+# Chaque tier pointe vers un tag Ollama, sauf T5 (réseau). L'ordre sert aussi de chaîne de repli.
+# 2026-09-05 : retrait de `dolphin-mixtral` (fine-tune non censuré) et `neural-chat` (repack non
+# maintenu) — inacceptables comme tier juridique/code. T4 → guillaumetell-7b (Albert/DINUM,
+# RAG + citation de source, Apache-2.0). T3 (code) reste sur mistral:7b en attendant un modèle
+# code dédié (ex. qwen2.5-coder). Sur RTX 3080 Ti 12 Go : 2 modèles résidents (T1-T3 + T4).
 TIERS = [
     ("T1", "mistral:7b"),
-    ("T2", "llama2:7b"),
-    ("T3", "neural-chat"),
-    ("T4", "dolphin-mixtral"),
+    ("T2", "mistral:7b"),
+    ("T3", "mistral:7b"),
+    ("T4", "hf.co/mradermacher/guillaumetell-7b-GGUF:Q4_K_M"),
     ("T5", "claude-sonnet"),
 ]
 
@@ -445,14 +449,7 @@ async def list_models():
     except:
         pass
 
-    return {
-        "models": [
-            {"name": "mistral:7b", "size": "4GB"},
-            {"name": "llama2:7b", "size": "4GB"},
-            {"name": "neural-chat", "size": "4GB"},
-            {"name": "dolphin-mixtral", "size": "13GB"}
-        ]
-    }
+    return {"models": [{"name": m} for _, m in TIERS if m != "claude-sonnet"]}
 
 # Read HTML template
 def get_html_content() -> str:

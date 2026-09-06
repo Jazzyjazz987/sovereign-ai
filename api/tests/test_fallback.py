@@ -11,12 +11,18 @@ import main
 from main import OllamaError, query_ollama_with_fallback
 
 
+def _model_of(tier):
+    return next(m for label, m in main.TIERS if label == tier)
+
+
 def test_repli_vers_le_tier_inferieur(monkeypatch):
-    """Le tier de départ échoue, le suivant répond -> réponse du tier inférieur,
-    préfixée du marqueur [repli T4->T3]."""
+    """Le tier de départ (T4) échoue, T3 répond -> réponse de T3, préfixée [repli T4→T3].
+    Robuste aux changements de modèles : on lit main.TIERS."""
+    t4_model = _model_of("T4")
+    t3_model = _model_of("T3")
 
     async def fake_query_ollama(model, prompt):
-        if model == "dolphin-mixtral":  # T4 = tier de départ
+        if model == t4_model:
             raise OllamaError("T4 simulé indisponible")
         return f"réponse de {model}"
 
@@ -25,7 +31,7 @@ def test_repli_vers_le_tier_inferieur(monkeypatch):
     text, model, tier = asyncio.run(query_ollama_with_fallback("T4", "bonjour"))
 
     assert tier == "T3"
-    assert model == "neural-chat"
+    assert model == t3_model
     assert text.startswith("[repli T4→T3]")
 
 

@@ -1,49 +1,28 @@
 #!/bin/bash
-# Ollama Model Initialization - Load T1-T4 Models on Startup
+# Ollama — pré-chargement des modèles de la cascade (voir config/models.yaml).
+# 2026-09-05 : retrait de dolphin-mixtral / neural-chat (fine-tunes non censurés).
 
 set -e
+echo "=== Ollama : initialisation des modèles ==="
 
-echo "=== Ollama Model Initialization ==="
-
-# Wait for Ollama to be ready
-echo "Waiting for Ollama to be ready..."
+echo "Attente d'Ollama..."
 for i in {1..30}; do
   if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo "✅ Ollama ready"
-    break
+    echo "OK Ollama prêt"; break
   fi
-  echo "  Attempt $i/30..."
-  sleep 2
+  echo "  tentative $i/30..."; sleep 2
 done
 
-# Load models (non-blocking, will load on-demand if not present)
-echo "Loading models..."
-
-# T1: Mistral 7B (fast, general purpose)
-echo "[T1] Pulling mistral:7b..."
+# T1/T2/T3 — généraliste français
+echo "[T1-T3] mistral:7b"
 ollama pull mistral:7b 2>&1 | tail -1 &
-T1_PID=$!
 
-# T2: Llama 2 8B (analysis, RGPD)
-echo "[T2] Pulling llama2:7b..."
-ollama pull llama2:7b 2>&1 | tail -1 &
-T2_PID=$!
+# T4 — juridique / administratif : Guillaume Tell (Albert / DINUM), RAG + citation, Apache-2.0
+echo "[T4] guillaumetell-7b (GGUF Q4_K_M)"
+ollama pull hf.co/mradermacher/guillaumetell-7b-GGUF:Q4_K_M 2>&1 | tail -1 &
 
-# T3: Neural Chat (coding)
-echo "[T3] Pulling neural-chat..."
-ollama pull neural-chat 2>&1 | tail -1 &
-T3_PID=$!
+wait 2>/dev/null || true
 
-# T4: Dolphin (analysis/design)
-echo "[T4] Pulling dolphin-mixtral..."
-ollama pull dolphin-mixtral 2>&1 | tail -1 &
-T4_PID=$!
-
-# Wait for all to complete
-wait $T1_PID $T2_PID $T3_PID $T4_PID 2>/dev/null || true
-
-echo "✅ Model initialization complete"
-echo "Available models:"
-curl -s http://localhost:11434/api/tags | jq '.models[].name' 2>/dev/null | head -10
-
+echo "OK initialisation terminée. Modèles :"
+curl -s http://localhost:11434/api/tags | jq -r '.models[].name' 2>/dev/null | head -10
 exit 0
