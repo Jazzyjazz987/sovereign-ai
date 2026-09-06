@@ -6,8 +6,7 @@ import sys
 import textwrap
 import httpx
 
-from embed import embed_query
-import store
+from retriever import retrieve
 
 OLLAMA = "http://localhost:11434"
 MODEL = "qwen2.5:7b"
@@ -22,7 +21,7 @@ SYS = (
 
 
 def answer(question: str, k: int = 5):
-    hits = store.search(embed_query(question), k=k)
+    hits = retrieve(question, k=k, rerank=True)
     ctx = "\n\n".join(
         f"[{h['proc_code'] or h['doc_id']} §{h['section']}]\n{h['text'].split(chr(10), 1)[-1]}"
         for h in hits
