@@ -16,6 +16,7 @@ import hashlib
 import anthropic
 import requests
 import yaml
+import screening
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
@@ -299,18 +300,24 @@ _SMALLTALK = re.compile(
 )
 
 
-async def _rag_answer(query: str) -> Optional[dict]:
-    """Cherche des fiches CPA et rédige une réponse citée. None => on passe à la cascade."""
-    if not RAG_ENABLED or (_SMALLTALK.match(query) and len(query) < 60):
-        return None
+async def _rag_search(query: str) -> Optional[list]:
+    """Interroge le service RAG. None => RAG indisponible (≠ [] = aucune fiche)."""
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(f"{RAG_URL}/search", json={"query": query, "k": RAG_K})
         r.raise_for_status()
-        hits = r.json().get("hits", [])
+        return r.json().get("hits", [])
     except Exception as e:  # noqa: BLE001 — RAG indisponible => cascade normale
         print(f"[rag] indisponible: {e}", flush=True)
         RAG_ANSWERS.labels(outcome="unavailable").inc()
+        return None
+
+
+async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
+    """Rédige une réponse citée à partir des fiches `hits`. None => on passe à la cascade."""
+    if not hits:
+        if hits is not None:
+            RAG_ANSWERS.labels(outcome="no_fiche").inc()
         return None
 
     def _sc(h):
@@ -509,15 +516,29 @@ async def query_cascade(request: QueryRequest):
 
 async def _query_cascade(request: QueryRequest):
     forced = request.model if request.model != "auto" else None
+    q = request.query
 
-    # Étape 1 — portail à fiches citées. Sans modèle forcé, on interroge d'abord le RAG :
-    # une réponse fondée sur des fiches CPA prime sur la génération libre (DESIGN_REVIEW).
+    # Étape 0 — voie de sauvegarde : signal de détresse → carte d'aide, AUCUN modèle.
+    # Prioritaire, s'applique même avec un modèle forcé.
+    sg = screening.safeguarding(q)
+    if sg is not None:
+        return sg
+
+    # Étape 1 — gate hors-périmètre : motif « hors sujet » explicite ET aucun terme du
+    # vocabulaire support. Déterministe, aucun modèle. (Ne s'applique pas si un modèle
+    # est forcé — l'opérateur sait ce qu'il fait.)
+    if not forced and screening.is_out_of_scope(q):
+        return screening.out_of_scope_card(q)
+
+    # Étape 2 — portail à fiches citées (sans modèle forcé).
     if not forced:
-        rag = await _rag_answer(request.query)
+        smalltalk = bool(_SMALLTALK.match(q)) and len(q) < 60
+        hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q)
+        rag = await _rag_answer(q, hits)
         if rag is not None:
             return rag
 
-    model, complexity, tier = router.route(request.query, forced, request.complexity)
+    model, complexity, tier = router.route(q, forced, request.complexity)
 
     # T5 (Claude Sonnet) : passage obligatoire par l'anonymisation Agent Anone.
     if tier == "T5":
@@ -560,6 +581,8 @@ async def health():
         "version": "2.0",
         "cascade": "fiches(RAG) → T1→T2→T3→T4→T5",
         "prompt_set": PROMPT_SET_FP,
+        "screening": {"config": screening.CONFIG_FINGERPRINT,
+                      "voies": ["sauvegarde", "hors-perimetre"]},
         "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
                 "min_rerank": RAG_MIN_RERANK, "model": RAG_MODEL},
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,

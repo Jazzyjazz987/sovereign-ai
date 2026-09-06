@@ -28,3 +28,10 @@ if "gliner" not in sys.modules:
 
     _fake_gliner.GLiNER = _StubGLiNER
     sys.modules["gliner"] = _fake_gliner
+
+# screening.py charge config/screening.yaml au démarrage. On pointe sur le vrai fichier
+# du dépôt pour tester le lexique réel (fail-soft si absent -> valeurs par défaut).
+if "SCREENING_PATH" not in os.environ:
+    _s = os.path.join(os.path.dirname(__file__), "..", "..", "config", "screening.yaml")
+    if os.path.exists(_s):
+        os.environ["SCREENING_PATH"] = os.path.abspath(_s)

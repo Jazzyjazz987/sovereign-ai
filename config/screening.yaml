@@ -1,0 +1,197 @@
+# config/screening.yaml — filtres déterministes en amont de tout modèle.
+# Deux voies :
+#   - safeguarding : signaux de détresse / mise en danger → carte d'aide, AUCUN modèle,
+#     aucun ticket, aucun cache. Priorité absolue.
+#   - out_of_scope : l'outil ne traite QUE le support informatique de la CPA.
+#
+# Édition libre par l'opérateur. Rechargé à chaque démarrage du service langgraph.
+version: 1
+
+safeguarding:
+  # ⚠️ NUMÉROS À VÉRIFIER / COMPLÉTER PAR L'OPÉRATEUR avant mise en service réelle.
+  # Correspondance insensible à la casse et aux accents ; sous-chaîne simple.
+  patterns:
+    - suicide
+    - me suicider
+    - envie d'en finir
+    - envie de mourir
+    - plus envie de vivre
+    - me faire du mal
+    - se faire du mal
+    - faire du mal
+    - me tuer
+    - passer a l'acte
+    - je vais mourir
+    - mettre fin a mes jours
+    - violence conjugale
+    - il me frappe
+    - elle me frappe
+    - harcelement moral
+    - je suis en danger
+    - on me menace
+    - maltraitance
+  card: |
+    ⚠️ Situation sensible détectée.
+
+    Cet outil ne traite pas ce type de demande. Si une personne (usager ou collègue)
+    exprime une souffrance ou une mise en danger :
+
+    • Urgences : SAMU 15 · Gendarmerie / Police 17 · Pompiers 18
+    • SOS Suicide Polynésie : 40 44 47 48 (24 h/24, 7 j/7)
+    • Pour un agent en difficulté : cellule d'écoute de la DRH / médecine du travail
+      (coordonnées à compléter par la DSI)
+
+    Ne restez pas seul face à la situation : prévenez votre hiérarchie.
+
+out_of_scope:
+  # Carte hors-périmètre déclenchée SI :
+  #   (un motif `patterns` ci-dessous correspond)  ET  (aucun terme `scope_lexicon`)
+  #   ET  (le RAG n'a renvoyé aucune fiche exploitable).
+  # Blocklist volontairement étroite : mieux vaut répondre que refuser à tort.
+  patterns:
+    - capitale de
+    - capitale du
+    - population de
+    - combien d'habitants
+    - qui a inventé
+    - qui a gagné
+    - qui a écrit
+    - en quelle année
+    - quelle est la date de
+    - recette
+    - ecris moi un
+    - ecris-moi un
+    - ecris moi une
+    - ecris-moi une
+    - redige moi un poeme
+    - un poeme sur
+    - une chanson sur
+    - raconte moi une blague
+    - raconte-moi une blague
+    - raconte moi une histoire
+    - traduis
+    - traduction de
+    - comment dit-on
+    - comment on dit
+    - conseille moi un
+    - recommande moi un
+    - quel film
+    - quel livre
+    - meteo
+    - quel temps fait
+    - cours de la bourse
+    - resultat du match
+  # Vocabulaire support CPA : sa présence ANNULE la carte hors-périmètre (garde-fou).
+  scope_lexicon:
+    - compte
+    - utilisateur
+    - mot de passe
+    - passe
+    - mfa
+    - authentif
+    - connexion
+    - connecter
+    - session
+    - identifiant
+    - poste
+    - ordinateur
+    - ordi
+    - pc
+    - portable
+    - ecran
+    - clavier
+    - souris
+    - imprimante
+    - scanner
+    - materiel
+    - peripherique
+    - dotation
+    - reforme
+    - stock
+    - livraison
+    - inventaire
+    - outlook
+    - teams
+    - onedrive
+    - sharepoint
+    - exchange
+    - messagerie
+    - mail
+    - courriel
+    - boite
+    - bal
+    - balp
+    - licence
+    - m365
+    - microsoft
+    - office
+    - windows
+    - intune
+    - autopilot
+    - mdt
+    - entra
+    - ldap
+    - annuaire
+    - vpn
+    - reseau
+    - wifi
+    - cloudflare
+    - warp
+    - glpi
+    - tauturu
+    - ticket
+    - incident
+    - panne
+    - bug
+    - erreur
+    - plante
+    - lent
+    - installer
+    - installation
+    - logiciel
+    - application
+    - appli
+    - deploiement
+    - package
+    - driver
+    - pilote
+    - bitlocker
+    - harfanglab
+    - defender
+    - edr
+    - chiffrement
+    - agent
+    - service
+    - dsi
+    - cpa
+    - procedure
+    - proc-
+    - habilitation
+    - acces
+    - groupe
+    - profil
+    - telephone
+    - mobile
+    - android
+    - tablette
+    - sav
+    - atelier
+    - terrain
+    - teleassistance
+    - prise en main
+    - reinitialis
+    - debloqu
+    - verrouill
+    - vpn
+    - kaspersky
+    - vnc
+    - teamviewer
+    - proxmox
+    - serveur
+    - active directory
+  card: |
+    Je suis l'assistant interne de la cellule Parc & Assistance : je réponds aux
+    questions de support informatique (comptes et identités, postes et matériel,
+    Microsoft 365, procédures CPA).
+
+    Cette demande sort de ce périmètre — je ne peux pas y répondre.
