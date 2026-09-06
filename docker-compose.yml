@@ -98,6 +98,7 @@ services:
       - "8888:8888"
     volumes:
       - ./api/static:/app/static
+      - ./config:/app/config:ro
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db

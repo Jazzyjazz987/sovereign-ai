@@ -12,8 +12,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import re
+import hashlib
 import anthropic
 import requests
+import yaml
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
@@ -21,6 +23,25 @@ app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 # Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 litellm_api_key = os.getenv("LITELLM_API_KEY")
+
+# --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
+PROMPTS_PATH = os.getenv("PROMPTS_PATH", "/app/config/prompts.yaml")
+
+
+def _load_prompts(path: str) -> tuple[dict, str]:
+    with open(path, encoding="utf-8") as f:
+        raw = f.read()
+    data = yaml.safe_load(raw)
+    commun = (data.get("commun") or "").strip()
+    tiers = {t: (body or "").format(commun=commun).strip()
+             for t, body in (data.get("tiers") or {}).items()}
+    if not tiers:
+        raise ValueError(f"{path} : aucun prompt de tier")
+    fp = hashlib.sha256(raw.encode()).hexdigest()[:12]
+    return tiers, fp
+
+
+TIER_PROMPTS, PROMPT_SET_FP = _load_prompts(PROMPTS_PATH)
 # Modèle T5 (cloud Anthropic). CLAUDE.md : "Claude Sonnet". Surchargeable via l'env.
 # Budget serré : mettre T5_MODEL=claude-haiku-4-5 dans .env (~5x moins cher en sortie).
 T5_MODEL = os.getenv("T5_MODEL", "claude-sonnet-5")
@@ -213,14 +234,15 @@ router = CascadeRouter()
 class OllamaError(Exception):
     """Erreur d'appel Ollama — déclenche le repli vers le tier inférieur."""
 
-async def query_ollama(model: str, prompt: str) -> str:
-    """Interroge un modèle Ollama. Lève OllamaError en cas d'échec."""
+async def query_ollama(model: str, prompt: str, tier: str = None) -> str:
+    """Interroge un modèle Ollama avec le prompt système du tier. Lève OllamaError si échec."""
+    payload = {"model": model, "prompt": prompt, "stream": False}
+    system = TIER_PROMPTS.get(tier)
+    if system:
+        payload["system"] = system
     try:
         async with httpx.AsyncClient(timeout=120) as client:
-            response = await client.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={"model": model, "prompt": prompt, "stream": False}
-            )
+            response = await client.post(f"{OLLAMA_URL}/api/generate", json=payload)
     except Exception as e:
         raise OllamaError(f"connexion Ollama impossible: {e}")
 
@@ -240,7 +262,7 @@ async def query_ollama_with_fallback(start_tier: str, prompt: str) -> tuple[str,
         if label == "T5":
             continue  # T5 est géré séparément (anonymisation)
         try:
-            text = await query_ollama(model, prompt)
+            text = await query_ollama(model, prompt, tier=label)
             if errors:
                 text = f"[repli {start_tier}→{label}] {text}"
             return text, model, label
@@ -395,6 +417,7 @@ async def _query_cascade(request: QueryRequest):
         "model_used": model,
         "tier": tier,
         "complexity": round(complexity, 2),
+        "prompt_set": PROMPT_SET_FP,
         "message": f"Traité par {tier} ({model})"
     }
 
@@ -406,6 +429,7 @@ async def health():
         "service": "langgraph",
         "version": "2.0",
         "cascade": "T1→T2→T3→T4→T5",
+        "prompt_set": PROMPT_SET_FP,
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
                "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
                "pending": len(_t5_pending)}

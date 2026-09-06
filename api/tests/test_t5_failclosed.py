@@ -35,7 +35,7 @@ def test_anone_erreur_gliner_absent__pas_d_appel_cloud(monkeypatch):
 
     monkeypatch.setattr(main.anthropic, "Anthropic", _boom)
 
-    async def fake_fallback(model, prompt):
+    async def fake_fallback(model, prompt, tier=None):
         return "réponse locale"
 
     monkeypatch.setattr(main, "query_ollama", fake_fallback)
@@ -57,7 +57,7 @@ def test_plafond_budget_t5__repli_local_sans_appel(monkeypatch):
     monkeypatch.setattr(main.requests, "post", _no_net)
     monkeypatch.setattr(main.anthropic, "Anthropic", _no_net)
 
-    async def fake_fallback(model, prompt):
+    async def fake_fallback(model, prompt, tier=None):
         return "réponse locale"
 
     monkeypatch.setattr(main, "query_ollama", fake_fallback)
@@ -76,7 +76,7 @@ def test_anone_injoignable__repli_local(monkeypatch):
     monkeypatch.setattr(main.anthropic, "Anthropic",
                         lambda *a, **k: (_ for _ in ()).throw(AssertionError("cloud interdit")))
 
-    async def fake_fallback(model, prompt):
+    async def fake_fallback(model, prompt, tier=None):
         return "réponse locale"
 
     monkeypatch.setattr(main, "query_ollama", fake_fallback)

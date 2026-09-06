@@ -40,7 +40,7 @@ def test_timeout_sans_approbation__repli_t4(monkeypatch):
     monkeypatch.setattr(main.anthropic, "Anthropic",
                         lambda *a, **k: (_ for _ in ()).throw(AssertionError("cloud interdit sans appro")))
 
-    async def fake_ollama(model, prompt):
+    async def fake_ollama(model, prompt, tier=None):
         return "réponse locale T4"
 
     monkeypatch.setattr(main, "query_ollama", fake_ollama)

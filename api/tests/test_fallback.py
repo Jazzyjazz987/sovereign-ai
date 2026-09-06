@@ -22,7 +22,7 @@ def test_repli_vers_le_tier_inferieur(monkeypatch):
     """Le tier de départ (T4) échoue, T3 répond -> réponse de T3, préfixée [repli T4→T3]."""
     monkeypatch.setattr(main, "TIERS", _TEST_TIERS)
 
-    async def fake_query_ollama(model, prompt):
+    async def fake_query_ollama(model, prompt, tier=None):
         if model == "m4":  # T4
             raise OllamaError("T4 simulé indisponible")
         return f"réponse de {model}"
@@ -39,7 +39,7 @@ def test_repli_vers_le_tier_inferieur(monkeypatch):
 def test_tous_les_tiers_echouent(monkeypatch):
     """Si tous les tiers locaux lèvent OllamaError, l'erreur est propagée."""
 
-    async def fake_query_ollama(model, prompt):
+    async def fake_query_ollama(model, prompt, tier=None):
         raise OllamaError(f"{model} KO")
 
     monkeypatch.setattr(main, "query_ollama", fake_query_ollama)
