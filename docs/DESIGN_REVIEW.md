@@ -14,10 +14,11 @@ proposes conceptual improvements, a critic agent per facet stress-tests them aga
 constraints, a synthesis agent ranks what to adopt and picks threads to go deeper on next round.
 Per-round detail in `docs/design-review/round-NN.md`.
 
-**Status:** 4 rounds complete (2026-09-05, ~2h, 52 agents, ~2.8M tokens). 24 facets reviewed,
-~90 proposals, ~88 survived critique. **Read the CONSOLIDATION section first.** 5 facets remain
-un-reviewed (security-incident detection, foundational lawful basis, JML lifecycle, Polynesian
-languages, access-log governance) — a round 5 can pick them up.
+**Status:** 5 rounds complete (2026-09-05, ~2h20, 65 agents, ~3.4M tokens). 30 facets reviewed,
+~113 proposals, ~110 survived adversarial critique. **Read the CONSOLIDATION section first** — its
+two findings (unfunded human cost; ship v1 with no cloud tier + prove the bet with a pilot)
+reframe everything below. 7 facets remain un-reviewed (listed in CONSOLIDATION) for a future
+round 6.
 
 ## Hard constraints every proposal must respect
 - CPU-only today (~3 tok/s); single NVIDIA RTX 3090 24 GB later. No multi-GPU.
@@ -58,21 +59,44 @@ languages, access-log governance) — a round 5 can pick them up.
 
 ---
 
-# CONSOLIDATION — cross-round synthesis (after 4 rounds, ~2h, 52 agents, ~2.8M tokens)
+# CONSOLIDATION — cross-round synthesis (5 rounds, ~2h20, 65 agents, ~3.4M tokens)
 
-Full per-round detail below and in `docs/design-review/round-0N.md`. ~90 conceptual proposals
-generated, ~88 survived adversarial critique, distilled here.
+Full per-round detail in `docs/design-review/round-0N.md`. ~113 conceptual proposals generated,
+~110 survived adversarial critique, distilled here.
 
-## The one finding that dominates everything
+## The two findings that reframe the whole project
 
-**Nobody has totalled the recurring human cost of the adopted design.** Almost every improvement
-adds standing load: an editorial/triage owner heading toward **~0.5 FTE**, three functional
-escalation queues (**DPO / DGRH / DAF**), quarterly DR game-days, quarterly "secrets days",
-safeguarding-lexicon + card upkeep, canonical-base curation, two rotating quality reviewers
-(~0.2 FTE). On a **2-3 person team** this is the top risk to the entire project — most items
-silently degrade to "high redirect rate" or "broken promise" if the roles aren't staffed. **The
-design review's headline recommendation is: cost the FTE + euro ask across the whole adopted set
-first, then cut scope to what can actually be staffed.**
+**1. Nobody has totalled the recurring human cost of the adopted design.** Almost every
+improvement adds standing load: an editorial/triage owner heading toward **~0.5 FTE**, three
+functional escalation queues (**DPO / DGRH / DAF**), quarterly DR game-days, quarterly "secrets
+days", safeguarding-lexicon + card upkeep, canonical-base curation, two rotating quality
+reviewers. On a **2-3 person team** this is the top risk — most items silently degrade to "high
+redirect rate" or "broken promise" if the roles aren't staffed. Round 5's answer: constitute the
+whole compliance + resourcing effort as **`compliance/launch_dossier/`** with **one named
+accountable owner — the PF DPO, *not* Jazzy** (a chef de cellule legally cannot authorise a
+traitement for la Polynésie française; his role is "pilote technique") — carrying a **signed
+low/expected/high FTE + euro cost range, each direction signing its own line**, presented to
+leadership as a **funding decision, now, before the build**. `launch_authorization.yaml`
+(fail-closed on session-minting only) is its code enforcement surface.
+
+**2. The deliverable is a behaviour change, not an AI capability** — agents stop pasting citizen
+data into public ChatGPT because a sanctioned tool exists. Nothing in the 4-round adopted set
+de-risks that central bet: that ~5500 agents will accept a **slower (~3 tok/s), narrower** tool.
+Round 5's recommendation: **ship v1 with NO cloud/T5 tier at all**, as a "substitution product" =
+curated canonical FAQ + strong French search + a few constrained local lanes (Chercher / Rédiger
+/ Traduire / Résumer + one local-only "poser une question"), and **prove the bet first with a
+~15-25 person consent-based, pseudonymous, delete-by-default pilot** (~2-3 weeks of work vs. a
+permanent commitment to 24 subsystems). Deferring T5 deletes the single largest coherent cost
+cluster (`cloud_authorization.yaml` runtime, SCC+TIA shipping regime, workspace-key + hard cap,
+durable `t5_ledger`, Article 9 lexicon gate, GLiNER-tuned-for-cloud + outbound re-scan, T5
+fail-closed tests) — and since every T5 call is legally an Article 46 transfer, **if the
+shadow-egress KPI moves without cloud, that surface never needs to exist.** The Article 46 / SCC
+/ TIA / Anthropic-DPA legal groundwork still starts now in parallel (months of lead time, on the
+critical path for any future cloud tier), owned by the dossier — only the *runtime machinery*
+waits for a pre-committed v2 go/no-go gate.
+
+**Realistic launch window: Q1-Q2 2027**, paced by the quarterly comité social / CTP calendar and
+the arrêté en conseil des ministres — a fact the project must plan around, not around.
 
 ## What the review found is *actually* deployed (vs. CLAUDE.md)
 
@@ -183,28 +207,76 @@ first, then cut scope to what can actually be staffed.**
 - vLLM continuous batching. Precise per-query ETA. RAG (`rag` service + pgvector) — but its
   per-chunk ACL needs the orchestrator auth (Phase 2) first.
 
-## Still-open facets after 4 rounds (not yet reviewed)
-- **Security-incident detection + CNIL 72h breach-notification runbook** (the secrets runbook
-  covers rotation-on-compromise, not *detection* or *notification*).
-- **Foundational lawful basis** — the authorizing acte (arrêté / délibération, mission d'intérêt
-  public Art. 6(1)(e)) + formal information des agents + CSE/CST as a hard prerequisite gate.
-- **Joiner/mover/leaver lifecycle** for 5500 agents (corbeille tickets, charte record, the
-  departure-triggers-rotation rule needs an HR/Entra feed).
-- **Polynesian languages** (reo Mā'ohi, Marquesan, Pa'umotu) — how every component behaves on
-  non-French input, both as a PII-detection gap and a service-equity question.
-- **Access-log & observability data governance** — do uvicorn/proxy/oauth2-proxy logs contain
-  query fragments that turn a "metadata-only" surface into identity-linked personal data?
+## Round 5 additions to the roadmap (the 5 remaining facets, reviewed)
+- **Breach-readiness = 4 composed artefacts**: a content-free **hash-chained scoping ledger**
+  (the lint-enforced schema + prev-hash of the *already-shipped* request log — turns a maximal
+  incident into "340 queries, 12 agents, 14:02-15:30, none Article-9, no T5") + **`breach_playbook.yaml`**
+  (the CNIL-72h decision pre-adjudicated as code, one entry per store; auto-default applies *only*
+  to the cheap reversible Art. 33 filing; Art. 34 always routes to a named alternate decider) +
+  **~6 fail-loud tripwires on one out-of-band channel** (egress via a single forward proxy +
+  ~5-entry allowlist, **not** host iptables default-deny; T5 alert = absolute ceiling primary) +
+  **`sovereign-kill.sh`** (one idempotent script: egress-zero, stop, revoke key, freeze off-box
+  ledger from the DR side, page, incident record; confirmation phrase + dry-run; runbook states
+  the "blackout returns 5500 agents to public ChatGPT" tradeoff).
+- **Structural log minimisation**: one `emit_event(type, **fields)` helper validated against
+  frozen scalar/enum schemas + a CI AST-lint rule (no free text in logs, ever); **Agent Anone as
+  a verdict-only black box** (never serialises `str(exc)` — it definitionally holds un-anonymised
+  PII, and today `anone_api.py` leaks it into an outward-propagating reason string); unpublish
+  Anone's `:8080`. **Follow the thread: if LiteLLM runs stateless too, nothing uses PostgreSQL →
+  remove the container and close `:5432` entirely** — a bigger sovereignty win than any single
+  logging fix.
+- **JML = one idempotent daily reconciliation batch** (a leaver almost every working day at 5500
+  — webhooks either rot or crush the team). Prefer a **DGRH roster CSV** so the box holds no
+  tenant-wide Graph directory-read credential (a popped box would leak the whole government
+  directory). Circuit breakers (roster-shrink >5% → abort; never straight-to-hard-erase).
+  **De-identify derived data at *promotion*, not at erasure** — the editor accepting a signalement
+  writes a fresh record with provenance = editor role-ID + date and drops the oid link, so the
+  eval harness and canonical base are **class E by construction** and leave both the erasure drill
+  and the JML lifecycle entirely (the highest-leverage sub-item).
+- **Polynesian languages** — the safeguarding lexicon and PII gates are French-only, so a distress
+  query or citizen PII in reo Mā'ohi / Marquesan / Pa'umotu **slips every gate**. Needs at minimum
+  a language-ID gate that routes non-French input to a human, and an explicit written equity
+  position (are Tahitian-comfortable agents disadvantaged by a French-only tool?).
+- **`compliance/launch_dossier/`** (see finding #1 above) with templated drafts of every artefact
+  (projet d'arrêté 6(1)(e), note DPO base légale, AIPD built on `data_manifest.yaml`,
+  détermination Art. 36, inscription registre Art. 30, note Art. 13 + preuve de diffusion, saisine
+  + PV d'avis du CTP, charte) + a reverse-planned Gantt from the next CTP session + `cost_estimate.md`.
+
+## Facets still un-reviewed after 5 rounds (for a future round 6)
+- **Initial content bootstrap** — who authors *and legally validates* the first 30-50 canonical
+  fiches before launch (a large one-time project, distinct from the ongoing editorial owner; an
+  empty base at launch = adoption collapse).
+- **Helpdesk self-impact** — Parc & Assistance *is* the support desk; launching to 5500 agents
+  generates a ticket surge onto the same 2-3 people.
+- **Model licensing / provenance / AI-transparency** legal review for a government deployment;
+  voluntary EU AI Act GPAI alignment.
+- **Physical/environmental resilience** — where the box physically sits, UPS/cooling/access, RTX
+  3090 procurement + spares lead time from Tahiti, dead-GPU runbook.
+- **Formal RGAA audit + published déclaration d'accessibilité** (legal obligation; "RGAA-by-
+  architecture" is a claim, not an audit).
+- **Insider misuse / query-level purpose limitation** — an authenticated agent looking up a
+  citizen they have no business reason to access (auth ≠ lawful purpose).
+- **Software supply-chain / CVE watch** for LangGraph, LiteLLM, vLLM, oauth2-proxy, Ollama, base
+  images — patching a security bug with no staging and no eval harness is itself a risk.
 
 ## Blocking operator decisions (nothing launches until these are answered)
-The **28 questions** below, of which the hard gates are:
-- Is cloud T5 **required by the directions métier**, or is "T4 ceiling, fully local" acceptable?
-  (determines whether the entire DPIA/TIA/SCC/EU-hosting workstream is needed *now*)
-- Named **DPO** with real bandwidth for DPIA ownership + quarterly legal-answer review?
-- **CSE/CST consultation + information des agents** initiated? (gates the authenticated PWA, the
-  charte, the intent field, the shadow-egress KPI)
-- The **~0.5 FTE editorial owner** + the DPO/DGRH/DAF escalation queues — funded and named?
-- Does the Anthropic plan tier enforce a **hard-block** workspace spend cap (not just alerts)?
-- **Sign-off on the frozen-cascade amendment** (T4 cap, T5 escalation-only, community weights out).
+The **45 questions** below. The 8 hard gates, in priority order:
+1. **Has the PF DPO agreed IN WRITING** to own the compliance dossier and fund the recurring
+   hours? If not — escalate now to the Secrétaire Général / cabinet du Président rather than let
+   "no owner" persist silently. *(This is question #1 — everything else is downstream.)*
+2. **Ship v1 with NO cloud/T5 tier?** — accepting that legal / RGPD / administrative-drafting
+   questions get only a "consultez [service]" card for ~a year. Amends the frozen cascade.
+3. **Replace the auto-cascade + kNN classifier with explicit user-chosen verbes + one local-only
+   free-question lane; drop the open chat box?** Amends the frozen cascade.
+4. **Run the ~15-25 person volunteer consent-based pilot** (accepting enthusiast selection bias)?
+5. **Can the low/expected/high FTE funding actually be secured** across DGRH / DAF / DPO /
+   editorial — or does this need a named political sponsor before any further build?
+6. **Is Q1-Q2 2027 an acceptable launch window** (paced by the CTP calendar + arrêté en conseil
+   des ministres), and is the project still worth doing on that timeline and cost?
+7. **Fund a second-island DR box for v1**, or sign off on a 24h corbeille RPO + multi-day
+   single-box outage risk (knowing corbeille tickets may carry safeguarding-relevant signalements)?
+8. **Require DGRH to deliver a daily roster CSV** so the box holds no tenant-wide Graph
+   directory-read credential (a popped box would leak the whole government directory)?
 
 ---
 
@@ -399,7 +471,23 @@ guesses at.
 ---
 
 ## Open design questions for the operator
-_(accumulated across rounds — 28 total; the hard gates are listed in the CONSOLIDATION section above)_
+_(accumulated across rounds — 45 total; the 8 hard gates are in the CONSOLIDATION section above)_
+
+### From round 5
+36. **PF DPO written commitment** to own the compliance dossier + fund recurring hours — yes, or
+    escalate to SG / cabinet du Président now?
+37. **v1 with NO cloud/T5 tier** for ~a year — accepted? (amends the frozen cascade)
+38. **Explicit verbes (Chercher/Rédiger/Traduire/Résumer) + one local-only question lane, no open
+    chat box** — accepted? (amends the frozen cascade)
+39. **~15-25 person volunteer consent-based pilot** — run it? (accept enthusiast bias)
+40. **Fund a second-island DR box for v1**, or sign off on 24h corbeille RPO + multi-day outage?
+41. **Q1-Q2 2027 launch window** — acceptable to you and leadership?
+42. **Low/expected/high FTE funding** securable across DGRH/DAF/DPO/editorial, or needs a political
+    sponsor first?
+43. **Local (.pf) telco/SMS route** for out-of-band breach alerts so alerting metadata stays in PF?
+44. **Who bootstraps + legally validates the initial 30-50 canonical fiches** — resourced as a
+    distinct one-time project?
+45. **Daily DGRH roster CSV** instead of a tenant-wide Graph directory-read credential on the box?
 
 ### From round 4
 29. **Is the ~0.3-0.5 FTE editorial/triage owner a funded, named, standing role with a backup?**
