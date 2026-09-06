@@ -141,20 +141,18 @@ class QueryRequest(BaseModel):
 # Cascade — cible (voir docs/DESIGN_REVIEW.md § POC SHORTLIST + config/models.yaml).
 # Chaque tier pointe vers un tag Ollama, sauf T5 (réseau). L'ordre sert aussi de chaîne de repli.
 # 2026-09-05 :
-#  - retrait de `dolphin-mixtral` (fine-tune non censuré) et `neural-chat` (repack non maintenu).
-#  - T4 : essayé guillaumetell-7b / albert-spp-8b (Albert/DINUM). Verdict (voir
-#    docs/design-review/model-comparison-2026-09-05.md) : ce sont des modèles RAG-only, inutilisables
-#    NUS (guillaumetell boucle en fanfic sur les prompts non juridiques — GGUF mradermacher au
-#    template cassé ; albert-spp répond à tout comme à une réclamation citoyenne). À reprendre
-#    quand la couche RAG (fiches) existe + un GGUF au bon template ChatML.
-#  - En attendant : tous les tiers locaux = mistral:7b (faible, à remplacer par un meilleur 7-8B FR
-#    — Qwen2.5-7B-Instruct / Ministral-8B). Le vrai levier = base de fiches canoniques + portail
-#    à fiches citées (POC SHORTLIST B5 / B10).
+#  - `dolphin-mixtral` / `neural-chat` retirés (fine-tunes non censurés).
+#  - guillaumetell-7b / albert-spp-8b (Albert/DINUM) testés → RAG-only, inutilisables nus
+#    (voir docs/design-review/model-comparison-2026-09-05.md). Repris quand la couche RAG existe.
+#  - Modèle local = **qwen2.5:7b** (Apache-2.0, fort FR, suit le prompt système, refuse
+#    d'halluciner les réfs juridiques — comparé à mistral:7b qui invente le CGCT pour la PF).
+#  - Tiers non encore différenciés (même modèle partout) : le vrai levier = base de fiches
+#    canoniques + portail à fiches citées (POC SHORTLIST B). Un modèle code dédié plus tard.
 TIERS = [
-    ("T1", "mistral:7b"),
-    ("T2", "mistral:7b"),
-    ("T3", "mistral:7b"),
-    ("T4", "mistral:7b"),
+    ("T1", "qwen2.5:7b"),
+    ("T2", "qwen2.5:7b"),
+    ("T3", "qwen2.5:7b"),
+    ("T4", "qwen2.5:7b"),
     ("T5", "claude-sonnet"),
 ]
 
@@ -208,7 +206,7 @@ class CascadeRouter:
         """Route la requête. Retourne (model, complexity, tier_label)."""
         if forced_model and forced_model != "auto":
             forced_map = {label.lower(): (model, label) for label, model in TIERS}
-            model, label = forced_map.get(forced_model.lower(), ("mistral:7b", "T1"))
+            model, label = forced_map.get(forced_model.lower(), ("qwen2.5:7b", "T1"))
             return model, 2.0, label
 
         complexity = complexity_override if complexity_override is not None \

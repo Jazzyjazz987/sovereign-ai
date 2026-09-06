@@ -46,6 +46,22 @@ construite (POC SHORTLIST B5).
 - `mistral:7b` est lui-même **faible** (réponses bancales) → prochaine étape : tester un meilleur
   généraliste FR 7-8B (**Qwen2.5-7B-Instruct**, **Ministral-8B**) comme tier T1-T3.
 
-## Vitesse (GPU)
+## Round 2 — `mistral:7b` vs `qwen2.5:7b` (avec le prompt système T4)
 
-T1 mistral:7b via `/query` : **~4 s** (chargement inclus au 1er appel), génération ~145 tok/s.
+| Prompt | `mistral:7b` | `qwen2.5:7b` |
+|---|---|---|
+| Cumul emploi fonctionnaire PF | **Hallucine** : cite le CGCT (métropole, ne s'applique pas à la FP polynésienne), invente des catégories A/B, des codes fictifs | **« Je ne peux pas répondre de façon fiable, orientez vers le service juridique / DRH »** — suit le prompt exactement |
+| Délai contestation sanction | « un mois communément admis » (inventé) + disclaimer | « n'est pas explicitement défini… en général 2 mois » + disclaimer complet |
+| Reset M365 (rédaction) | 7 étapes, URL perso, formulation approximative | plus concis, cadré « email à envoyer » |
+| Dépannage imprimante | verbeux, générique Windows/Mac | **5 étapes numérotées, pratiques** |
+
+**Verdict : `qwen2.5:7b` (Apache-2.0) l'emporte nettement** — il suit le prompt système
+(disclaimer, refus « je ne peux pas répondre de façon fiable »), n'hallucine pas les références
+juridiques, plus concis et mieux formaté. **Adopté pour T1-T4** (2026-09-05).
+
+`mistral:7b` conservé le temps de vérifier, puis à retirer.
+
+## Vitesse (GPU, RTX 3080 Ti 12 Go)
+
+- `qwen2.5:7b` chaud : **~0,7 s** pour une réponse courte via `/query`. ~145 tok/s.
+- Chargement à froid (modèle → VRAM) : ~5-25 s (1re requête après un swap).

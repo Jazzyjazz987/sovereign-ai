@@ -7,15 +7,16 @@
 
 # --- Modèles actifs -----------------------------------------------------------------
 actifs:
-  tier_generaliste:
-    tag_ollama: "mistral:7b"
-    role: "T1/T2 — réponse rapide, reformulation, analyse générale, français"
-    base: "Mistral 7B Instruct"
-    quant: "Q4_K_M (~4,4 Go)"
+  tier_local:
+    tag_ollama: "qwen2.5:7b"
+    role: "T1-T4 — tous les tiers locaux (non encore différenciés)"
+    base: "Qwen2.5 7B Instruct"
+    quant: "Q4_K_M (~4,7 Go)"
     licence: "Apache-2.0"
-    provenance: "vendor (Mistral AI)"
-    digest: "6577803aa9a0"          # ollama /api/show
+    provenance: "vendor (Alibaba Qwen)"
     proprietaire: "CPA"
+    note: "choisi vs mistral:7b (2026-09-05) : suit le prompt système, refuse d'halluciner
+           les références juridiques. mistral:7b inventait le CGCT pour la fonction publique PF."
 
   agent_anone_pii:
     modele: "urchade/gliner_multi_pii-v1"
