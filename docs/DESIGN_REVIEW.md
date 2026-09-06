@@ -11,9 +11,13 @@ that removes a whole class of problem.
 
 **Method:** each round, a Workflow decomposes the design into ~6 facets, one agent per facet
 proposes conceptual improvements, a critic agent per facet stress-tests them against the hard
-constraints, a synthesis agent ranks what to adopt and picks threads to go deeper on next
-round. Per-round detail in `docs/design-review/round-NN.md`; this file holds the running
-summary.
+constraints, a synthesis agent ranks what to adopt and picks threads to go deeper on next round.
+Per-round detail in `docs/design-review/round-NN.md`.
+
+**Status:** 4 rounds complete (2026-09-05, ~2h, 52 agents, ~2.8M tokens). 24 facets reviewed,
+~90 proposals, ~88 survived critique. **Read the CONSOLIDATION section first.** 5 facets remain
+un-reviewed (security-incident detection, foundational lawful basis, JML lifecycle, Polynesian
+languages, access-log governance) — a round 5 can pick them up.
 
 ## Hard constraints every proposal must respect
 - CPU-only today (~3 tok/s); single NVIDIA RTX 3090 24 GB later. No multi-GPU.
@@ -49,6 +53,158 @@ summary.
 - Fail-closed everywhere is safe but silently degrades quality; no user signal, no SLO.
 - The stack has no eval harness — model/prompt changes are unmeasured.
 - Docker adds GPU-passthrough friction; hybrid-native was floated.
+
+---
+
+---
+
+# CONSOLIDATION — cross-round synthesis (after 4 rounds, ~2h, 52 agents, ~2.8M tokens)
+
+Full per-round detail below and in `docs/design-review/round-0N.md`. ~90 conceptual proposals
+generated, ~88 survived adversarial critique, distilled here.
+
+## The one finding that dominates everything
+
+**Nobody has totalled the recurring human cost of the adopted design.** Almost every improvement
+adds standing load: an editorial/triage owner heading toward **~0.5 FTE**, three functional
+escalation queues (**DPO / DGRH / DAF**), quarterly DR game-days, quarterly "secrets days",
+safeguarding-lexicon + card upkeep, canonical-base curation, two rotating quality reviewers
+(~0.2 FTE). On a **2-3 person team** this is the top risk to the entire project — most items
+silently degrade to "high redirect rate" or "broken promise" if the roles aren't staffed. **The
+design review's headline recommendation is: cost the FTE + euro ask across the whole adopted set
+first, then cut scope to what can actually be staffed.**
+
+## What the review found is *actually* deployed (vs. CLAUDE.md)
+
+- The "cascade figée" is **fiction**: `T2 = "Llama 3.3 8B"` — a model that only ever shipped at 70B.
+  `api/main.py` really runs `mistral:7b` / `llama2:7b` / `neural-chat` / `dolphin-mixtral`.
+- **`dolphin-mixtral` and `neural-chat` are uncensored community fine-tunes** — `dolphin-mixtral`
+  is deliberately de-safety-trained — serving as the **legal/administratif and code tiers** for
+  5500 agents, **with no system prompt at all** (`query_ollama` sends the user text raw). "The
+  legal model" is literally "whatever dolphin-mixtral does raw". And it's Mixtral 8x7B (~26 GB) —
+  it doesn't fit the VRAM budget and is unusable at 3 tok/s anyway.
+- The orchestrator (`:8888`), LiteLLM (`:4000`, exposes `LITELLM_MASTER_KEY`), Ollama (`:11434`),
+  Postgres (`:5432`) are **all host-published with no authentication**.
+- `T5_MAX_CALLS` is an in-process counter that **resets on every restart** — a crash-loop or a
+  second replica has **no cloud-spend ceiling**.
+- `query_ollama_with_fallback` walks **down** to the weakest model on failure — the hardest
+  question gets the worst answer, signalled only by a string glued onto the response.
+- A T5 call is **legally always a GDPR Article 46 transfer** (DSI keeps the `pii_mapping`
+  re-identification key), so "pseudonymised → US cloud" needs **SCCs + a Transfer Impact
+  Assessment**, not a "c'est anonyme" flag. **No transfer basis is currently recorded anywhere.**
+- No eval harness → every design change is unfalsifiable. No staging, no backup/restore, no DR.
+
+## Sequenced roadmap (what the review says to build, in order)
+
+### Phase 0 — decisions & near-free backstops (days; mostly not code)
+1. **Answer the blocking operator questions** (§ below) — above all: is cloud T5 actually required
+   by the *directions métier*? and who owns the ~0.5 FTE editorial role? These gate everything.
+2. **Workspace-scoped Anthropic key with a server-side hard monthly cap** (~1h console + 1 compose
+   line) — the only cloud-spend control that survives a restart, a wiped ledger, or the box being
+   gone. Remove `ANTHROPIC_API_KEY` from the litellm service.
+3. **Remove `dolphin-mixtral` + `neural-chat` now** from `ollama_init.sh` and `TIERS` (local
+   cascade caps at T2 until the GPU). Correct the CLAUDE.md table (phantom Llama 3.3).
+4. **`config/models.yaml`** with content-digest pinning; startup check fail-closed only on
+   GLiNER / T4 mismatch.
+
+### Phase 1 — safety & correctness floor (1-3 weeks; small code)
+5. **Safeguarding lane** — a deterministic lexicon screen as the *very first* step of the request
+   path (harcèlement / VSS / souffrance au travail / idées suicidaires / danger immédiat) → returns
+   a Polynesia-localised help card, **calls no model, writes no ticket, touches no cache**, only an
+   anonymous per-category counter. Non-negotiable, nearly free. + a safety system prompt on every
+   local tier.
+6. **Versioned fingerprinted prompt pack** (`config/prompts.yaml`) — closes the "no system prompt"
+   hole; T1/T2 get disclaimer prompts (they're the fallback sink).
+7. **Deterministic structured-PII layer** (regex+checksum NIR/IBAN/+689/M365/matricule) before
+   GLiNER + **post-mask leak canary** + **outbound re-scan right before the Anthropic call**, all
+   fail-closed to local.
+8. **Fix the fallback**: escalate-or-degrade (never silent downgrade) + the **typed degradation
+   response contract** (`service_level` enum, requested-vs-served tier, closed-enum reason with
+   zero query text, UI banner, one Prometheus gauge) + per-dependency circuit breakers keyed on
+   connrefused/5xx/liveness (never latency).
+9. **Eval harness** (`api/eval/` + ~200-item pseudonymised/synthetic corpus) — gates every later
+   change; routing/cost/cloud-rate slices run in CI CPU-only.
+
+### Phase 2 — the perimeter & the client (weeks)
+10. **Identity-terminating `oauth2-proxy`** (Entra OIDC, proxy-signed JWT with app *roles* not group
+    claims) + **unpublish the data-plane host ports** + a **bounded no-identity lane** (clamped to
+    T2, no T5/RAG/cache-write) so an Entra/satellite outage degrades gracefully instead of total
+    outage.
+11. **Decouple data residency from quality tier**: auto-cascade capped at **T4**; crossing the
+    perimeter = a deliberate per-query human act (Entra-role sets "cloud autorisé" + justification
+    → egress log) + an **Article 9 lexicon gate** (santé / disciplinaire / casier / syndical →
+    on-prem-only, T5 structurally impossible).
+12. **`cloud_authorization.yaml`** fail-closed startup gate (signed, expiring; `legal_basis:
+    SCC+TIA|none`). Route T5 through LiteLLM, message logging off.
+13. **Cited-fiche gate + accountability registry** — the legal/admin classifier *label* (not the
+    complexity score) is the hard gate; for statutaire / RGPD-conseil / paie clusters the tier may
+    return only verbatim-quoted + linked fiche text, else a hard "consultez [service]" card with
+    zero model prose. `config/legal/content_owners.yaml` (service responsable, valideur nommé,
+    date, péremption). Shrinks the Article 46 surface — these clusters stop going to T5.
+14. **PWA "corbeille"** — identity-owned server-side ticket store + zero-JS progressive-enhancement
+    client (**RGAA by architecture**). At 3 tok/s a synchronous chat UI is a lie; the ticket model
+    makes latency a first-class fact. **The content-free notification** (plain M365 email) then
+    falls entirely outside the CNIL boundary.
+15. **Adoption front door** — onboarding as a property of login (4-min static walkthrough + charte
+    acknowledgement), **three answer labels** ("référence validée DSI" / "générée localement — non
+    vérifiée" / "réponse cloud"), the structured fiche de demande, a signaler→canonical loop.
+    **North-star KPI = aggregate shadow-egress to chat.openai.com/claude.ai/gemini from DNS/proxy
+    logs** (strictly aggregate, zero per-user, declared to CSE/CST) — this is the tool's real
+    purpose.
+
+### Phase 3 — capacity, cost, resilience (weeks; some gated on the RTX 3090)
+16. **Metadata-only capacity request journal** (zero query text) + weekly arrival-rate fit →
+    `config/capacity_profile.yaml`. The only way to get the load data every SLA/staffing/VM
+    decision currently guesses at. **Publish no SLA number for 6-8 weeks.**
+17. **Two-lane capacity**: bounded synchronous (cache/RAG + capped T1 reformulation) vs async
+    "réponse différée". `OLLAMA_NUM_PARALLEL=1`; serialized queue. Reject any EWMA governor.
+18. **Response cache "T0"** before the cascade — key `sha256(sensitivity_tier || normalized_query)`
+    (3-4 coarse tiers, **not** identity); PII-screen every write; TTL + purge wired to RAG erasure.
+19. **Curated canonical answer base** for the top ~30-50 helpdesk clusters — the single largest
+    capacity multiplier; served ~10ms, keeps answering when inference is down.
+20. **Durable Postgres `t5_ledger`** (post-pay check, spend gauge, 70/90/100% alerts) +
+    `config/budget_envelopes.yaml` (one named holder; ops may alert, not raise a cap).
+21. **DPIA-as-code**: `api/legal/data_manifest.yaml` (one entry per store: basis/purpose/location/
+    `erasure_class` R|P|E/TTL/erasure) = Art. 30 register + nightly reaper config + CI gate.
+    LiteLLM **metadata-only**. `erase_subject()` primitive over class-R stores; monthly scripted
+    erasure drill (canary subject → erase → assert zero residual).
+22. **Second-island CPU-only DR box** + **quarterly game-day** (the only thing that proves a
+    restore works) + 3-class state split (legal/money core = ~1 MB/day append-only JSONL shipped
+    off-box every 1-5 min; corbeille = nightly encrypted dump, RPO 24h; the rest = acceptable to
+    lose). LUKS on both boxes.
+23. **Secrets**: LUKS baseline + SOPS+age on the secrets file + migrate postgres/grafana/langgraph
+    to Docker file-secrets. `docs/secrets_runbook.md` (per-secret rotation cadence; **any team
+    departure → full rotation within 48h**).
+
+### Phase 4 — deferred until the RTX 3090 / real load data
+- Replace T3/T4 with **official vendor weights** (Qwen2.5-Coder-14B, Mistral-Small-24B class —
+  never Ministral), IDs chosen by the admission harness. AWQ is GPU-only.
+- Embedding-kNN categorical intent classifier replaces the scalar score (needs the corpus).
+- vLLM continuous batching. Precise per-query ETA. RAG (`rag` service + pgvector) — but its
+  per-chunk ACL needs the orchestrator auth (Phase 2) first.
+
+## Still-open facets after 4 rounds (not yet reviewed)
+- **Security-incident detection + CNIL 72h breach-notification runbook** (the secrets runbook
+  covers rotation-on-compromise, not *detection* or *notification*).
+- **Foundational lawful basis** — the authorizing acte (arrêté / délibération, mission d'intérêt
+  public Art. 6(1)(e)) + formal information des agents + CSE/CST as a hard prerequisite gate.
+- **Joiner/mover/leaver lifecycle** for 5500 agents (corbeille tickets, charte record, the
+  departure-triggers-rotation rule needs an HR/Entra feed).
+- **Polynesian languages** (reo Mā'ohi, Marquesan, Pa'umotu) — how every component behaves on
+  non-French input, both as a PII-detection gap and a service-equity question.
+- **Access-log & observability data governance** — do uvicorn/proxy/oauth2-proxy logs contain
+  query fragments that turn a "metadata-only" surface into identity-linked personal data?
+
+## Blocking operator decisions (nothing launches until these are answered)
+The **28 questions** below, of which the hard gates are:
+- Is cloud T5 **required by the directions métier**, or is "T4 ceiling, fully local" acceptable?
+  (determines whether the entire DPIA/TIA/SCC/EU-hosting workstream is needed *now*)
+- Named **DPO** with real bandwidth for DPIA ownership + quarterly legal-answer review?
+- **CSE/CST consultation + information des agents** initiated? (gates the authenticated PWA, the
+  charte, the intent field, the shadow-egress KPI)
+- The **~0.5 FTE editorial owner** + the DPO/DGRH/DAF escalation queues — funded and named?
+- Does the Anthropic plan tier enforce a **hard-block** workspace spend cap (not just alerts)?
+- **Sign-off on the frozen-cascade amendment** (T4 cap, T5 escalation-only, community weights out).
 
 ---
 
@@ -243,7 +399,25 @@ guesses at.
 ---
 
 ## Open design questions for the operator
-_(accumulated across rounds)_
+_(accumulated across rounds — 28 total; the hard gates are listed in the CONSOLIDATION section above)_
+
+### From round 4
+29. **Is the ~0.3-0.5 FTE editorial/triage owner a funded, named, standing role with a backup?**
+    If it can't be funded at 0.5 FTE — which adopted items are cut?
+30. Will **DPO, DGRH and DAF each formally commit** to staffing a functional escalation queue with
+    a response SLA? If not, those domains get the redirect card with no callback promise.
+31. Does the DSI have a **documented need to match a data subject against historical Article 46
+    transfer-journal entries**, or is audit/proportionality the only purpose? (metadata-only journal
+    vs. keyed digest + key custody)
+32. **Launch strategy** — big-bang to 5500, or phased by direction? (drives onboarding gate,
+    day-one capacity, required canonical-base coverage)
+33. Will **DRH + secrétariat général co-sign the charte d'usage as a note de service** (disciplinary
+    weight), not a standalone click-through?
+34. Is the **interim CPU worker-VM's hosting itself sovereignty-compliant** for government personal
+    data? (a rented hyperscaler VM running inference on agent queries is a sovereignty problem
+    independent of cost)
+35. Specific **decommissioned CPU box + rack space at a named second island** for DR — and can ops
+    absorb ~½ day/quarter game-days + ~½ day/quarter secrets days?
 
 ### From round 3
 20. **Chapter V transfer basis** — does the marché public with the (EU-)Claude provider carry signed
