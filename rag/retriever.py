@@ -37,7 +37,8 @@ def _rrf(*ranked_lists: list[dict]) -> list[dict]:
     return fused
 
 
-def _expand_related(hits: list[dict], k: int, query: str, rerank: bool) -> list[dict]:
+def _expand_related(hits: list[dict], k: int, query: str, rerank: bool,
+                    audience: str | None) -> list[dict]:
     """Ajoute en contexte les procédures citées en « Procédures liées » par les
     meilleures fiches du résultat (champ `related`)."""
     present = {h.get("proc_code") for h in hits if h.get("proc_code")}
@@ -48,7 +49,7 @@ def _expand_related(hits: list[dict], k: int, query: str, rerank: bool) -> list[
                 wanted.append(code)
     if not wanted:
         return hits
-    extra = store.chunks_for_codes(wanted[:4])
+    extra = store.chunks_for_codes(wanted[:4], audience=audience)
     if not extra:
         return hits
     if rerank:
@@ -61,11 +62,12 @@ def _expand_related(hits: list[dict], k: int, query: str, rerank: bool) -> list[
 
 def retrieve(query: str, k: int = 5, *, rerank: bool = True, hybrid: bool = True,
              expand_related: bool = True, domaine: str | None = None,
-             rgpd_only: bool = False,
+             rgpd_only: bool = False, audience: str | None = None,
              corpora: tuple[str, ...] = store.DEFAULT_CORPORA) -> list[dict]:
     vec = store.search(embed_query(query), k=POOL, domaine=domaine,
-                       rgpd_only=rgpd_only, corpora=corpora)
-    lex = (store.search_lexical(query, k=POOL, domaine=domaine, corpora=corpora)
+                       rgpd_only=rgpd_only, audience=audience, corpora=corpora)
+    lex = (store.search_lexical(query, k=POOL, domaine=domaine, audience=audience,
+                                corpora=corpora)
            if hybrid and not rgpd_only else [])
 
     lists = [vec] + ([lex] if lex else [])
@@ -80,5 +82,5 @@ def retrieve(query: str, k: int = 5, *, rerank: bool = True, hybrid: bool = True
     fused.sort(key=lambda h: 0 if h.get("proc_code") else 1)
     top = fused[:k]
     if expand_related:
-        top = _expand_related(top, k, query, rerank)
+        top = _expand_related(top, k, query, rerank, audience)
     return top

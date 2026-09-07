@@ -136,10 +136,10 @@ async def _corpus_fingerprint() -> str:
     return fp
 
 
-def _cache_key(q: str, corpus_fp: str) -> str:
+def _cache_key(q: str, corpus_fp: str, audience: str = "atelier") -> str:
     n = unicodedata.normalize("NFKD", " ".join(q.lower().split()))
     n = "".join(c for c in n if not unicodedata.combining(c))
-    return hashlib.sha256(f"{corpus_fp}|{n}".encode()).hexdigest()
+    return hashlib.sha256(f"{corpus_fp}|{audience}|{n}".encode()).hexdigest()
 
 
 def _cache_put(key: str, value: dict) -> None:
@@ -225,6 +225,10 @@ class QueryRequest(BaseModel):
     # Override optionnel du score de complexité (1.0–5.0). Si absent, il est calculé
     # à partir des mots-clés de la requête. Utile pour les tests de cascade déterministes.
     complexity: Optional[float] = None
+    # Jalon B — profil de connaissance : 'atelier' (défaut, interne, tout) ou
+    # 'teleassistance' (prestataire externe, liste blanche). En prod ce profil sera
+    # porté par le jeton d'accès, pas par le corps de requête.
+    audience: Optional[str] = None
 
 # Cascade — cible (voir docs/DESIGN_REVIEW.md § POC SHORTLIST + config/models.yaml).
 # Chaque tier pointe vers un tag Ollama, sauf T5 (réseau). L'ordre sert aussi de chaîne de repli.
@@ -376,11 +380,12 @@ _SMALLTALK = re.compile(
 )
 
 
-async def _rag_search(query: str) -> Optional[list]:
+async def _rag_search(query: str, audience: str = "atelier") -> Optional[list]:
     """Interroge le service RAG. None => RAG indisponible (≠ [] = aucune fiche)."""
     try:
         async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.post(f"{RAG_URL}/search", json={"query": query, "k": RAG_K})
+            r = await client.post(f"{RAG_URL}/search",
+                                  json={"query": query, "k": RAG_K, "audience": audience})
         r.raise_for_status()
         return r.json().get("hits", [])
     except Exception as e:  # noqa: BLE001 — RAG indisponible => cascade normale
@@ -651,7 +656,8 @@ async def query_cascade(request: QueryRequest):
 
     ck = None
     if RAG_CACHE_TTL > 0 and request.model == "auto":
-        ck = _cache_key(request.query, await _corpus_fingerprint())
+        _aud = "teleassistance" if (request.audience or "").strip().lower() == "teleassistance" else "atelier"
+        ck = _cache_key(request.query, await _corpus_fingerprint(), _aud)
         hit = _resp_cache.get(ck)
         if hit and time.time() - hit[0] < RAG_CACHE_TTL:
             CACHE_HITS.inc()
@@ -686,9 +692,13 @@ async def _query_cascade(request: QueryRequest):
     if sg is not None:
         return sg
 
+    # Jalon B — profil de connaissance (en prod : porté par le jeton d'accès).
+    audience = "teleassistance" if (request.audience or "").strip().lower() == "teleassistance" else "atelier"
+
     # Étape 0 bis — parcours de cycle de vie (arrivée / départ / mutation) : réponse
     # canonique multi-fiches, plus fiable que le RAG sur ces requêtes composées (D8).
-    if not forced:
+    # Réservé au profil interne (le prestataire ne fait pas le cycle de vie des comptes).
+    if not forced and audience == "atelier":
         pc = parcours.match(q)
         if pc is not None:
             return pc
@@ -700,9 +710,10 @@ async def _query_cascade(request: QueryRequest):
         # C18 : « merci, et pour le MFA ? » n'est pas du smalltalk — un terme support annule.
         smalltalk = (bool(_SMALLTALK.match(q)) and len(q) < 60
                      and not screening.looks_in_scope(q))
-        hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q)
+        hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q, audience)
         rag = await _rag_answer(q, hits)
         if rag is not None:
+            rag["audience"] = audience
             return rag
 
         # Le RAG n'a rien donné. On tranche :

@@ -121,7 +121,7 @@ async def test_query_cascade_bout_en_bout_rag(monkeypatch):
     monkeypatch.setattr(main, "RAG_ENABLED", True)
     monkeypatch.setattr(main, "RAG_CACHE_TTL", 0)  # pas de cache dans le test
 
-    async def fake_search(q):
+    async def fake_search(q, audience="atelier"):
         return [{"chunk_id": "PROC-ID-005#1", "proc_code": "PROC-ID-005", "titre": "BALP",
                  "section": "Étapes", "domaine": "EntraID", "text": "passage: x\n1. Exchange…",
                  "rerank_score": 0.7, "source_url": "http://x"}]
@@ -161,6 +161,21 @@ async def test_query_cascade_safeguarding_prioritaire(monkeypatch):
     monkeypatch.setattr(main, "_rag_search", boom)
     r = await main._query_cascade(main.QueryRequest(query="je pense à en finir"))
     assert r["tier"] == "sauvegarde"
+
+
+@pytest.mark.asyncio
+async def test_query_cascade_profil_teleassistance(monkeypatch):
+    """Jalon B : le profil est transmis au RAG et le parcours (interne) est sauté."""
+    seen = {}
+
+    async def fake_search(q, audience="atelier"):
+        seen["audience"] = audience
+        return []
+    monkeypatch.setattr(main, "_rag_search", fake_search)
+    monkeypatch.setattr(main, "RAG_STRICT", False)
+    await main._query_cascade(main.QueryRequest(
+        query="un agent quitte l'administration", audience="teleassistance"))
+    assert seen["audience"] == "teleassistance"  # parcours sauté -> RAG interrogé
 
 
 def test_cache_key_normalise_accents_et_espaces_et_corpus(monkeypatch):

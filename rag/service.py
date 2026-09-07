@@ -21,6 +21,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from prometheus_client import Counter, Gauge, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
+import audiences
 import store
 from retriever import retrieve
 
@@ -59,7 +60,7 @@ class SearchIn(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
     k: int = Field(5, ge=1, le=20)       # C16 : k borné
     rerank: bool | None = None
-    audience: str | None = None          # 'atelier' | 'teleassistance' (Jalon B — pas encore filtré)
+    audience: str | None = None          # 'atelier' (défaut, tout) | 'teleassistance' (liste blanche)
     domaine: str | None = None
     rgpd_only: bool = False
 
@@ -79,7 +80,7 @@ def search(inp: SearchIn):
     t0 = time.perf_counter()
     try:
         hits = retrieve(inp.query, k=inp.k, rerank=rr, domaine=inp.domaine,
-                        rgpd_only=inp.rgpd_only)
+                        rgpd_only=inp.rgpd_only, audience=inp.audience)
     except Exception as e:  # noqa: BLE001
         SEARCH_REQUESTS.labels(status="error", rerank=str(rr)).inc()
         raise HTTPException(status_code=500, detail=f"recherche KO: {e}")
@@ -90,14 +91,18 @@ def search(inp: SearchIn):
     SEARCH_REQUESTS.labels(status="ok", rerank=str(rr)).inc()
     if not hits:
         NO_HIT.inc()
+    # D-B3 : profil téléassistance -> on ne renvoie pas le lien Confluence interne.
+    hide_src = (audiences.normalize(inp.audience) == "teleassistance"
+                and audiences.TELEASSISTANCE_HIDE_SOURCE)
+    fields = ("chunk_id", "doc_id", "proc_code", "titre", "domaine", "section",
+              "sla", "criticite", "contrainte_rgpd", "source_url", "source_file",
+              "related", "text", "score", "vector_score", "rerank_score")
     return {
         "query": inp.query,
+        "audience": audiences.normalize(inp.audience),
         "count": len(hits),
         "hits": [
-            {k: h.get(k) for k in (
-                "chunk_id", "doc_id", "proc_code", "titre", "domaine", "section",
-                "sla", "criticite", "contrainte_rgpd", "source_url", "source_file",
-                "related", "text", "score", "vector_score", "rerank_score")}
+            {k: (None if (k == "source_url" and hide_src) else h.get(k)) for k in fields}
             for h in hits
         ],
     }
@@ -135,6 +140,11 @@ def health():
             "embed": os.getenv("RAG_EMBED_MODEL", "intfloat/multilingual-e5-base"),
             "rerank": os.getenv("RAG_RERANK_MODEL", "BAAI/bge-reranker-base"),
             "rerank_default": RAG_RERANK_DEFAULT,
+        },
+        "audiences": {
+            "config": audiences.FINGERPRINT,
+            "validated": audiences.VALIDATED,
+            "teleassistance_fiches": sorted(audiences.TELEASSISTANCE_FICHES),
         },
     }
 

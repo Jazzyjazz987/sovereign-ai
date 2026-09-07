@@ -1,0 +1,24 @@
+# config/rag/audiences.yaml — deux bases de connaissance (Jalon B).
+#
+# La base « atelier » (agents CPA internes) voit TOUT.
+# La base « téléassistance » (prestataires EXTERNES) ne voit QUE la liste blanche
+# ci-dessous — modèle liste blanche : tout ce qui n'y est pas est réservé à l'interne.
+#
+# ⚠️ validated: false → périmètre PROVISOIRE, dérivé de la matrice RACI et du
+#    DESIGN_REVIEW. À arrêter avec le chef de cellule CPA (décision D-B2).
+#    D-B3 : `hide_source` masque le lien Confluence interne dans les réponses servies
+#    au profil téléassistance.
+
+version: 1
+validated: false
+
+teleassistance:
+  hide_source: true
+  # Procédures visibles au prestataire de téléassistance (dépannage N1 à distance,
+  # orientation utilisateur, self-service). PAS l'infra, PAS les consoles d'admin,
+  # PAS la sécurité, PAS le stock, PAS la gestion d'identités à privilège.
+  fiches:
+    - PROC-TER-003   # Dépannage N1 sur site (contexte utile au N1 distant)
+    - PROC-TER-004   # Téléassistance et escalade atelier  ← cœur du métier presta
+    - PROC-TER-005   # Interventions dans les îles éloignées
+    - PROC-ID-004    # Déblocage / réinitialisation MFA — volet self-service / 1er niveau

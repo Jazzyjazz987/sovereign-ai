@@ -11,6 +11,7 @@ from pathlib import Path
 from chunker import chunk_corpus
 from embed import embed_passages
 import store
+import audiences
 
 # Pages purement navigationnelles : indexées à part (corpus 'procedures-nav'),
 # exclues de la recherche par défaut — elles citent plein de PROC-xxx et polluent
@@ -35,14 +36,16 @@ def run(root: Path, corpus: str) -> dict:
     rows = [c.as_row() for c in chunks]
     for r in rows:
         r["corpus"] = _corpus_for(r, corpus)
+        r["audience"] = audiences.audience_for(r.get("proc_code"))   # Jalon B
     texts = [r["text"] for r in rows]
     vecs = embed_passages(texts)
     store.init_db()
     store.replace_corpora(rows, vecs)
     from collections import Counter
-    by = Counter(r["corpus"] for r in rows)
     return {"docs": len({r["doc_id"] for r in rows}), "chunks": len(rows),
-            "par_corpus": dict(by), "seconds": round(time.time() - t0, 1)}
+            "par_corpus": dict(Counter(r["corpus"] for r in rows)),
+            "par_audience": dict(Counter(r["audience"] for r in rows)),
+            "seconds": round(time.time() - t0, 1)}
 
 
 if __name__ == "__main__":

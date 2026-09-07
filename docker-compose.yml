@@ -117,6 +117,8 @@ services:
       - rag_hf_cache:/models/hf
       # corpus monté en lecture seule pour la ré-ingestion via POST /ingest
       - ./corpus:/corpus:ro
+      # périmètres de connaissance (Jalon B) — éditable par l'opérateur
+      - ./config/rag:/app/config/rag:ro
     depends_on:
       postgres:
         condition: service_healthy
