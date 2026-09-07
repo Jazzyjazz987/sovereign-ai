@@ -272,15 +272,26 @@ utilisées, et ne voit pas lesquelles ont réellement porté la réponse.
   fonction de sécurité, un repli minimal « 15 / 17 / 18 » jusqu'à validation serait plus
   prudent (débat).
 
-## Priorisation (seconde vague)
+## Priorisation (seconde vague) — suivi
 
-| # | Item | Effort |
-|---|------|--------|
-| 1 | **D4** échéance globale `/query` (`asyncio.wait_for`) | S |
-| 2 | **D2** C3 étendu aux citations en prose | S |
-| 3 | **D3** cache : cap LRU + empreinte corpus dans la clé + `/cache/clear` auto à l'ingest | M |
-| 4 | **D5** sonde du contrat JSON (démarrage + alerte `parse_error`) | S |
-| 5 | **D8** réponses canoniques « parcours agent » (départ / arrivée / mutation) | M — **fort levier** |
-| 6 | **D9** dashboard Grafana RAG | M |
-| 7 | **D1** calibrer les seuils (avec le fine-tuning) | — Jalon C |
-| 8 | **D6/D7** plafond `num_predict` + prompt raccourci | S |
+| # | Item | État |
+|---|------|------|
+| **D4** | échéance globale `/query` (`asyncio.wait_for`, `QUERY_DEADLINE=180s`, `tier=timeout`) | ✅ commit bd72e3e |
+| **D2** | post-contrôle des citations étendu à la prose (`PROC-*` regex sur `reponse`) | ✅ bd72e3e |
+| **D3** | cache T0 : `OrderedDict` LRU (`RAG_CACHE_MAX=500`), clé = empreinte corpus + requête sans accents ; ne cache QUE RAG haute confiance + hors-périmètre | ✅ bd72e3e |
+| **D5** | sonde `/health.rag.contract` (5 min) + 6 alertes Prometheus `sovereign_ai_rag` | ✅ bd72e3e |
+| **D6** | plafond `num_predict=600` (RAG + cascade) ; `OLLAMA_TIMEOUT` 120→90 | ✅ bd72e3e |
+| **D8** | `config/parcours.yaml` + `api/parcours.py` — 3 réponses canoniques (arrivée / départ / mutation) servies avant le RAG. **Palier 3 couverture 0 → 100 %.** `validated: false`. | ✅ commit 5480341 |
+| **D9** | dashboard Grafana `sovereign-rag` (7 panneaux) provisionné | ✅ commit 20407d7 |
+| **D11** | normalisation des accents dans la clé de cache | ✅ bd72e3e |
+| **D1** | calibration des seuils reranker | ⏳ à faire avec le fine-tuning (Jalon C) |
+| **D7** | prompt RAG raccourci | ✖️ non fait — risque de régression sur l'éval ; à reprendre avec le fine-tuning |
+| **D10** | `fiches` affichées vs `cited` du modèle | ✖️ mineur, non fait |
+| **D12** | « merci » → génération cascade inutile | ✖️ mineur |
+| **D13** | test d'intégration de l'ordre screening→RAG→gate | 🟡 partiel (tests parcours + sauvegarde ajoutés) |
+| **D14** | volume `rag_hf_cache` masque les modèles bakés | ✖️ à surveiller sur un déploiement neuf |
+| **D15** | voie de sauvegarde : repli minimal tant que non validée | ✖️ débat ouvert |
+
+**Reste ouvert de fond :** D1 (seuils) et la variance du palier 4 `attendu_ok` (25-75 %
+selon le tirage `qwen2.5:7b` sur `lim-reforme` / `lim-vip-iles` / `lim-prestataire`) →
+**fine-tuning `bge-reranker-base` + prompt de rédaction plus court** (Jalon C).
