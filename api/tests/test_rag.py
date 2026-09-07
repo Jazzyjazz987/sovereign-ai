@@ -101,6 +101,10 @@ async def test_rag_answer_json_contrat(monkeypatch):
     fake.out = '{"repond": true, "reponse": "Voir PROC-ZZ-999.", "fiches": ["PROC-ZZ-999"]}'
     assert await main._rag_answer("q", hits) is None            # C3 : citation hors extraits
 
+    # D2 : code hallucine dans la PROSE (pas dans `fiches`) -> rejet aussi
+    fake.out = '{"repond": true, "reponse": "Faire X puis voir PROC-ZZ-999.", "fiches": []}'
+    assert await main._rag_answer("q", hits) is None
+
     fake.out = '{"repond": true, "reponse": "Créer via Exchange (PROC-ID-005).", "fiches": ["PROC-ID-005"]}'
     r = await main._rag_answer("q", hits)
     assert r["tier"] == "RAG" and r["fiches"][0]["code"] == "PROC-ID-005"
@@ -137,6 +141,14 @@ async def test_query_cascade_safeguarding_prioritaire(monkeypatch):
     monkeypatch.setattr(main, "_rag_search", boom)
     r = await main._query_cascade(main.QueryRequest(query="je pense à en finir"))
     assert r["tier"] == "sauvegarde"
+
+
+def test_cache_key_normalise_accents_et_espaces_et_corpus(monkeypatch):
+    """D3/D11 : accents + espaces ignorés ; l'empreinte corpus change la clé."""
+    a = main._cache_key("Comment  créer   une BALP ?", "cfp1")
+    b = main._cache_key("comment creer une balp ?", "cfp1")
+    c = main._cache_key("comment creer une balp ?", "cfp2")
+    assert a == b and a != c
 
 
 def test_no_fiche_response():

@@ -98,14 +98,20 @@ T5_CLOUD_CALLS = Counter(
     "t5_cloud_calls_total", "Appels cloud T5 (API Anthropic) effectués"
 )
 
-# --- Cache de réponses « T0 » (C11) --------------------------------------------------
+# --- Cache de réponses « T0 » (C11 / D3) --------------------------------------------
 # Sert immédiatement une réponse déjà calculée pour une question identique (helpdesk =
-# questions répétitives). On ne met en cache que les issues stables : RAG, aucune-fiche,
-# hors-périmètre. Jamais la sauvegarde ni la cascade libre. TTL borné ; purge sur
-# POST /cache/clear (à faire après une ré-ingestion du corpus).
+# questions répétitives). Ne met en cache QUE : réponse RAG haute confiance, hors-
+# périmètre. PAS la basse confiance, PAS `aucune-fiche` (le corpus peut gagner une
+# fiche), PAS la sauvegarde, PAS la cascade libre.
+# Clé = empreinte corpus + requête normalisée (accents retirés) => une ré-ingestion
+# invalide le cache sans action. Plafond LRU + TTL.
+import collections
+import unicodedata
+
 RAG_CACHE_TTL = float(os.getenv("RAG_CACHE_TTL", "3600"))   # 0 = désactivé
-_CACHEABLE_TIERS = {"RAG", "aucune-fiche", "hors-perimetre"}
-_resp_cache: dict[str, tuple[float, dict]] = {}
+RAG_CACHE_MAX = int(os.getenv("RAG_CACHE_MAX", "500"))
+_resp_cache: "collections.OrderedDict[str, tuple[float, dict]]" = collections.OrderedDict()
+_corpus_fp: tuple[float, str] = (0.0, "?")               # (ts, empreinte) rafraîchi paresseusement
 CACHE_HITS = Counter("query_cache_hits_total", "Réponses servies depuis le cache T0")
 QUERY_UNGATED = Counter(
     "query_ungated_no_scope_total",
@@ -113,8 +119,33 @@ QUERY_UNGATED = Counter(
 )
 
 
-def _cache_key(q: str) -> str:
-    return hashlib.sha256(" ".join(q.lower().split()).encode()).hexdigest()
+async def _corpus_fingerprint() -> str:
+    """Empreinte du corpus RAG (nb chunks/docs), rafraîchie au plus toutes les 120 s."""
+    global _corpus_fp
+    if time.time() - _corpus_fp[0] < 120:
+        return _corpus_fp[1]
+    fp = "?"
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"{RAG_URL}/health")
+        fp = hashlib.sha256(repr(r.json().get("corpus", {})).encode()).hexdigest()[:12]
+    except Exception:  # noqa: BLE001
+        pass
+    _corpus_fp = (time.time(), fp)
+    return fp
+
+
+def _cache_key(q: str, corpus_fp: str) -> str:
+    n = unicodedata.normalize("NFKD", " ".join(q.lower().split()))
+    n = "".join(c for c in n if not unicodedata.combining(c))
+    return hashlib.sha256(f"{corpus_fp}|{n}".encode()).hexdigest()
+
+
+def _cache_put(key: str, value: dict) -> None:
+    _resp_cache[key] = (time.time(), value)
+    _resp_cache.move_to_end(key)
+    while len(_resp_cache) > RAG_CACHE_MAX:
+        _resp_cache.popitem(last=False)
 
 
 # --- Modération humaine des appels T5 -------------------------------------------------
@@ -288,17 +319,22 @@ router = CascadeRouter()
 class OllamaError(Exception):
     """Erreur d'appel Ollama — déclenche le repli vers le tier inférieur."""
 
+OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "90"))
+OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "600"))  # D6 : plafond de génération
+
+
 async def query_ollama(model: str, prompt: str, tier: str = None,
                        system_override: str = None, format_json: bool = False) -> str:
     """Interroge un modèle Ollama avec le prompt système du tier. Lève OllamaError si échec."""
-    payload = {"model": model, "prompt": prompt, "stream": False}
+    payload = {"model": model, "prompt": prompt, "stream": False,
+               "options": {"num_predict": OLLAMA_NUM_PREDICT}}
     if format_json:
         payload["format"] = "json"
     system = system_override or TIER_PROMPTS.get(tier)
     if system:
         payload["system"] = system
     try:
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as client:
             response = await client.post(f"{OLLAMA_URL}/api/generate", json=payload)
     except Exception as e:
         raise OllamaError(f"connexion Ollama impossible: {e}")
@@ -424,9 +460,11 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         RAG_ANSWERS.labels(outcome="no_fiche").inc()
         return None
 
-    # C3 : post-contrôle des citations — tout code cité doit être une fiche fournie.
+    # C3 + D2 : post-contrôle — tout code cité (liste `fiches` OU dans la prose) doit
+    # être une fiche fournie.
     fournis = {h["proc_code"] for h in usable}
-    inconnus = [c for c in cited if c.startswith("PROC-") and c not in fournis]
+    tous_cites = set(cited) | set(re.findall(r"\bPROC-[A-Z]+-\d+\b", answer.upper()))
+    inconnus = [c for c in tous_cites if c.startswith("PROC-") and c not in fournis]
     if inconnus:
         RAG_ANSWERS.labels(outcome="citation_invalide").inc()
         print(f"[rag] citation hors extraits {inconnus} — réponse rejetée", flush=True)
@@ -602,30 +640,38 @@ async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+QUERY_DEADLINE = float(os.getenv("QUERY_DEADLINE", "180"))  # D4 : plafond dur d'une requête
+
+
 @app.post("/query")
 async def query_cascade(request: QueryRequest):
-    """Route et répond à une requête via la cascade T1→T5.
-
-    Fine enveloppe autour de `_query_cascade` : mesure la latence et incrémente
-    les compteurs Prometheus (tier + statut) sans toucher à la logique de cascade.
-    """
+    """Enveloppe de `_query_cascade` : cache T0, échéance globale, métriques."""
     start = time.perf_counter()
 
-    ck = _cache_key(request.query) if (RAG_CACHE_TTL > 0 and request.model == "auto") else None
-    if ck and ck in _resp_cache:
-        ts, cached = _resp_cache[ck]
-        if time.time() - ts < RAG_CACHE_TTL:
+    ck = None
+    if RAG_CACHE_TTL > 0 and request.model == "auto":
+        ck = _cache_key(request.query, await _corpus_fingerprint())
+        hit = _resp_cache.get(ck)
+        if hit and time.time() - hit[0] < RAG_CACHE_TTL:
             CACHE_HITS.inc()
-            QUERY_LATENCY.labels(tier=str(cached.get("tier", "?"))).observe(time.perf_counter() - start)
-            return {**cached, "cached": True}
-        del _resp_cache[ck]
+            _resp_cache.move_to_end(ck)
+            QUERY_LATENCY.labels(tier=str(hit[1].get("tier", "?"))).observe(time.perf_counter() - start)
+            return {**hit[1], "cached": True}
+        _resp_cache.pop(ck, None)
 
-    result = await _query_cascade(request)
+    try:
+        result = await asyncio.wait_for(_query_cascade(request), timeout=QUERY_DEADLINE)  # D4
+    except asyncio.TimeoutError:
+        result = {"status": "error", "query": request.query, "tier": "timeout",
+                  "error": f"délai dépassé ({int(QUERY_DEADLINE)} s) — service surchargé ou modèle figé"}
+
     tier = str(result.get("tier", "?"))
     QUERY_LATENCY.labels(tier=tier).observe(time.perf_counter() - start)  # C13
     QUERY_REQUESTS.labels(tier=tier, status=result.get("status", "error")).inc()
-    if ck and result.get("status") == "ok" and tier in _CACHEABLE_TIERS:
-        _resp_cache[ck] = (time.time(), result)
+    # D3 : on ne met en cache que le RAG HAUTE confiance et le hors-périmètre.
+    cacheable = tier == "hors-perimetre" or (tier == "RAG" and result.get("label") == "Fondé sur fiches CPA")
+    if ck and result.get("status") == "ok" and cacheable:
+        _cache_put(ck, result)
     return result
 
 
@@ -698,10 +744,36 @@ async def cache_clear():
     return {"cleared": n}
 
 
+# D5 — sonde du contrat JSON du modèle RAG (paresseuse, au plus toutes les 5 min).
+_contract: tuple[float, str] = (0.0, "inconnu")
+
+
+async def _rag_contract_check() -> str:
+    global _contract
+    if time.time() - _contract[0] < 300:
+        return _contract[1]
+    verdict = "inconnu"
+    try:
+        raw = await query_ollama(
+            RAG_MODEL,
+            "EXTRAITS DE FICHES :\n[PROC-TEST §Objet]\nCeci est un test.\n\nQUESTION : test",
+            system_override=RAG_SYSTEM, format_json=True)
+        import json as _j
+        obj = _j.loads(raw)
+        # `fiches` est optionnel (le modèle l'omet quand repond=false) ; `repond` +
+        # `reponse` sont obligatoires.
+        verdict = "ok" if {"repond", "reponse"} <= set(obj) else f"forme inattendue: {list(obj)[:4]}"
+    except Exception as e:  # noqa: BLE001
+        verdict = f"echec: {e}"
+    _contract = (time.time(), verdict)
+    return verdict
+
+
 @app.get("/health")
 async def health():
     """Health check"""
     rag_status = "disabled"
+    contract = "n/a"
     if RAG_ENABLED:
         try:
             async with httpx.AsyncClient(timeout=3) as client:
@@ -709,6 +781,7 @@ async def health():
             rag_status = hr.json().get("status", "unknown") if hr.status_code == 200 else "down"
         except Exception:  # noqa: BLE001
             rag_status = "down"
+        contract = await _rag_contract_check()
 
     return {
         "status": "healthy",
@@ -720,10 +793,10 @@ async def health():
                       "voies": ["sauvegarde", "hors-perimetre"],
                       "safeguarding_validated": screening.SG_VALIDATED},
         "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
-                "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP,
+                "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP, "contract": contract,
                 "score_floor": RAG_SCORE_FLOOR, "score_high": RAG_SCORE_HIGH,
                 "strict": RAG_STRICT},
-        "cache": {"ttl_s": RAG_CACHE_TTL, "entries": len(_resp_cache)},
+        "cache": {"ttl_s": RAG_CACHE_TTL, "max": RAG_CACHE_MAX, "entries": len(_resp_cache)},
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
                "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
                "pending": len(_t5_pending)}

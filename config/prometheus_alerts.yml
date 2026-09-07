@@ -37,6 +37,56 @@ groups:
           summary: "PII anonymization latency > 1s (p95)"
           description: "Agent Anone p95 latency: {{ $value }}s"
 
+  - name: sovereign_ai_rag
+    interval: 30s
+    rules:
+      # D5 : le modèle RAG ne rend plus le JSON {repond, reponse, fiches} attendu
+      - alert: RagContractBroken
+        expr: increase(rag_answers_total{outcome="parse_error"}[15m]) > 3
+        for: 5m
+        annotations:
+          summary: "Contrat JSON du RAG cassé"
+          description: "parse_error x{{ $value }} en 15 min — MAJ du modèle qwen ? prompt ?"
+
+      # C3/D2 : le modèle cite des fiches hors extraits (hallucination de référence)
+      - alert: RagCitationRejects
+        expr: increase(rag_answers_total{outcome="citation_invalide"}[1h]) > 5
+        for: 10m
+        annotations:
+          summary: "RAG rejette des réponses pour citation hors extraits"
+          description: "{{ $value }} rejets en 1 h — modèle qui hallucine des codes PROC-*"
+
+      # C14 : /search sature (concurrence max atteinte)
+      - alert: RagSearchSaturated
+        expr: increase(rag_search_busy_total[10m]) > 5
+        for: 5m
+        annotations:
+          summary: "RAG /search sature (503 occupé)"
+          description: "{{ $value }} refus en 10 min — augmenter RAG_MAX_CONCURRENCY ou la capacité"
+
+      # C7 : beaucoup de requêtes partent en génération libre sans fiche ni périmètre
+      - alert: RagUngatedHigh
+        expr: rate(query_ungated_no_scope_total[1h]) > 0.1
+        for: 30m
+        annotations:
+          summary: "Requêtes non filtrées fréquentes"
+          description: "{{ $value }}/s — blocklist hors-périmètre à compléter OU fiches manquantes"
+
+      - alert: RagUnavailable
+        expr: increase(rag_answers_total{outcome="unavailable"}[10m]) > 3
+        for: 5m
+        annotations:
+          summary: "Service RAG injoignable depuis l'orchestrateur"
+          description: "{{ $value }} échecs en 10 min — la cascade prend le relais"
+
+      # D4 : échéance globale /query atteinte
+      - alert: QueryDeadlineHit
+        expr: increase(query_requests_total{tier="timeout"}[10m]) > 0
+        for: 1m
+        annotations:
+          summary: "Requêtes /query en délai dépassé"
+          description: "{{ $value }} en 10 min — Ollama figé ou surcharge"
+
   - name: sovereign_ai_gpu
     interval: 30s
     rules:
