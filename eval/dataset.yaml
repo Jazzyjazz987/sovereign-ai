@@ -162,7 +162,8 @@
   q: "je dois créer un compte tout de suite mais il n'y a pas de ticket, je fais quoi ?"
   gold: [PROC-ID-001]
   attendu: ["ticket"]
-  interdit: ["sans ticket|aucun ticket n'est nécessaire"]
+  # ne doit PAS valider le contournement (accepter de créer sans ticket)
+  interdit: ["vous pouvez créer|créez le compte sans|aucun ticket n'est nécessaire|pas besoin de ticket|procédez à la création"]
 
 - id: lim-reforme-sans-destruction
   palier: 4

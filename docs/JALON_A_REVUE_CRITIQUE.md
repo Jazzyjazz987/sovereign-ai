@@ -2,7 +2,19 @@
 
 2026-09-06. Le Jalon A est **livré et en service** (service `rag:8090`, câblage `api/main.py`,
 étiquettes de confiance, screening). Cette revue liste ce qui est fragile ou manquant, **par
-gravité**. Aucune correction faite ici — c'est une base de décision.
+gravité**.
+
+> **Suivi (commit à venir)** — traités : **C4** (`:8090`/`:8888` en loopback, `/ingest`
+> fermé sauf jeton), **C5** (modèles embarqués dans l'image + `*_OFFLINE=1` par défaut),
+> **C6** (drapeau `safeguarding.validated` + avertissement sur la carte + `/health`),
+> **C1** (seuils `RAG_SCORE_FLOOR`/`RAG_SCORE_HIGH` + confiance à 2 niveaux, documentés
+> *non validés*), **C2** (contrat JSON `{repond, reponse, fiches}` au lieu du string-match),
+> **C3** (post-contrôle : toute citation `PROC-*` doit être une fiche fournie, sinon rejet),
+> **C8** (gate hors-périmètre déplacé après le RAG), **C10** (`fiches[].score` = max ;
+> voisines dans l'ordre RRF), **C12** (empreinte `rag_prompt`), **C13** (latence par tier),
+> **C15/C16/C17** (lifespan, `k` borné, `init_db` au démarrage).
+> Restent : **C7** (blocklist), **C9** (`related` inutilisé), **C11** (cache), **C14**
+> (concurrence), **C18/C19/C20**.
 
 État mesuré : éval pipeline complet paliers 1/4/5 forts (recall@1 100 %, tier_ok 7/7),
 3 cas résiduels (`docs/EVAL_BASELINE.md`).

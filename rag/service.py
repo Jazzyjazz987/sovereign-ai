@@ -10,30 +10,47 @@ Les modèles (e5-base + bge-reranker-base) sont chargés au démarrage (warm-up)
 """
 from __future__ import annotations
 
+import contextlib
 import os
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 import store
 from retriever import retrieve
 
-app = FastAPI(title="RAG CPA", version="1.0")
-
 RAG_RERANK_DEFAULT = os.getenv("RAG_RERANK", "on").lower() in ("1", "true", "on", "yes")
+# /ingest désactivé sauf si un jeton est configuré (C4). Vide => endpoint fermé.
+RAG_ADMIN_TOKEN = os.getenv("RAG_ADMIN_TOKEN", "").strip()
 
 SEARCH_REQUESTS = Counter("rag_search_total", "Requêtes /search", ["status", "rerank"])
 SEARCH_LATENCY = Histogram("rag_search_latency_seconds", "Latence /search")
 NO_HIT = Counter("rag_search_no_hit_total", "Recherches sans résultat exploitable")
 
 
+@contextlib.asynccontextmanager
+async def _lifespan(app: FastAPI):
+    with contextlib.suppress(Exception):
+        store.init_db()                  # C17 : schéma en place même sur volume vierge
+    from embed import embed_query
+    embed_query("préchauffage")
+    if RAG_RERANK_DEFAULT:
+        from rerank import rerank as _rr
+        _rr("préchauffage", [{"text": "préchauffage"}], top_k=1)
+    print("[rag] modèles chargés", flush=True)
+    yield
+
+
+app = FastAPI(title="RAG CPA", version="1.0", lifespan=_lifespan)
+
+
 class SearchIn(BaseModel):
-    query: str
-    k: int = 5
+    query: str = Field(min_length=1, max_length=2000)
+    k: int = Field(5, ge=1, le=20)       # C16 : k borné
     rerank: bool | None = None
     audience: str | None = None          # 'atelier' | 'teleassistance' (Jalon B — pas encore filtré)
     domaine: str | None = None
@@ -43,16 +60,6 @@ class SearchIn(BaseModel):
 class IngestIn(BaseModel):
     path: str
     corpus: str = "procedures-legacy"
-
-
-@app.on_event("startup")
-def _warm() -> None:
-    from embed import embed_query
-    embed_query("préchauffage")
-    if RAG_RERANK_DEFAULT:
-        from rerank import rerank as _rr
-        _rr("préchauffage", [{"text": "préchauffage"}], top_k=1)
-    print("[rag] modèles chargés", flush=True)
 
 
 @app.post("/search")
@@ -83,11 +90,18 @@ def search(inp: SearchIn):
 
 
 @app.post("/ingest")
-def ingest_dir(inp: IngestIn):
-    from ingest import run
-    p = Path(inp.path)
+def ingest_dir(inp: IngestIn, x_admin_token: str | None = Header(default=None)):
+    if not RAG_ADMIN_TOKEN:
+        raise HTTPException(status_code=403, detail="/ingest désactivé (RAG_ADMIN_TOKEN non configuré)")
+    if x_admin_token != RAG_ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="jeton admin invalide")
+    p = Path(inp.path).resolve()
+    # Confiné aux dossiers montés prévus pour l'ingestion.
+    if not (str(p) == "/corpus" or str(p).startswith("/corpus/")):
+        raise HTTPException(status_code=400, detail="chemin hors de /corpus")
     if not p.is_dir():
         raise HTTPException(status_code=400, detail=f"dossier introuvable: {p}")
+    from ingest import run
     return run(p, inp.corpus)
 
 

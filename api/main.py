@@ -30,27 +30,36 @@ litellm_api_key = os.getenv("LITELLM_API_KEY")
 # si on en trouve, la réponse est rédigée UNIQUEMENT à partir d'elles et les cite.
 RAG_URL = os.getenv("RAG_URL", "http://rag:8090")
 RAG_ENABLED = os.getenv("RAG_ENABLED", "on").lower() in ("1", "true", "on", "yes")
-RAG_MIN_RERANK = float(os.getenv("RAG_MIN_RERANK", "0.0"))  # score reranker mini pour retenir une fiche
 RAG_MODEL = os.getenv("RAG_MODEL", "qwen2.5:7b")             # modèle local de rédaction
 RAG_K = int(os.getenv("RAG_K", "5"))
 # Strict : une question du périmètre support sans fiche → « aucune fiche » plutôt que
 # génération libre (qui invente des règles — E3/E6). Désactivable pour comparaison.
 RAG_STRICT = os.getenv("RAG_STRICT", "on").lower() in ("1", "true", "on", "yes")
 
+# Seuils de score reranker (C1) — NON VALIDÉS, calés à la main sur `bge-reranker-base` +
+# le jeu d'éval du 2026-09-06 (bonnes réponses 0,01→1,0, bruit 0,0→0,3). À RE-DÉRIVER
+# après tout fine-tuning du reranker. Rôle :
+#   < FLOOR         : chunk ignoré (bruit franc)
+#   [FLOOR, HIGH[   : fiche retenue mais réponse étiquetée « à vérifier »
+#   >= HIGH         : réponse « Fondé sur fiches CPA »
+RAG_SCORE_FLOOR = float(os.getenv("RAG_SCORE_FLOOR", "-1.0"))
+RAG_SCORE_HIGH = float(os.getenv("RAG_SCORE_HIGH", "0.30"))
+
 RAG_SYSTEM = (
     "Tu es l'assistant interne de la cellule Parc & Assistance (support informatique) de la "
     "DSI de Polynésie française. Tu aides un AGENT DE SUPPORT.\n"
-    "Réponds de façon concise, UNIQUEMENT à partir des EXTRAITS DE FICHES fournis, en citant "
-    "les procédures par leur code.\n"
-    "Si AUCUN extrait ne traite le sujet demandé, réponds seulement : « Je n'ai pas de fiche "
-    "sur ce point. »\n"
-    "Si la demande propose de contourner une règle présente dans les extraits (agir sans "
-    "ticket, réformer sans détruire les données, agir hors de son rôle…), réponds « Non » et "
-    "rappelle la règle et la marche à suivre correcte — ne décris jamais le contournement.\n"
+    "Tu réponds STRICTEMENT à partir des EXTRAITS DE FICHES fournis.\n"
+    "Rends un objet JSON : {\"repond\": bool, \"reponse\": str, \"fiches\": [codes]}.\n"
+    "- repond=false UNIQUEMENT si aucun extrait n'aborde le sujet ; alors reponse=\"\".\n"
+    "- repond=true sinon : reponse concise, en français, citant les procédures par code.\n"
+    "Une question du type « peut-on / puis-je … sans … / sans passer par … / à la place de … » "
+    "EST traitée par les extraits dès qu'ils énoncent la règle concernée : repond=true, "
+    "reponse commence par « Non, » puis énonce la règle et la marche à suivre correcte — "
+    "ne décris jamais le contournement, ne reprends pas la formulation « sans … » de la question.\n"
     "N'invente aucune référence, aucun code, aucune étape, aucune adresse e-mail.\n"
-    "Signale toute contrainte qui limite la réponse (délai, rôle habilité, île éloignée, RGPD).\n"
-    "Termine par la liste des codes de fiches utilisés."
+    "Signale toute contrainte qui limite la réponse (délai, rôle habilité, île éloignée, RGPD)."
 )
+RAG_PROMPT_FP = hashlib.sha256(RAG_SYSTEM.encode()).hexdigest()[:12]  # C12
 
 # --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
 PROMPTS_PATH = os.getenv("PROMPTS_PATH", "/app/config/prompts.yaml")
@@ -83,7 +92,7 @@ QUERY_REQUESTS = Counter(
     "query_requests_total", "Requêtes /query traitées", ["tier", "status"]
 )
 QUERY_LATENCY = Histogram(
-    "query_latency_seconds", "Latence de traitement d'une requête /query (secondes)"
+    "query_latency_seconds", "Latence de traitement d'une requête /query (secondes)", ["tier"]
 )
 T5_CLOUD_CALLS = Counter(
     "t5_cloud_calls_total", "Appels cloud T5 (API Anthropic) effectués"
@@ -261,9 +270,11 @@ class OllamaError(Exception):
     """Erreur d'appel Ollama — déclenche le repli vers le tier inférieur."""
 
 async def query_ollama(model: str, prompt: str, tier: str = None,
-                       system_override: str = None) -> str:
+                       system_override: str = None, format_json: bool = False) -> str:
     """Interroge un modèle Ollama avec le prompt système du tier. Lève OllamaError si échec."""
     payload = {"model": model, "prompt": prompt, "stream": False}
+    if format_json:
+        payload["format"] = "json"
     system = system_override or TIER_PROMPTS.get(tier)
     if system:
         payload["system"] = system
@@ -334,8 +345,8 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
 
     # Seules les vraies procédures (proc_code) peuvent être « fiche primaire » citée.
     # Les pages 00-* sont des index : elles peuvent renforcer le contexte mais pas
-    # servir de source (E1).
-    scored = [h for h in hits if _sc(h) >= RAG_MIN_RERANK and h.get("proc_code")]
+    # servir de source (E1). C1 : plancher de score pour écarter le bruit franc.
+    scored = [h for h in hits if _sc(h) >= RAG_SCORE_FLOOR and h.get("proc_code")]
     if not scored:
         RAG_ANSWERS.labels(outcome="no_fiche").inc()
         return None
@@ -351,6 +362,7 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         by_fiche.setdefault(c, []).append(h)
     primary_code = order[0]
     primary_dom = (by_fiche[primary_code][0].get("domaine") or "").strip().lower()
+    primary_best = max(_sc(x) for x in by_fiche[primary_code])
     keep = {primary_code}
     for code in order[1:]:
         if len(keep) >= 3:
@@ -364,47 +376,64 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
     usable = [h for h in scored if h["proc_code"] in keep]
 
     extraits = "\n\n".join(
-        f"[{h.get('proc_code') or h.get('doc_id')} §{h.get('section')}]\n"
+        f"[{h.get('proc_code')} §{h.get('section')}]\n"
         f"{(h.get('text') or '').split(chr(10), 1)[-1]}"
         for h in usable
     )
-    prompt = f"EXTRAITS DE FICHES :\n{extraits}\n\nQUESTION : {query}\n\nRÉPONSE :"
+    prompt = f"EXTRAITS DE FICHES :\n{extraits}\n\nQUESTION : {query}"
     try:
-        text = await query_ollama(RAG_MODEL, prompt, tier=None, system_override=RAG_SYSTEM)
+        raw = await query_ollama(RAG_MODEL, prompt, tier=None,
+                                 system_override=RAG_SYSTEM, format_json=True)
     except OllamaError as e:
         RAG_ANSWERS.labels(outcome="model_error").inc()
         print(f"[rag] modèle KO: {e}", flush=True)
         return None
 
-    fiches = []
-    seen = set()
+    # C2 : signal structurel (JSON) plutôt qu'un string-match sur la prose du modèle.
+    import json as _json
+    try:
+        obj = _json.loads(raw)
+        repond = bool(obj.get("repond"))
+        answer = (obj.get("reponse") or "").strip()
+        cited = [str(c).upper() for c in (obj.get("fiches") or [])]
+    except (ValueError, AttributeError):
+        RAG_ANSWERS.labels(outcome="parse_error").inc()
+        return None
+    if not repond or not answer:
+        RAG_ANSWERS.labels(outcome="no_fiche").inc()
+        return None
+
+    # C3 : post-contrôle des citations — tout code cité doit être une fiche fournie.
+    fournis = {h["proc_code"] for h in usable}
+    inconnus = [c for c in cited if c.startswith("PROC-") and c not in fournis]
+    if inconnus:
+        RAG_ANSWERS.labels(outcome="citation_invalide").inc()
+        print(f"[rag] citation hors extraits {inconnus} — réponse rejetée", flush=True)
+        return None
+
+    fiches, seen = [], set()
     for h in usable:
-        code = h.get("proc_code") or h.get("doc_id")
+        code = h["proc_code"]
         if code in seen:
             continue
         seen.add(code)
         fiches.append({"code": code, "titre": h.get("titre"), "section": h.get("section"),
                        "source_url": h.get("source_url"),
-                       "score": round(h.get("rerank_score") if h.get("rerank_score") is not None
-                                      else h.get("score", 0), 3)})
+                       "score": round(max(_sc(x) for x in by_fiche[code]), 3)})  # C10 : max
 
-    # Le modèle a bâclé (formule d'échec + réponse courte) => voie « pas de fiche ».
-    # S'il enchaîne sur une vraie réponse substantielle, on la garde.
-    t = text.strip()
-    no_fiche = t.lower().startswith("je n'ai pas de fiche") and len(t) < 130
-    RAG_ANSWERS.labels(outcome="no_fiche" if no_fiche else "answered").inc()
-    if no_fiche:
-        return None
+    conf_high = primary_best >= RAG_SCORE_HIGH
+    RAG_ANSWERS.labels(outcome="answered" if conf_high else "answered_low_conf").inc()
 
     return {
         "status": "ok",
         "query": query,
-        "response": text,
+        "response": answer,
         "model_used": RAG_MODEL,
         "tier": "RAG",
-        "label": "Fondé sur fiches CPA",
+        "label": "Fondé sur fiches CPA" if conf_high else "Fiche possiblement pertinente — à vérifier",
+        "confidence": round(primary_best, 3),
         "fiches": fiches,
-        "prompt_set": PROMPT_SET_FP,
+        "rag_prompt": RAG_PROMPT_FP,
         "message": f"Répondu par le portail à fiches citées ({len(fiches)} fiche(s))",
     }
 
@@ -412,12 +441,13 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
 def _no_fiche_response(query: str, hits: Optional[list]) -> dict:
     """Question du périmètre support mais aucune fiche exploitable : on ne génère PAS
     (le repli libre invente — E3/E6). On renvoie l'absence + les fiches voisines."""
-    voisines = []
-    seen = set()
-    for h in sorted(hits or [], key=lambda x: -(x.get("rerank_score") or x.get("score") or 0)):
+    # Voisines = 3 premières procédures dans l'ordre du récupérateur (déjà classé RRF),
+    # au-dessus du plancher de bruit (C10 : ne pas trancher sur un score reranker absolu).
+    voisines, seen = [], set()
+    for h in (hits or []):
         code = h.get("proc_code")
         sc = h.get("rerank_score") if h.get("rerank_score") is not None else h.get("score", 0)
-        if not code or code in seen or sc <= 0:   # pas de voisine hors sujet
+        if not code or code in seen or sc < RAG_SCORE_FLOOR:
             continue
         seen.add(code)
         voisines.append({"code": code, "titre": h.get("titre"),
@@ -560,10 +590,9 @@ async def query_cascade(request: QueryRequest):
     """
     start = time.perf_counter()
     result = await _query_cascade(request)
-    QUERY_LATENCY.observe(time.perf_counter() - start)
-    QUERY_REQUESTS.labels(
-        tier=str(result.get("tier", "?")), status=result.get("status", "error")
-    ).inc()
+    tier = str(result.get("tier", "?"))
+    QUERY_LATENCY.labels(tier=tier).observe(time.perf_counter() - start)  # C13
+    QUERY_REQUESTS.labels(tier=tier, status=result.get("status", "error")).inc()
     return result
 
 
@@ -577,22 +606,21 @@ async def _query_cascade(request: QueryRequest):
     if sg is not None:
         return sg
 
-    # Étape 1 — gate hors-périmètre : motif « hors sujet » explicite ET aucun terme du
-    # vocabulaire support. Déterministe, aucun modèle. (Ne s'applique pas si un modèle
-    # est forcé — l'opérateur sait ce qu'il fait.)
-    if not forced and screening.is_out_of_scope(q):
-        return screening.out_of_scope_card(q)
-
-    # Étape 2 — portail à fiches citées (sans modèle forcé).
+    # Étape 1 — portail à fiches citées (sans modèle forcé). Le RAG passe AVANT le gate
+    # hors-périmètre (C8) : une vraie question couverte par une fiche ne doit pas être
+    # refusée parce qu'elle contient un mot de la blocklist (« date de… », « délai… »).
     if not forced:
         smalltalk = bool(_SMALLTALK.match(q)) and len(q) < 60
         hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q)
         rag = await _rag_answer(q, hits)
         if rag is not None:
             return rag
-        # Question du périmètre support mais aucune fiche : NE PAS générer librement
-        # (le repli invente des règles/procédures — E3/E6). hits is None => RAG KO,
-        # on laisse la cascade tenter.
+
+        # Le RAG n'a rien donné. On tranche :
+        if not smalltalk and screening.is_out_of_scope(q):
+            return screening.out_of_scope_card(q)              # trivia / création / etc.
+        # Question du périmètre support sans fiche : NE PAS générer librement (E3/E6).
+        # hits is None => RAG KO : on laisse la cascade tenter.
         if RAG_STRICT and hits is not None and not smalltalk and screening.looks_in_scope(q):
             return _no_fiche_response(q, hits)
 
@@ -640,9 +668,12 @@ async def health():
         "cascade": "fiches(RAG) → T1→T2→T3→T4→T5",
         "prompt_set": PROMPT_SET_FP,
         "screening": {"config": screening.CONFIG_FINGERPRINT,
-                      "voies": ["sauvegarde", "hors-perimetre"]},
+                      "voies": ["sauvegarde", "hors-perimetre"],
+                      "safeguarding_validated": screening.SG_VALIDATED},
         "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
-                "min_rerank": RAG_MIN_RERANK, "model": RAG_MODEL},
+                "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP,
+                "score_floor": RAG_SCORE_FLOOR, "score_high": RAG_SCORE_HIGH,
+                "strict": RAG_STRICT},
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
                "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
                "pending": len(_t5_pending)}

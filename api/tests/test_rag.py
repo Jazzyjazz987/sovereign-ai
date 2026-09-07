@@ -70,20 +70,44 @@ async def test_rag_answer_none_si_pas_de_hits():
 
 
 @pytest.mark.asyncio
-async def test_rag_answer_none_si_hits_sous_le_seuil(monkeypatch):
-    monkeypatch.setattr(main, "RAG_MIN_RERANK", 0.0)
+async def test_rag_answer_none_si_hits_sous_le_plancher(monkeypatch):
+    monkeypatch.setattr(main, "RAG_SCORE_FLOOR", -1.0)
     hits = [{"proc_code": "PROC-X", "section": "Étapes", "text": "p: x\ncorps",
              "rerank_score": -5.0, "domaine": "Test"}]
     assert await main._rag_answer("question", hits) is None
 
 
 @pytest.mark.asyncio
-async def test_rag_answer_ignore_les_pages_00_comme_primaire(monkeypatch):
+async def test_rag_answer_ignore_les_pages_00_comme_primaire():
     """E1 : une page sans proc_code ne peut pas être la fiche primaire -> None."""
-    monkeypatch.setattr(main, "RAG_MIN_RERANK", 0.0)
     hits = [{"doc_id": "00-registre-rgpd", "proc_code": None, "section": "Fiche",
              "text": "p: x\ncorps", "rerank_score": 0.9, "domaine": "RGPD"}]
     assert await main._rag_answer("question", hits) is None
+
+
+@pytest.mark.asyncio
+async def test_rag_answer_json_contrat(monkeypatch):
+    """C2 : le modèle rend un JSON ; repond=false -> None, citation inconnue -> None."""
+    hits = [{"proc_code": "PROC-ID-005", "section": "Étapes", "text": "p: x\ncorps",
+             "rerank_score": 0.8, "domaine": "EntraID", "titre": "BALP"}]
+
+    async def fake(*a, **k):
+        return fake.out
+    monkeypatch.setattr(main, "query_ollama", fake)
+
+    fake.out = '{"repond": false, "reponse": "", "fiches": []}'
+    assert await main._rag_answer("q", hits) is None
+
+    fake.out = '{"repond": true, "reponse": "Voir PROC-ZZ-999.", "fiches": ["PROC-ZZ-999"]}'
+    assert await main._rag_answer("q", hits) is None            # C3 : citation hors extraits
+
+    fake.out = '{"repond": true, "reponse": "Créer via Exchange (PROC-ID-005).", "fiches": ["PROC-ID-005"]}'
+    r = await main._rag_answer("q", hits)
+    assert r["tier"] == "RAG" and r["fiches"][0]["code"] == "PROC-ID-005"
+    assert r["label"] == "Fondé sur fiches CPA"                 # score 0.8 >= HIGH
+
+    fake.out = 'pas du json'
+    assert await main._rag_answer("q", hits) is None
 
 
 def test_no_fiche_response():

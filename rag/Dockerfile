@@ -10,12 +10,20 @@ COPY requirements.txt .
 RUN grep -v '^torch' requirements.txt > /tmp/req.txt && \
     pip install --no-cache-dir -r /tmp/req.txt
 
-COPY *.py ./
-
 ENV HF_HOME=/models/hf \
     RAG_TORCH_THREADS=8 \
     RAG_EMBED_MODEL=intfloat/multilingual-e5-base \
     RAG_RERANK_MODEL=BAAI/bge-reranker-base
+
+# C5 — modèles embarqués dans l'image (air-gap). Le build a besoin d'un accès réseau ;
+# au runtime le service tourne hors-ligne (HF_HUB_OFFLINE=1 par défaut en compose).
+RUN python -c "\
+from sentence_transformers import SentenceTransformer, CrossEncoder; \
+SentenceTransformer('intfloat/multilingual-e5-base', device='cpu'); \
+CrossEncoder('BAAI/bge-reranker-base', device='cpu', max_length=512); \
+print('modèles téléchargés dans /models/hf')"
+
+COPY *.py ./
 
 EXPOSE 8090
 

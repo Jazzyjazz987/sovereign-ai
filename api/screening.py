@@ -43,6 +43,10 @@ def _load(path: str) -> dict:
 _CFG = _load(SCREENING_PATH)
 _SG_PATTERNS = [_norm(p) for p in (_CFG["safeguarding"].get("patterns") or [])]
 _SG_CARD = _CFG["safeguarding"].get("card", _DEFAULT["safeguarding"]["card"]).strip()
+SG_VALIDATED = bool(_CFG["safeguarding"].get("validated", False))
+if not SG_VALIDATED:
+    _SG_CARD += ("\n\n⚠️ Coordonnées non encore validées par la DSI — à confirmer avant "
+                 "diffusion (screening.yaml : safeguarding.validated).")
 _OOS_PATTERNS = [_norm(p) for p in (_CFG["out_of_scope"].get("patterns") or [])]
 _SCOPE_LEX = [_norm(w) for w in (_CFG["out_of_scope"].get("scope_lexicon") or [])]
 _OOS_CARD = _CFG["out_of_scope"].get("card", _DEFAULT["out_of_scope"]["card"]).strip()

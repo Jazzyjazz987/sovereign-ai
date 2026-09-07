@@ -97,13 +97,21 @@ services:
       context: ./rag
       dockerfile: Dockerfile
     ports:
-      - "8090:8090"
+      # C4 : lié à la loopback seulement (accès hôte pour l'éval/debug, pas le réseau).
+      # langgraph joint le service par le réseau Docker (http://rag:8090).
+      - "127.0.0.1:8090:8090"
     environment:
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
       - RAG_PG_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
       - HF_HOME=/models/hf
+      # Modèles embarqués dans l'image (C5) => hors-ligne par défaut. Mettre à 0 dans .env
+      # seulement pour un premier build / une MAJ de modèle.
+      - HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-1}
+      - TRANSFORMERS_OFFLINE=${TRANSFORMERS_OFFLINE:-1}
       - RAG_RERANK=${RAG_RERANK:-on}
       - RAG_TORCH_THREADS=${RAG_TORCH_THREADS:-8}
+      # /ingest désactivé par défaut ; poser un jeton pour l'activer (header X-Admin-Token).
+      - RAG_ADMIN_TOKEN=${RAG_ADMIN_TOKEN:-}
     volumes:
       # cache HF persistant (e5-base ~440 Mo + bge-reranker-base ~1,1 Go)
       - rag_hf_cache:/models/hf
@@ -127,7 +135,9 @@ services:
       context: ./api
       dockerfile: Dockerfile.langgraph
     ports:
-      - "8888:8888"
+      # C4 : loopback seulement (FastAPI sans auth qui appelle le cloud). Un proxy
+      # d'identité devant :8888 est prévu en Phase 2 (DESIGN_REVIEW).
+      - "127.0.0.1:8888:8888"
     volumes:
       - ./api/static:/app/static
       - ./config:/app/config:ro

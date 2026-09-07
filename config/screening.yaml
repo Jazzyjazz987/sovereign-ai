@@ -8,6 +8,10 @@
 version: 1
 
 safeguarding:
+  # Passer à `true` UNIQUEMENT après validation formelle des numéros par la DSI.
+  # Tant que c'est `false`, /health signale la carte comme non validée et la carte
+  # elle-même porte un avertissement.
+  validated: false
   # ⚠️ NUMÉROS À VÉRIFIER / COMPLÉTER PAR L'OPÉRATEUR avant mise en service réelle.
   # Correspondance insensible à la casse et aux accents ; sous-chaîne simple.
   # NOYAUX courts (pas des phrases entières) : le coût d'un faux positif (carte d'aide
