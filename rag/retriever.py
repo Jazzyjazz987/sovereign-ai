@@ -38,11 +38,13 @@ def _rrf(*ranked_lists: list[dict]) -> list[dict]:
 
 
 def _expand_related(hits: list[dict], k: int, query: str, rerank: bool) -> list[dict]:
+    """Ajoute en contexte les procédures citées en « Procédures liées » par les
+    meilleures fiches du résultat (champ `related`)."""
     present = {h.get("proc_code") for h in hits if h.get("proc_code")}
     wanted: list[str] = []
-    for h in hits[:max(2, k)]:                       # liens des meilleures fiches
+    for h in hits[:max(2, k)]:
         for code in (h.get("related") or []):
-            if code not in present and code not in wanted:
+            if code and code not in present and code not in wanted:
                 wanted.append(code)
     if not wanted:
         return hits

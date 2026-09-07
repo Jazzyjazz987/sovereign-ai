@@ -107,6 +107,10 @@ RAG_CACHE_TTL = float(os.getenv("RAG_CACHE_TTL", "3600"))   # 0 = désactivé
 _CACHEABLE_TIERS = {"RAG", "aucune-fiche", "hors-perimetre"}
 _resp_cache: dict[str, tuple[float, dict]] = {}
 CACHE_HITS = Counter("query_cache_hits_total", "Réponses servies depuis le cache T0")
+QUERY_UNGATED = Counter(
+    "query_ungated_no_scope_total",
+    "Requêtes parties en cascade sans fiche, sans vocab support, sans motif hors-sujet (C7)"
+)
 
 
 def _cache_key(q: str) -> str:
@@ -654,6 +658,12 @@ async def _query_cascade(request: QueryRequest):
         # hits is None => RAG KO : on laisse la cascade tenter.
         if RAG_STRICT and hits is not None and not smalltalk and screening.looks_in_scope(q):
             return _no_fiche_response(q, hits)
+
+        # C7 — surveillance : requête qui part en génération libre sans fiche ni signal
+        # de périmètre ni motif hors-sujet. Taux élevé => blocklist à compléter OU fiches
+        # manquantes. (Aucun texte de requête journalisé — compteur seul.)
+        if hits is not None and not smalltalk and not screening.looks_in_scope(q):
+            QUERY_UNGATED.inc()
 
     model, complexity, tier = router.route(q, forced, request.complexity)
 
