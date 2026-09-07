@@ -180,3 +180,107 @@ globale). → File bornée + une réponse « service occupé, réessayez » au-d
 | 7 | **C12 + C13** empreinte `rag_prompt` + latence par tier | S | traçabilité / pilotage |
 
 C9 (expansion `related`) et C11 (cache) relèvent plutôt du Jalon C / de l'optimisation.
+
+---
+
+# Seconde revue — après les correctifs C1-C20 (2026-09-06)
+
+Regard critique sur l'état *actuel* : ce que les correctifs ont introduit, et ce que la
+première revue a manqué. Par gravité.
+
+## 🔴 Sérieux
+
+### D1 — C1 n'est corrigé qu'en façade
+`RAG_SCORE_FLOOR = -1.0` : sur les 20 candidats rerankés, presque aucun ne descend sous
+-1 → le plancher ne filtre quasiment rien, comme l'ancien `RAG_MIN_RERANK = 0.0`.
+`RAG_SCORE_HIGH = 0.30` (seuil « à vérifier » vs « fondé sur fiches ») a été posé à l'œil
+sur **6 points de données**. Le vrai correctif — calibration sur le jeu d'éval, ou règle
+de **marge** (primaire vs médiane du bruit) — n'est pas fait. À traiter avec le
+fine-tuning du reranker (les seuils devront de toute façon être re-dérivés).
+
+### D2 — C3 ne couvre pas les citations en prose
+Le post-contrôle vérifie `obj["fiches"]` (liste déclarée par le modèle), **pas** les
+codes `PROC-*` glissés dans le texte de `reponse`. Un « … voir PROC-XX-999 » au fil de
+la phrase passe. → Aussi passer `_PROC_RE.findall(answer)` au même filtre.
+
+### D3 — Cache T0 : mémoire non bornée + pas d'invalidation à la ré-ingestion
+- `_resp_cache` grandit d'une entrée par requête normalisée distincte, **sans plafond** ;
+  le nettoyage TTL n'a lieu qu'à la lecture d'une clé → une entrée jamais re-posée reste
+  en mémoire jusqu'au redémarrage. → cap LRU + purge périodique.
+- Une fiche mise à jour dans Confluence → ré-ingérée → l'ancienne réponse est servie
+  encore **1 h** (il faut appeler `/cache/clear` à la main). Aucun lien rag `/ingest` →
+  langgraph. → au minimum, inclure l'empreinte du corpus (`rag /health.corpus`) dans la
+  clé de cache, rafraîchie périodiquement.
+- On met en cache les réponses **basse confiance** (« à vérifier ») et **négatives**
+  (`aucune-fiche`) : si une fiche est ajoutée sur le sujet, la réponse « aucune fiche »
+  persiste 1 h. Discutable.
+
+### D4 — Aucune échéance globale sur `/query`
+`_rag_search` 30 s + `_rag_answer`→`query_ollama` 120 s + repli cascade (T4→T1, 120 s
+chacun) → une requête peut courir **~10 min** si Ollama se fige. Rien n'enveloppe
+`_query_cascade` dans un `asyncio.wait_for`. Le sémaphore C14 ne borne que `/search`.
+
+### D5 — Le contrat JSON n'a pas de sonde
+Tous les tests mockent `query_ollama`. Si une MAJ de `qwen2.5:7b` casse la forme
+`{repond, reponse, fiches}` (ex. renvoie `{"answer": …}`), **tout** tombe silencieusement
+en « pas de fiche » / cascade, sans alerte. → un test d'éval « le modèle rend bien la
+forme attendue » à faire tourner au démarrage ou en CI, + une alerte sur
+`rag_answers_total{outcome="parse_error"}`.
+
+## 🟠 Modéré
+
+### D6 — RAG sans plafond de génération
+`query_ollama` pour le RAG ne pose pas `num_predict` (Ollama) → une réponse verbeuse de
+qwen n'est pas bornée (latence, lisibilité). Idem cascade.
+
+### D7 — Sur-prompt du 7B
+`RAG_SYSTEM` = ~8 règles distinctes (forme JSON, logique `repond`, contournement, pas
+d'invention, signaler les contraintes, citer, être concis). C'est à la limite de ce
+qu'un 7B tient — la variance du palier 4 (`attendu` 50-75 %) vient en partie de là. →
+prompt plus court et plus net ; déplacer une partie de la logique en post-traitement.
+
+### D8 — Parcours de cycle de vie (JML) = trou produit, pas bug
+Départ / arrivée / mutation d'agent sont **les événements CPA les plus fréquents** (page
+Onboarding, RACI, Registre RGPD les regroupent) et le RAG ne sait pas synthétiser
+« départ → PROC-ID-003 + INT-005 + STOCK-005 + TER-006 ». Le DESIGN_REVIEW le nommait
+« sous-item à plus fort levier ». → une **réponse canonique rédigée et validée** pour
+ces 3-4 parcours (comme la « base de fiches canoniques » du DESIGN_REVIEW), pas du RAG.
+
+### D9 — Métriques présentes, aucun tableau de bord
+`rag_search_latency_seconds`, `query_latency_seconds{tier}`, `rag_answers_total{outcome}`,
+`query_ungated_no_scope_total`, `query_cache_hits_total` : tout est scrapé, rien n'est
+visualisé. « Jalon A fini » devrait inclure un dashboard Grafana (taux de réponse RAG,
+taux hors-périmètre, taux in-scope-sans-fiche, cache hit, latence par tier).
+
+### D10 — Incohérence `fiches` affichées vs grounding réel
+`fiches` (rendu à l'UI) vient de la récupération (`usable`). La liste `cited` du modèle
+(utilisée pour C3) peut différer. L'agent voit des fiches que le modèle n'a peut-être pas
+utilisées, et ne voit pas lesquelles ont réellement porté la réponse.
+
+## 🟡 Mineur
+
+- **D11** — `_cache_key` ne normalise pas les accents (« creer » ≠ « créer ») → taux de
+  hit réel faible.
+- **D12** — « merci » (smalltalk) déclenche quand même une génération cascade (~4 s) pour
+  rien ; une réponse figée suffirait.
+- **D13** — pas de test d'intégration de l'**ordre** screening→RAG→hors-périmètre→cascade
+  (un revert de C8 passerait les tests).
+- **D14** — volume `rag_hf_cache` monté sur `/models/hf` masque les modèles bakés dans
+  l'image (fonctionne, mais fragile sur un déploiement USB neuf). → monter en `:ro` ou
+  supprimer le volume.
+- **D15** — la voie de sauvegarde sert la carte **non validée** en entier ; pour une
+  fonction de sécurité, un repli minimal « 15 / 17 / 18 » jusqu'à validation serait plus
+  prudent (débat).
+
+## Priorisation (seconde vague)
+
+| # | Item | Effort |
+|---|------|--------|
+| 1 | **D4** échéance globale `/query` (`asyncio.wait_for`) | S |
+| 2 | **D2** C3 étendu aux citations en prose | S |
+| 3 | **D3** cache : cap LRU + empreinte corpus dans la clé + `/cache/clear` auto à l'ingest | M |
+| 4 | **D5** sonde du contrat JSON (démarrage + alerte `parse_error`) | S |
+| 5 | **D8** réponses canoniques « parcours agent » (départ / arrivée / mutation) | M — **fort levier** |
+| 6 | **D9** dashboard Grafana RAG | M |
+| 7 | **D1** calibrer les seuils (avec le fine-tuning) | — Jalon C |
+| 8 | **D6/D7** plafond `num_predict` + prompt raccourci | S |
