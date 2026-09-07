@@ -148,7 +148,7 @@ services:
       - OLLAMA_URL=http://ollama:11434
       - RAG_URL=${RAG_URL:-http://rag:8090}
       - RAG_ENABLED=${RAG_ENABLED:-on}
-      - RAG_MIN_RERANK=${RAG_MIN_RERANK:--2.0}
+      - QUERY_DEADLINE=${QUERY_DEADLINE:-180}
       - T5_MODEL=${T5_MODEL:-claude-sonnet-5}
       - T5_MAX_TOKENS=${T5_MAX_TOKENS:-700}
       - T5_MAX_CALLS=${T5_MAX_CALLS:-150}

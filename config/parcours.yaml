@@ -1,0 +1,107 @@
+# config/parcours.yaml — réponses CANONIQUES pour les événements de cycle de vie d'un
+# agent (arrivée / départ / mutation). Ce sont les demandes les plus fréquentes de la
+# CPA et elles croisent plusieurs procédures de domaines différents — le RAG ne sait
+# pas les synthétiser de façon fiable (D8). Ici, une réponse rédigée à la main, tracée
+# aux fiches, servie avant le RAG.
+#
+# ⚠️ validated: false  → /health le signale, la réponse porte un avertissement.
+#    Passer à true après relecture par le chef de cellule CPA.
+#
+# Détection : `patterns` = sous-chaînes (insensible casse/accents). `anti` = si présent,
+#    on NE déclenche PAS (évite « mutation » de capter « départ »).
+
+version: 1
+validated: false
+
+parcours:
+  - id: depart-agent
+    titre: "Départ d'un agent"
+    patterns:
+      - "depart d'un agent"
+      - "un agent quitte"
+      - "un agent part"
+      - "agent qui s'en va"
+      - "fin de contrat"
+      - "agent qui part a la retraite"
+      - "que faire quand un agent quitte"
+      - "offboarding"
+    anti: ["mutation", "change de service"]
+    fiches: [PROC-ID-003, PROC-INT-005, PROC-STOCK-005, PROC-TER-006]
+    reponse: |
+      Le départ d'un agent croise 4 procédures. Chacune est déclenchée par un ticket
+      Tauturu (GLPI) créé par un valideur.
+
+      1. Compte et messagerie — PROC-ID-003 (Gestionnaire de comptes)
+         • désactiver le compte LDAP, bloquer la connexion EntraID et révoquer les
+           sessions actives, retirer la licence M365 ;
+         • archiver la boîte aux lettres AVANT suppression (délai recommandé 6 mois) ;
+         • supprimer le compte EntraID → 1ʳᵉ corbeille (30 j de restauration possible).
+      2. Appareil géré (poste / mobile Intune) — PROC-INT-005 (Agent atelier)
+         • retirer l'appareil des groupes de déploiement, le désinscrire d'Intune ;
+         • en cas de perte/vol : effacement distant immédiat + alerte chef CPA / RSSI.
+      3. Retour du matériel — PROC-STOCK-005 (Gestionnaire de stock)
+         • zone « reste », conservation des données 30 j (l'agent peut les réclamer) ;
+         • après 30 j : réinitialisation puis remise en stock, ou réforme (PROC-STOCK-006).
+      4. Récupération physique sur site — PROC-TER-006 (Agent de proximité terrain)
+         • récupérer poste, écran, câbles et périphériques, retour atelier.
+
+      Contrainte RGPD : traçer l'effacement et la suppression (date, agent, méthode)
+      dans les tickets. Pour un agent en île éloignée, la récupération passe par le
+      coursier (PROC-TER-005).
+
+  - id: arrivee-agent
+    titre: "Arrivée d'un nouvel agent (utilisateur final)"
+    patterns:
+      - "arrivee d'un agent"
+      - "nouvel agent"
+      - "nouveau collaborateur"
+      - "nouvel arrivant"
+      - "un agent arrive"
+      - "prise de poste"
+      - "que faire pour un nouvel agent"
+      - "creer un poste pour un nouvel agent"
+    anti: ["depart", "quitte", "mutation"]
+    fiches: [PROC-ID-001, PROC-STOCK-004, PROC-ATL-002, PROC-TER-002]
+    reponse: |
+      L'arrivée d'un agent enchaîne 4 procédures, chacune sur ticket Tauturu.
+
+      1. Compte — PROC-ID-001 (Gestionnaire de comptes)
+         • créer le compte LDAP (attributs du service), vérifier la synchro EntraID ;
+         • attribuer la licence M365 F3 par défaut (E1/E3 si spécifié et validé) ;
+         • configurer le MFA (self-service via le numéro de l'agent).
+      2. Dotation du matériel — PROC-STOCK-004 (Gestionnaire de stock)
+         • vérifier la demande validée et la disponibilité du stock tampon.
+      3. Préparation du poste — PROC-ATL-002 (Autopilot/Intune) ou PROC-ATL-001 (MDT)
+         • image, profils Intune, Harfanglab EDR, BitLocker, LAPS ; contrôle qualité.
+      4. Livraison et installation — PROC-TER-002 (Agent de proximité terrain)
+         • installation sur site, finalisation de session EN PRÉSENCE du bénéficiaire.
+
+      SLA cible dotation : 7 jours ouvrés. Îles éloignées : envoi coursier +
+      finalisation par la téléassistance (PROC-TER-005).
+
+  - id: mutation-agent
+    titre: "Mutation / changement de service d'un agent"
+    patterns:
+      - "mutation"
+      - "mute"
+      - "changement de service"
+      - "change de service"
+      - "change de direction"
+      - "autre service"
+      - "autre direction"
+      - "reaffectation"
+      - "reaffecte"
+      - "change d'affectation"
+    anti: ["depart", "quitte", "nouvel agent", "nouveau collaborateur"]
+    fiches: [PROC-ID-002]
+    reponse: |
+      Une mutation se traite d'abord côté identité — PROC-ID-002 (Gestionnaire de
+      comptes), sur ticket Tauturu créé par un valideur :
+      • modifier les attributs LDAP (unité d'organisation, fonction, service) ;
+      • vérifier la cohérence de la synchro EntraID ;
+      • le nom patronymique est toujours conservé ; pas d'accents dans l'UPN.
+
+      Le matériel suit l'agent en général. S'il change : dotation (PROC-STOCK-004) et/ou
+      récupération de l'ancien poste (PROC-TER-006) sur nouveaux tickets. Vérifier les
+      habilitations applicatives et les groupes Intune si le nouveau service a un profil
+      différent (PROC-INT-004).

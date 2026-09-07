@@ -17,6 +17,7 @@ import anthropic
 import requests
 import yaml
 import screening
+import parcours
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
@@ -685,6 +686,13 @@ async def _query_cascade(request: QueryRequest):
     if sg is not None:
         return sg
 
+    # Étape 0 bis — parcours de cycle de vie (arrivée / départ / mutation) : réponse
+    # canonique multi-fiches, plus fiable que le RAG sur ces requêtes composées (D8).
+    if not forced:
+        pc = parcours.match(q)
+        if pc is not None:
+            return pc
+
     # Étape 1 — portail à fiches citées (sans modèle forcé). Le RAG passe AVANT le gate
     # hors-périmètre (C8) : une vraie question couverte par une fiche ne doit pas être
     # refusée parce qu'elle contient un mot de la blocklist (« date de… », « délai… »).
@@ -792,6 +800,8 @@ async def health():
         "screening": {"config": screening.CONFIG_FINGERPRINT,
                       "voies": ["sauvegarde", "hors-perimetre"],
                       "safeguarding_validated": screening.SG_VALIDATED},
+        "parcours": {"config": parcours.CONFIG_FINGERPRINT,
+                     "count": len(parcours._ENTRIES), "validated": parcours.VALIDATED},
         "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
                 "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP, "contract": contract,
                 "score_floor": RAG_SCORE_FLOOR, "score_high": RAG_SCORE_HIGH,

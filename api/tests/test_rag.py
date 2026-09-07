@@ -3,6 +3,7 @@ import pytest
 
 import main
 import screening
+import parcours
 
 
 # --- _SMALLTALK ---------------------------------------------------------------------
@@ -132,6 +133,25 @@ async def test_query_cascade_bout_en_bout_rag(monkeypatch):
     monkeypatch.setattr(main, "query_ollama", fake_ollama)
     r = await main._query_cascade(main.QueryRequest(query="comment créer une BALP ?"))
     assert r["tier"] == "RAG" and r["fiches"][0]["code"] == "PROC-ID-005"
+
+
+def test_parcours_depart_vs_mutation():
+    d = parcours.match("un agent quitte l'administration, que faire ?")
+    assert d and d["parcours_id"] == "depart-agent"
+    assert {"PROC-ID-003", "PROC-STOCK-005"} <= {f["code"] for f in d["fiches"]}
+    # « mutation » ne doit pas capter le parcours départ (anti)
+    m = parcours.match("un agent est muté, changement de service")
+    assert m and m["parcours_id"] == "mutation-agent"
+    assert parcours.match("comment réinitialiser un MFA ?") is None
+
+
+@pytest.mark.asyncio
+async def test_query_cascade_parcours_avant_rag(monkeypatch):
+    async def boom(*a, **k):
+        raise AssertionError("le RAG ne doit pas être appelé sur un parcours")
+    monkeypatch.setattr(main, "_rag_search", boom)
+    r = await main._query_cascade(main.QueryRequest(query="un agent quitte l'administration"))
+    assert r["tier"] == "parcours"
 
 
 @pytest.mark.asyncio
