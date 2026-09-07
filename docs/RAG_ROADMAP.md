@@ -52,14 +52,26 @@ Le prestataire téléassistance est **externe**. Sa base ne doit jamais exposer 
 - Le profil est **porté par le jeton d'accès**, pas choisi par l'utilisateur.
 - Test de non-fuite obligatoire (voir Jalon C, palier 5).
 
-### Décisions à trancher
+### État — mécanisme construit (commit 0341829), périmètre PROVISOIRE
+
+`config/rag/audiences.yaml` (`validated: false`) + colonne `audience` sur `rag.chunks` +
+filtrage liste blanche dans `search` / `search_lexical` / `chunks_for_codes`. Profil porté
+par `QueryRequest.audience` (en prod : le jeton). Parcours réservés à l'interne. Clé de
+cache inclut l'audience. **Fuite inter-audience = 0** vérifiée. `source_url` masqué pour
+la téléassistance (D-B3 provisoirement = oui, masquer).
+
+Liste blanche provisoire : `PROC-TER-003`, `PROC-TER-004`, `PROC-TER-005`, `PROC-ID-004`
+(23 chunks / 219).
+
+### Décisions à trancher (config, plus de code)
 
 - **D-B1** : les prestataires sont-ils des sociétés (postes partagés) ou des personnes
-  nommées ? → conditionne l'authentification.
-- **D-B2** : liste blanche téléassistance — la version pressentie ci-dessus convient-elle, ou
-  as-tu une liste formelle du périmètre d'intervention des prestataires ?
-- **D-B3** : la base téléassistance peut-elle citer un lien Confluence (interne) dans sa
-  réponse, ou faut-il masquer la source et ne montrer que l'extrait ?
+  nommées ? → conditionne l'authentification (Phase 2, hors de ce périmètre).
+- **D-B2** : la liste blanche `config/rag/audiences.yaml` convient-elle, ou as-tu une
+  liste formelle du périmètre d'intervention des prestataires ? → éditer le fichier +
+  `validated: true`.
+- **D-B3** : masquer le lien Confluence interne pour la téléassistance — actuellement
+  `hide_source: true`. Confirmer / infirmer.
 
 ---
 
