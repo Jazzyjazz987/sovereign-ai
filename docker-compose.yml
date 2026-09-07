@@ -194,6 +194,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana_datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./config/grafana_dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./config/grafana_dashboard_rag.json:/etc/grafana/provisioning/dashboards/rag.json
     depends_on:
       - prometheus
     networks:
