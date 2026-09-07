@@ -27,11 +27,17 @@ gravité**.
 > - **Bug corrigé au passage** : `_rrf` gardait la version non rerankée d'un chunk présent dans
 >   deux listes → `rerank_score` perdu, confiance calculée sur le cosinus. Fusion des champs.
 >
-> **Restent :**
-> - **C7** — la blocklist hors-périmètre est un compromis assumé (suivre en prod les requêtes
->   `tier=T1` sans fiche pour repérer les faux négatifs / fiches manquantes).
-> - **`comp-depart-agent`** (couverture multi-hop inter-chaînes : ID-003 n'est pas dans le
->   `related` de STOCK-005) → Jalon C fine-tuning + éventuel graphe « départ agent » explicite.
+> - **C7** (commit 15568b0) : compteur `query_ungated_no_scope_total` (requête → cascade sans
+>   fiche / sans vocab / sans motif hors-sujet). Aucun texte journalisé. La blocklist reste un
+>   compromis assumé ; ce taux dit à l'opérateur s'il faut la compléter ou ajouter des fiches.
+>
+> **Reste (relève du Jalon C, pas du Jalon A) :**
+> - **`comp-depart-agent`** — synthèse multi-hop inter-chaînes (`PROC-ID-003` n'est pas dans le
+>   `related` de `PROC-STOCK-005`). L'extraction de codes depuis les pages 00-* a été essayée
+>   puis écartée (dégradait le palier 4). → fine-tuning reranker + prompt de synthèse, ou un
+>   graphe d'événements « départ agent / arrivée / mutation » explicite.
+> - Palier 4 `attendu_ok` **varie 50-75 %** selon le tirage `qwen2.5:7b` (`lim-vip-iles`,
+>   `lim-prestataire`) → même levier.
 
 État mesuré : éval pipeline complet paliers 1/4/5 forts (recall@1 100 %, tier_ok 7/7),
 3 cas résiduels (`docs/EVAL_BASELINE.md`).
