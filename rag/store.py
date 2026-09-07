@@ -155,6 +155,26 @@ def search_lexical(query: str, k: int = 20, domaine: str | None = None,
         return [dict(r) for r in cur.fetchall()]
 
 
+def chunks_for_codes(codes: list[str], sections_pref=("Étapes", "Objet", "Fiche"),
+                     corpora: tuple[str, ...] = DEFAULT_CORPORA) -> list[dict]:
+    """Un chunk représentatif par code de procédure (pour l'expansion `related` — C9)."""
+    if not codes:
+        return []
+    with connect() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("""
+            SELECT DISTINCT ON (proc_code)
+                   chunk_id, doc_id, proc_code, titre, domaine, section, sla, criticite,
+                   contrainte_rgpd, source_url, source_file, related, text
+            FROM rag.chunks
+            WHERE proc_code = ANY(%s) AND corpus = ANY(%s)
+            ORDER BY proc_code,
+                     CASE WHEN section ILIKE 'Étapes%%' THEN 0
+                          WHEN section ILIKE 'Objet%%'  THEN 1
+                          WHEN section ILIKE 'Fiche%%'  THEN 2 ELSE 3 END
+        """, (list(codes), list(corpora)))
+        return [dict(r) for r in cur.fetchall()]
+
+
 def stats() -> dict:
     with connect() as c, c.cursor() as cur:
         cur.execute("SELECT corpus, count(*), count(distinct doc_id) FROM rag.chunks GROUP BY corpus")

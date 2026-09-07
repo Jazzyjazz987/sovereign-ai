@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import contextlib
 import os
+import threading
 import time
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
+from prometheus_client import Counter, Gauge, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 import store
 from retriever import retrieve
@@ -26,9 +27,15 @@ from retriever import retrieve
 RAG_RERANK_DEFAULT = os.getenv("RAG_RERANK", "on").lower() in ("1", "true", "on", "yes")
 # /ingest désactivé sauf si un jeton est configuré (C4). Vide => endpoint fermé.
 RAG_ADMIN_TOKEN = os.getenv("RAG_ADMIN_TOKEN", "").strip()
+# C14 : le reranker + les embeddings sont CPU-bound. On borne les recherches simultanées ;
+# au-delà, 503 « occupé » plutôt qu'une file qui gonfle sans limite.
+RAG_MAX_CONCURRENCY = int(os.getenv("RAG_MAX_CONCURRENCY", "3"))
+_slots = threading.BoundedSemaphore(RAG_MAX_CONCURRENCY)
 
 SEARCH_REQUESTS = Counter("rag_search_total", "Requêtes /search", ["status", "rerank"])
 SEARCH_LATENCY = Histogram("rag_search_latency_seconds", "Latence /search")
+SEARCH_BUSY = Counter("rag_search_busy_total", "Recherches refusées (concurrence max)")
+SEARCH_INFLIGHT = Gauge("rag_search_inflight", "Recherches en cours")
 NO_HIT = Counter("rag_search_no_hit_total", "Recherches sans résultat exploitable")
 
 
@@ -65,6 +72,10 @@ class IngestIn(BaseModel):
 @app.post("/search")
 def search(inp: SearchIn):
     rr = RAG_RERANK_DEFAULT if inp.rerank is None else inp.rerank
+    if not _slots.acquire(timeout=2):                       # C14
+        SEARCH_BUSY.inc()
+        raise HTTPException(status_code=503, detail="service occupé, réessayez")
+    SEARCH_INFLIGHT.inc()
     t0 = time.perf_counter()
     try:
         hits = retrieve(inp.query, k=inp.k, rerank=rr, domaine=inp.domaine,
@@ -72,6 +83,9 @@ def search(inp: SearchIn):
     except Exception as e:  # noqa: BLE001
         SEARCH_REQUESTS.labels(status="error", rerank=str(rr)).inc()
         raise HTTPException(status_code=500, detail=f"recherche KO: {e}")
+    finally:
+        SEARCH_INFLIGHT.dec()
+        _slots.release()
     SEARCH_LATENCY.observe(time.perf_counter() - t0)
     SEARCH_REQUESTS.labels(status="ok", rerank=str(rr)).inc()
     if not hits:

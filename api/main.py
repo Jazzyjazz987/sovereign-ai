@@ -98,6 +98,21 @@ T5_CLOUD_CALLS = Counter(
     "t5_cloud_calls_total", "Appels cloud T5 (API Anthropic) effectués"
 )
 
+# --- Cache de réponses « T0 » (C11) --------------------------------------------------
+# Sert immédiatement une réponse déjà calculée pour une question identique (helpdesk =
+# questions répétitives). On ne met en cache que les issues stables : RAG, aucune-fiche,
+# hors-périmètre. Jamais la sauvegarde ni la cascade libre. TTL borné ; purge sur
+# POST /cache/clear (à faire après une ré-ingestion du corpus).
+RAG_CACHE_TTL = float(os.getenv("RAG_CACHE_TTL", "3600"))   # 0 = désactivé
+_CACHEABLE_TIERS = {"RAG", "aucune-fiche", "hors-perimetre"}
+_resp_cache: dict[str, tuple[float, dict]] = {}
+CACHE_HITS = Counter("query_cache_hits_total", "Réponses servies depuis le cache T0")
+
+
+def _cache_key(q: str) -> str:
+    return hashlib.sha256(" ".join(q.lower().split()).encode()).hexdigest()
+
+
 # --- Modération humaine des appels T5 -------------------------------------------------
 # Si activée, chaque appel T5 est mis en attente : une notification part (webhook), et
 # l'appel n'est fait que s'il est approuvé via POST /t5/{id}/approve. Sans réponse dans
@@ -371,7 +386,9 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         dom = (hs[0].get("domaine") or "").strip().lower()
         strong = max(_sc(x) for x in hs) >= 0.5
         multi = len(hs) >= 2
-        if (dom == primary_dom and (strong or multi)) or multi:
+        # via_related = fiche explicitement liée par l'auteur (C9) -> topiquement pertinente
+        related = any(x.get("via_related") for x in hs)
+        if (dom == primary_dom and (strong or multi)) or multi or related:
             keep.add(code)
     usable = [h for h in scored if h["proc_code"] in keep]
 
@@ -589,10 +606,22 @@ async def query_cascade(request: QueryRequest):
     les compteurs Prometheus (tier + statut) sans toucher à la logique de cascade.
     """
     start = time.perf_counter()
+
+    ck = _cache_key(request.query) if (RAG_CACHE_TTL > 0 and request.model == "auto") else None
+    if ck and ck in _resp_cache:
+        ts, cached = _resp_cache[ck]
+        if time.time() - ts < RAG_CACHE_TTL:
+            CACHE_HITS.inc()
+            QUERY_LATENCY.labels(tier=str(cached.get("tier", "?"))).observe(time.perf_counter() - start)
+            return {**cached, "cached": True}
+        del _resp_cache[ck]
+
     result = await _query_cascade(request)
     tier = str(result.get("tier", "?"))
     QUERY_LATENCY.labels(tier=tier).observe(time.perf_counter() - start)  # C13
     QUERY_REQUESTS.labels(tier=tier, status=result.get("status", "error")).inc()
+    if ck and result.get("status") == "ok" and tier in _CACHEABLE_TIERS:
+        _resp_cache[ck] = (time.time(), result)
     return result
 
 
@@ -610,7 +639,9 @@ async def _query_cascade(request: QueryRequest):
     # hors-périmètre (C8) : une vraie question couverte par une fiche ne doit pas être
     # refusée parce qu'elle contient un mot de la blocklist (« date de… », « délai… »).
     if not forced:
-        smalltalk = bool(_SMALLTALK.match(q)) and len(q) < 60
+        # C18 : « merci, et pour le MFA ? » n'est pas du smalltalk — un terme support annule.
+        smalltalk = (bool(_SMALLTALK.match(q)) and len(q) < 60
+                     and not screening.looks_in_scope(q))
         hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q)
         rag = await _rag_answer(q, hits)
         if rag is not None:
@@ -649,6 +680,14 @@ async def _query_cascade(request: QueryRequest):
         "message": f"Traité par {tier} ({model})"
     }
 
+@app.post("/cache/clear")
+async def cache_clear():
+    """Vide le cache T0 — à appeler après une ré-ingestion du corpus RAG."""
+    n = len(_resp_cache)
+    _resp_cache.clear()
+    return {"cleared": n}
+
+
 @app.get("/health")
 async def health():
     """Health check"""
@@ -674,6 +713,7 @@ async def health():
                 "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP,
                 "score_floor": RAG_SCORE_FLOOR, "score_high": RAG_SCORE_HIGH,
                 "strict": RAG_STRICT},
+        "cache": {"ttl_s": RAG_CACHE_TTL, "entries": len(_resp_cache)},
         "t5": {"model": T5_MODEL, "calls": _t5_calls, "max_calls": T5_MAX_CALLS,
                "max_tokens": T5_MAX_TOKENS, "moderation": T5_MODERATION,
                "pending": len(_t5_pending)}

@@ -110,6 +110,35 @@ async def test_rag_answer_json_contrat(monkeypatch):
     assert await main._rag_answer("q", hits) is None
 
 
+@pytest.mark.asyncio
+async def test_query_cascade_bout_en_bout_rag(monkeypatch):
+    """C20 : /query -> RAG (search + modèle mockés)."""
+    monkeypatch.setattr(main, "RAG_ENABLED", True)
+    monkeypatch.setattr(main, "RAG_CACHE_TTL", 0)  # pas de cache dans le test
+
+    async def fake_search(q):
+        return [{"chunk_id": "PROC-ID-005#1", "proc_code": "PROC-ID-005", "titre": "BALP",
+                 "section": "Étapes", "domaine": "EntraID", "text": "passage: x\n1. Exchange…",
+                 "rerank_score": 0.7, "source_url": "http://x"}]
+
+    async def fake_ollama(*a, **k):
+        return '{"repond": true, "reponse": "Créer via Exchange (PROC-ID-005).", "fiches": ["PROC-ID-005"]}'
+
+    monkeypatch.setattr(main, "_rag_search", fake_search)
+    monkeypatch.setattr(main, "query_ollama", fake_ollama)
+    r = await main._query_cascade(main.QueryRequest(query="comment créer une BALP ?"))
+    assert r["tier"] == "RAG" and r["fiches"][0]["code"] == "PROC-ID-005"
+
+
+@pytest.mark.asyncio
+async def test_query_cascade_safeguarding_prioritaire(monkeypatch):
+    async def boom(*a, **k):
+        raise AssertionError("aucun appel RAG/modèle sur un signal de détresse")
+    monkeypatch.setattr(main, "_rag_search", boom)
+    r = await main._query_cascade(main.QueryRequest(query="je pense à en finir"))
+    assert r["tier"] == "sauvegarde"
+
+
 def test_no_fiche_response():
     hits = [{"proc_code": "PROC-ID-003", "titre": "Désactivation", "section": "Étapes",
              "rerank_score": 0.2, "source_url": "http://x"},

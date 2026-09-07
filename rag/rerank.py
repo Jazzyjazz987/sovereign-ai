@@ -39,7 +39,9 @@ def rerank(query: str, hits: list[dict], top_k: int = 5, text_key: str = "text")
     if not hits:
         return []
     model = _get_model()
-    pairs = [(query, h[text_key]) for h in hits]
+    # C19 : le préfixe « passage: » (pour e5) n'a rien à faire dans une paire cross-encoder.
+    pairs = [(query, h[text_key].split("\n", 1)[-1] if h[text_key].startswith("passage:")
+              else h[text_key]) for h in hits]
     scores = model.predict(pairs, batch_size=16, show_progress_bar=False)
     for h, s in zip(hits, scores):
         h["vector_score"] = h.get("score")

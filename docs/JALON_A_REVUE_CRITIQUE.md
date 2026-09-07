@@ -4,17 +4,34 @@
 étiquettes de confiance, screening). Cette revue liste ce qui est fragile ou manquant, **par
 gravité**.
 
-> **Suivi (commit à venir)** — traités : **C4** (`:8090`/`:8888` en loopback, `/ingest`
-> fermé sauf jeton), **C5** (modèles embarqués dans l'image + `*_OFFLINE=1` par défaut),
-> **C6** (drapeau `safeguarding.validated` + avertissement sur la carte + `/health`),
-> **C1** (seuils `RAG_SCORE_FLOOR`/`RAG_SCORE_HIGH` + confiance à 2 niveaux, documentés
-> *non validés*), **C2** (contrat JSON `{repond, reponse, fiches}` au lieu du string-match),
-> **C3** (post-contrôle : toute citation `PROC-*` doit être une fiche fournie, sinon rejet),
-> **C8** (gate hors-périmètre déplacé après le RAG), **C10** (`fiches[].score` = max ;
-> voisines dans l'ordre RRF), **C12** (empreinte `rag_prompt`), **C13** (latence par tier),
-> **C15/C16/C17** (lifespan, `k` borné, `init_db` au démarrage).
-> Restent : **C7** (blocklist), **C9** (`related` inutilisé), **C11** (cache), **C14**
-> (concurrence), **C18/C19/C20**.
+> **Suivi — 18/20 traités (commits 598b8f6, à venir).**
+> - **C4** `:8090`/`:8888` en loopback ; `/ingest` fermé (403) sauf jeton + chemin confiné à `/corpus`.
+> - **C5** modèles bakés dans l'image ; `HF_HUB_OFFLINE=1` / `TRANSFORMERS_OFFLINE=1` par défaut.
+> - **C6** `safeguarding.validated` → avertissement sur la carte + `/health`.
+> - **C1** `RAG_SCORE_FLOOR` / `RAG_SCORE_HIGH` + confiance à 2 niveaux (champ `confidence`), *non validés*.
+> - **C2** contrat JSON `{repond, reponse, fiches}` (Ollama `format=json`) au lieu du string-match.
+> - **C3** rejet si une citation `PROC-*` est absente des extraits fournis.
+> - **C8** gate hors-périmètre déplacé après le RAG.
+> - **C9** expansion `related` : les « Procédures liées » du top des résultats sont ajoutées
+>   en contexte (`via_related`) — multi-fiches.
+> - **C10** `fiches[].score` = max des chunks ; voisines dans l'ordre RRF.
+> - **C11** cache de réponses T0 : `sha256(requête normalisée)`, TTL `RAG_CACHE_TTL` (3600 s),
+>   `POST /cache/clear`, seulement pour `tier ∈ {RAG, aucune-fiche, hors-perimetre}`. 2ᵉ appel : ~0 s.
+> - **C12** empreinte `rag_prompt`. **C13** latence par tier.
+> - **C14** `RAG_MAX_CONCURRENCY` (3) sur `/search` → `503` au-delà (`rag_search_busy_total`,
+>   `rag_search_inflight`).
+> - **C15/C16/C17** lifespan, `k` borné 1-20, `init_db` au démarrage.
+> - **C18** un terme support annule le raccourci « smalltalk ». **C19** préfixe `passage:` retiré
+>   avant le reranker.
+> - **C20** deux tests d'intégration `/query` (chemin RAG, priorité sauvegarde).
+> - **Bug corrigé au passage** : `_rrf` gardait la version non rerankée d'un chunk présent dans
+>   deux listes → `rerank_score` perdu, confiance calculée sur le cosinus. Fusion des champs.
+>
+> **Restent :**
+> - **C7** — la blocklist hors-périmètre est un compromis assumé (suivre en prod les requêtes
+>   `tier=T1` sans fiche pour repérer les faux négatifs / fiches manquantes).
+> - **`comp-depart-agent`** (couverture multi-hop inter-chaînes : ID-003 n'est pas dans le
+>   `related` de STOCK-005) → Jalon C fine-tuning + éventuel graphe « départ agent » explicite.
 
 État mesuré : éval pipeline complet paliers 1/4/5 forts (recall@1 100 %, tier_ok 7/7),
 3 cas résiduels (`docs/EVAL_BASELINE.md`).
