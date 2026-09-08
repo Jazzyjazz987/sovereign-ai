@@ -412,3 +412,25 @@ retard, l'air-gap troué — est **du nettoyage sérieux mais bornable** (une à
 semaines). Il est faisable **maintenant, sans décision opérateur**, et il devrait l'être
 avant toute présentation, parce que chacun de ces points est une question qu'un
 interlocuteur DSI un peu attentif posera.
+
+---
+
+# Suivi — traité le 2026-09-07 (« améliore ce qu'il y a autour »)
+
+| # | Constat | État |
+|---|---------|------|
+| **3** | couche PII déterministe | ✅ `anone_api.py` : regex e-mail / +689 / NIR (clé de contrôle) / IBAN (mod-97) / matricule AVANT GLiNER + **canari post-masquage** (503 si PII résiduelle) + `ANONE_THRESHOLD=0.4`. La 503 ne fuit plus `str(exc)`. Image 13,2 → **3,83 Go** (base slim, torch CPU, GLiNER baké). |
+| **4** | code mort / services morts | ✅ ~1000 lignes retirées (`main_flask/main_fastapi/chat_app/cascade_router/*_client`, `docker-compose-core.yml`, scripts ad-hoc) ; **service `litellm` supprimé** + sa config + ses clés ; images vLLM (65 Go) + cache build (90 Go) purgés ; modèles Ollama écartés retirés → `qwen2.5:7b` seul. Disque images **115 → 35 Go**. |
+| **7** | sauvegarde / air-gap | ✅ `scripts/backup.sh` (pg_dump + volume Ollama + config/corpus/.env + MANIFEST sha256 — **testé, 4,3 Go**), `scripts/restore.sh`, `docs/PROVISIONNEMENT_AIRGAP.md`. ⏳ *test de restauration réel* + UPS/physique = opérateur. |
+| **8** | UI | ✅ `api/static/index.html` refaite : badges par voie, confiance, fiches cliquables, bannières « à vérifier » / « brouillon », bascule Question/Rédaction. |
+| **10** | ports | ✅ les 8 ports du plan de données → `127.0.0.1:`. ⏳ auth sur `:8888` = Phase 2 (Jalon B reste consultatif d'ici là). |
+| **11** | voie rédaction | ✅ `mode: "redaction"` → brouillon d'e-mail à l'usager (`tier=RAG-redaction`, pas de code PROC-* dans le message). |
+| **12** | supervision | ✅ `node-exporter` + `postgres-exporter` (données réelles) ; `prometheus_alerts.yml` réécrit sur les métriques produites ; `grafana_dashboard_stack.json` provisionné ; 6 cibles, toutes `up`. ⏳ exporter GPU (image flaky) — via `nvidia-smi` hôte pour l'instant. |
+| **2** | T5 | 🟡 partiel : `T5_MODERATION` défaut → `on` (fail-safe). Décision v1-sans-T5, appel async, ancrage RAG = opérateur / Jalon. |
+| **1** | cascade-décor | 🟡 partiel : bugs de mots-clés corrigés, `/health` + `CLAUDE.md` rendus honnêtes. Remplacement du routeur = Jalon C. |
+| **5** | éval / corpus | 🟡 partiel : `scripts/ci_eval.sh` (échoue si recall@1 < 85 %). Relecture des 34 procédures + held-out = opérateur. |
+| **6** | seuils RAG | ⏳ inchangé — à faire avec le fine-tuning. |
+| **9** | `validated: false` | ⏳ inchangé — réunion chef CPA (screening / parcours / audiences). |
+
+39 → 40 pytest. Éval récupération inchangée (P1 100 %, P3/P4 100 %, P2 93 % flaky).
+Stack : 9 services, toutes les cibles Prometheus `up`, 2 dashboards Grafana.
