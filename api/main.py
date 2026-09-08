@@ -61,6 +61,22 @@ RAG_SYSTEM = (
 )
 RAG_PROMPT_FP = hashlib.sha256(RAG_SYSTEM.encode()).hexdigest()[:12]  # C12
 
+# Voie « rédiger la réponse au ticket » (POC SHORTLIST B6 / revue globale constat 11).
+RAG_SYSTEM_REDACTION = (
+    "Tu es l'assistant de la cellule Parc & Assistance (DSI de Polynésie française).\n"
+    "À partir des EXTRAITS DE FICHES, RÉDIGE le message que l'agent de support enverra à "
+    "l'utilisateur final — un brouillon qu'il relira et enverra.\n"
+    "Rends un objet JSON : {\"repond\": bool, \"reponse\": str, \"fiches\": [codes]}.\n"
+    "- repond=false si les extraits ne permettent pas de rédiger ; alors reponse=\"\".\n"
+    "- repond=true sinon : reponse = le corps du message, en français, ton courtois et "
+    "professionnel, tutoiement évité, phrases courtes, étapes numérotées si besoin, sans "
+    "jargon interne (ne PAS citer les codes PROC-* dans le message à l'usager). Termine par "
+    "une formule simple (« Bien cordialement, — Cellule Parc & Assistance »).\n"
+    "N'invente aucune procédure, aucune adresse e-mail, aucun numéro. Si une action doit "
+    "être faite côté DSI (création de compte, dotation…), indique-le sans promettre de délai."
+)
+RAG_REDACTION_FP = hashlib.sha256(RAG_SYSTEM_REDACTION.encode()).hexdigest()[:12]
+
 # --- Prompt pack (POC A2) — un prompt système par tier, chargé au démarrage (fail-fast) ------
 PROMPTS_PATH = os.getenv("PROMPTS_PATH", "/app/config/prompts.yaml")
 
@@ -228,6 +244,8 @@ class QueryRequest(BaseModel):
     # 'teleassistance' (prestataire externe, liste blanche). En prod ce profil sera
     # porté par le jeton d'accès, pas par le corps de requête.
     audience: Optional[str] = None
+    # 'question' (défaut) ou 'redaction' — rédiger le message à l'utilisateur final (B6).
+    mode: Optional[str] = None
 
 # Cascade — cible (voir docs/DESIGN_REVIEW.md § POC SHORTLIST + config/models.yaml).
 # Chaque tier pointe vers un tag Ollama, sauf T5 (réseau). L'ordre sert aussi de chaîne de repli.
@@ -393,8 +411,10 @@ async def _rag_search(query: str, audience: str = "atelier") -> Optional[list]:
         return None
 
 
-async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
-    """Rédige une réponse citée à partir des fiches `hits`. None => on passe à la cascade."""
+async def _rag_answer(query: str, hits: Optional[list], mode: str = "question") -> Optional[dict]:
+    """Rédige une réponse citée à partir des fiches `hits`. None => on passe à la cascade.
+    mode='redaction' => rédige le message à l'utilisateur final au lieu de répondre."""
+    redaction = (mode == "redaction")
     if not hits:
         if hits is not None:
             RAG_ANSWERS.labels(outcome="no_fiche").inc()
@@ -442,10 +462,11 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         f"{(h.get('text') or '').split(chr(10), 1)[-1]}"
         for h in usable
     )
-    prompt = f"EXTRAITS DE FICHES :\n{extraits}\n\nQUESTION : {query}"
+    consigne = "DEMANDE DE L'AGENT (à traiter en rédigeant le message à l'usager)" if redaction else "QUESTION"
+    prompt = f"EXTRAITS DE FICHES :\n{extraits}\n\n{consigne} : {query}"
     try:
-        raw = await query_ollama(RAG_MODEL, prompt, tier=None,
-                                 system_override=RAG_SYSTEM, format_json=True)
+        raw = await query_ollama(RAG_MODEL, prompt, tier=None, format_json=True,
+                                 system_override=RAG_SYSTEM_REDACTION if redaction else RAG_SYSTEM)
     except OllamaError as e:
         RAG_ANSWERS.labels(outcome="model_error").inc()
         print(f"[rag] modèle KO: {e}", flush=True)
@@ -466,10 +487,15 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
         return None
 
     # C3 + D2 : post-contrôle — tout code cité (liste `fiches` OU dans la prose) doit
-    # être une fiche fournie.
+    # être une fiche fournie. (En rédaction, aucun code PROC-* ne doit apparaître dans
+    # le message à l'usager.)
     fournis = {h["proc_code"] for h in usable}
-    tous_cites = set(cited) | set(re.findall(r"\bPROC-[A-Z]+-\d+\b", answer.upper()))
-    inconnus = [c for c in tous_cites if c.startswith("PROC-") and c not in fournis]
+    en_prose = set(re.findall(r"\bPROC-[A-Z]+-\d+\b", answer.upper()))
+    if redaction and en_prose:
+        RAG_ANSWERS.labels(outcome="citation_invalide").inc()
+        print("[rag] code PROC dans un message usager — rejeté", flush=True)
+        return None
+    inconnus = [c for c in (set(cited) | en_prose) if c.startswith("PROC-") and c not in fournis]
     if inconnus:
         RAG_ANSWERS.labels(outcome="citation_invalide").inc()
         print(f"[rag] citation hors extraits {inconnus} — réponse rejetée", flush=True)
@@ -486,8 +512,18 @@ async def _rag_answer(query: str, hits: Optional[list]) -> Optional[dict]:
                        "score": round(max(_sc(x) for x in by_fiche[code]), 3)})  # C10 : max
 
     conf_high = primary_best >= RAG_SCORE_HIGH
-    RAG_ANSWERS.labels(outcome="answered" if conf_high else "answered_low_conf").inc()
+    RAG_ANSWERS.labels(
+        outcome=("redaction" if redaction else ("answered" if conf_high else "answered_low_conf"))
+    ).inc()
 
+    if redaction:
+        return {
+            "status": "ok", "query": query, "response": answer, "model_used": RAG_MODEL,
+            "tier": "RAG-redaction", "label": "Brouillon de réponse — à relire",
+            "confidence": round(primary_best, 3), "fiches": fiches,
+            "rag_prompt": RAG_REDACTION_FP,
+            "message": f"Brouillon rédigé à partir de {len(fiches)} fiche(s) — à relire avant envoi",
+        }
     return {
         "status": "ok",
         "query": query,
@@ -654,7 +690,8 @@ async def query_cascade(request: QueryRequest):
     start = time.perf_counter()
 
     ck = None
-    if RAG_CACHE_TTL > 0 and request.model == "auto":
+    _redaction = (request.mode or "").strip().lower() == "redaction"
+    if RAG_CACHE_TTL > 0 and request.model == "auto" and not _redaction:
         _aud = "teleassistance" if (request.audience or "").strip().lower() == "teleassistance" else "atelier"
         ck = _cache_key(request.query, await _corpus_fingerprint(), _aud)
         hit = _resp_cache.get(ck)
@@ -693,11 +730,12 @@ async def _query_cascade(request: QueryRequest):
 
     # Jalon B — profil de connaissance (en prod : porté par le jeton d'accès).
     audience = "teleassistance" if (request.audience or "").strip().lower() == "teleassistance" else "atelier"
+    mode = "redaction" if (request.mode or "").strip().lower() == "redaction" else "question"
 
     # Étape 0 bis — parcours de cycle de vie (arrivée / départ / mutation) : réponse
     # canonique multi-fiches, plus fiable que le RAG sur ces requêtes composées (D8).
-    # Réservé au profil interne (le prestataire ne fait pas le cycle de vie des comptes).
-    if not forced and audience == "atelier":
+    # Réservé au profil interne, mode question (le parcours s'adresse à l'agent).
+    if not forced and audience == "atelier" and mode == "question":
         pc = parcours.match(q)
         if pc is not None:
             return pc
@@ -707,10 +745,10 @@ async def _query_cascade(request: QueryRequest):
     # refusée parce qu'elle contient un mot de la blocklist (« date de… », « délai… »).
     if not forced:
         # C18 : « merci, et pour le MFA ? » n'est pas du smalltalk — un terme support annule.
-        smalltalk = (bool(_SMALLTALK.match(q)) and len(q) < 60
+        smalltalk = (mode == "question" and bool(_SMALLTALK.match(q)) and len(q) < 60
                      and not screening.looks_in_scope(q))
         hits = None if (not RAG_ENABLED or smalltalk) else await _rag_search(q, audience)
-        rag = await _rag_answer(q, hits)
+        rag = await _rag_answer(q, hits, mode=mode)
         if rag is not None:
             rag["audience"] = audience
             return rag

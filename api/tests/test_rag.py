@@ -194,3 +194,23 @@ def test_no_fiche_response():
     assert r["tier"] == "aucune-fiche" and r["model_used"] is None
     assert [f["code"] for f in r["fiches"]] == ["PROC-ID-003"]  # 00-* exclu
     assert "je n'ai pas de fiche" in r["response"].lower()
+
+
+@pytest.mark.asyncio
+async def test_rag_mode_redaction(monkeypatch):
+    """mode='redaction' -> brouillon de message usager, sans code PROC-* dans la prose."""
+    hits = [{"chunk_id": "PROC-ID-004#1", "proc_code": "PROC-ID-004", "titre": "MFA",
+             "section": "Étapes", "domaine": "EntraID", "text": "passage: x\n1. self-service…",
+             "rerank_score": 0.7, "source_url": "http://x"}]
+
+    async def fake(*a, **k):
+        return '{"repond": true, "reponse": "Bonjour, pour réinitialiser votre MFA : 1) ... Bien cordialement, Cellule Parc & Assistance", "fiches": ["PROC-ID-004"]}'
+    monkeypatch.setattr(main, "query_ollama", fake)
+    r = await main._rag_answer("l'agent Untel a perdu son tel MFA", hits, mode="redaction")
+    assert r["tier"] == "RAG-redaction" and r["label"].startswith("Brouillon")
+
+    # un code PROC-* dans le message à l'usager -> rejet
+    async def fake2(*a, **k):
+        return '{"repond": true, "reponse": "Voir PROC-ID-004 étape 3.", "fiches": []}'
+    monkeypatch.setattr(main, "query_ollama", fake2)
+    assert await main._rag_answer("q", hits, mode="redaction") is None
