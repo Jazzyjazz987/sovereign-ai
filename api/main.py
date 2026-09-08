@@ -268,14 +268,17 @@ TIERS = [
 # Cascade Router Logic
 class CascadeRouter:
     def __init__(self):
+        # NB : la cascade T1-T4 route en réalité vers le MÊME modèle (qwen2.5:7b), seul
+        # le prompt système change. Ce score de complexité est un vestige — voir
+        # docs/REVUE_CRITIQUE_2026-09-07.md constat 1 (à remplacer par un routage par
+        # intention avec le fine-tuning). Mots-clés nettoyés des sous-chaînes piégeuses
+        # (« quoi » matchait « pourquoi »).
         self.simple_keywords = {
-            "bonjour", "hello", "hi", "salut", "ça va",
-            "qui es tu", "who are you", "quoi", "what"
+            "bonjour", "hello", "salut", "coucou", "ça va",
         }
         self.code_keywords = {
-            "code", "function", "def", "class", "python", "javascript",
-            "écris", "write", "implement", "debug", "error", "bug",
-            "sql", "api", "rest", "endpoint", "test"
+            "powershell", "script", "fonction", "python", "javascript",
+            "graph api", "regex", "requête sql", "endpoint",
         }
         self.advanced_keywords = {
             "architecture", "design", "pattern", "microservices",
@@ -843,7 +846,8 @@ async def health():
         "status": "healthy",
         "service": "langgraph",
         "version": "2.0",
-        "cascade": "fiches(RAG) → T1→T2→T3→T4→T5",
+        "cascade": "sauvegarde → parcours → fiches(RAG) → local(qwen2.5:7b) → T5(escalade)",
+        "note_cascade": "T1-T4 = même modèle qwen2.5:7b (prompt système différent) — voir REVUE_CRITIQUE_2026-09-07.md",
         "prompt_set": PROMPT_SET_FP,
         "screening": {"config": screening.CONFIG_FINGERPRINT,
                       "voies": ["sauvegarde", "hors-perimetre"],
