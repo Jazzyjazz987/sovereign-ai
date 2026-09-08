@@ -15,16 +15,6 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'ollama'
-    static_configs:
-      - targets: ['ollama:11434']
-    metrics_path: '/metrics'
-
-  - job_name: 'litellm'
-    static_configs:
-      - targets: ['litellm:4000']
-    metrics_path: '/metrics'
-
   - job_name: 'langgraph'
     static_configs:
       - targets: ['langgraph:8888']
@@ -39,3 +29,11 @@ scrape_configs:
     static_configs:
       - targets: ['rag:8090']
     metrics_path: '/metrics'
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']

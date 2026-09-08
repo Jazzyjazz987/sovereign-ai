@@ -1,11 +1,14 @@
-version: '3.9'
+# Stack Sovereign AI — DSI Polynésie française.
+# Tous les ports du plan de données sont liés à 127.0.0.1 (boîte mono-utilisateur en
+# local badgé ; un proxy d'identité devant :8888 est prévu en Phase 2). L'accès à
+# Grafana/Prometheus depuis un poste = tunnel SSH.
 
 services:
   ollama:
     restart: unless-stopped
     image: ollama/ollama:latest
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ollama_data:/root/.ollama
       - ./scripts/ollama_init.sh:/docker-entrypoint.d/init.sh
@@ -44,7 +47,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/postgres_init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     networks:
       - sovereign-ai
     healthcheck:
@@ -53,37 +56,18 @@ services:
       timeout: 5s
       retries: 5
 
-  litellm:
-    restart: unless-stopped
-    image: ghcr.io/berriai/litellm:main
-    ports:
-      - "4000:4000"
-    environment:
-      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - VLLM_API_KEY=${VLLM_API_KEY}
-    volumes:
-      - ./config/litellm_config.yaml:/app/litellm_config.yaml
-    # L'ENTRYPOINT de l'image est en forme shell (litellm --config /app/proxy_server_config.yaml)
-    # et ignore `command:`. On surcharge l'entrypoint pour charger notre config.
-    entrypoint: ["litellm", "--config", "/app/litellm_config.yaml", "--port", "4000"]
-    networks:
-      - sovereign-ai
-    depends_on:
-      ollama:
-        condition: service_started
-
   anone:
     restart: unless-stopped
     build:
       context: ./api
       dockerfile: Dockerfile.anone
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - HF_HOME=/models/hf
       - ANONE_MODEL=${ANONE_MODEL:-urchade/gliner_multi_pii-v1}
+      - ANONE_THRESHOLD=${ANONE_THRESHOLD:-0.4}
     volumes:
       # Cache modèles HuggingFace persistant (GLiNER ~1,2 Go) — évite le re-téléchargement
       # à chaque rebuild/recreate du conteneur (B14).
@@ -97,8 +81,6 @@ services:
       context: ./rag
       dockerfile: Dockerfile
     ports:
-      # C4 : lié à la loopback seulement (accès hôte pour l'éval/debug, pas le réseau).
-      # langgraph joint le service par le réseau Docker (http://rag:8090).
       - "127.0.0.1:8090:8090"
     environment:
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
@@ -110,14 +92,12 @@ services:
       - TRANSFORMERS_OFFLINE=${TRANSFORMERS_OFFLINE:-1}
       - RAG_RERANK=${RAG_RERANK:-on}
       - RAG_TORCH_THREADS=${RAG_TORCH_THREADS:-8}
+      - RAG_MAX_CONCURRENCY=${RAG_MAX_CONCURRENCY:-3}
       # /ingest désactivé par défaut ; poser un jeton pour l'activer (header X-Admin-Token).
       - RAG_ADMIN_TOKEN=${RAG_ADMIN_TOKEN:-}
     volumes:
-      # cache HF persistant (e5-base ~440 Mo + bge-reranker-base ~1,1 Go)
       - rag_hf_cache:/models/hf
-      # corpus monté en lecture seule pour la ré-ingestion via POST /ingest
       - ./corpus:/corpus:ro
-      # périmètres de connaissance (Jalon B) — éditable par l'opérateur
       - ./config/rag:/app/config/rag:ro
     depends_on:
       postgres:
@@ -137,8 +117,6 @@ services:
       context: ./api
       dockerfile: Dockerfile.langgraph
     ports:
-      # C4 : loopback seulement (FastAPI sans auth qui appelle le cloud). Un proxy
-      # d'identité devant :8888 est prévu en Phase 2 (DESIGN_REVIEW).
       - "127.0.0.1:8888:8888"
     volumes:
       - ./api/static:/app/static
@@ -146,21 +124,24 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - POSTGRES_DSN=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db
-      - LITELLM_API_KEY=${LITELLM_MASTER_KEY}
       - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-90}
+      - OLLAMA_NUM_PREDICT=${OLLAMA_NUM_PREDICT:-600}
       - RAG_URL=${RAG_URL:-http://rag:8090}
       - RAG_ENABLED=${RAG_ENABLED:-on}
+      - RAG_STRICT=${RAG_STRICT:-on}
+      - RAG_CACHE_TTL=${RAG_CACHE_TTL:-3600}
       - QUERY_DEADLINE=${QUERY_DEADLINE:-180}
+      # T5 = escalade « inférence centrale ». Intérim = API Anthropic. Modération ON par
+      # défaut (garde-fou budget + souveraineté) — voir docs/REVUE_CRITIQUE_2026-09-07.md.
       - T5_MODEL=${T5_MODEL:-claude-sonnet-5}
       - T5_MAX_TOKENS=${T5_MAX_TOKENS:-700}
       - T5_MAX_CALLS=${T5_MAX_CALLS:-150}
-      - T5_MODERATION=${T5_MODERATION:-off}
+      - T5_MODERATION=${T5_MODERATION:-on}
       - T5_APPROVAL_TIMEOUT=${T5_APPROVAL_TIMEOUT:-60}
       - T5_NOTIFY_WEBHOOK=${T5_NOTIFY_WEBHOOK:-}
     depends_on:
       postgres:
-        condition: service_started
-      litellm:
         condition: service_started
       ollama:
         condition: service_started
@@ -171,6 +152,32 @@ services:
     networks:
       - sovereign-ai
 
+  # --- Observabilité ---------------------------------------------------------------
+  node-exporter:
+    restart: unless-stopped
+    image: prom/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - sovereign-ai
+
+  postgres-exporter:
+    restart: unless-stopped
+    image: prometheuscommunity/postgres-exporter:latest
+    environment:
+      - DATA_SOURCE_NAME=postgresql://claude:${POSTGRES_PASSWORD}@postgres:5432/langgraph_db?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - sovereign-ai
+
+  # Monitoring GPU : via `nvidia-smi` sur l'hôte pour l'instant (watch -n2 nvidia-smi).
+  # Un exporter dédié (dcgm-exporter) demande de la conf runtime — reporté.
+
   prometheus:
     restart: unless-stopped
     image: prom/prometheus:latest
@@ -179,7 +186,7 @@ services:
       - ./config/prometheus_alerts.yml:/etc/prometheus/alerts.yml
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
@@ -189,7 +196,7 @@ services:
     restart: unless-stopped
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       GF_INSTALL_PLUGINS: grafana-piechart-panel
@@ -198,6 +205,7 @@ services:
       - ./config/grafana_datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - ./config/grafana_dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./config/grafana_dashboard_rag.json:/etc/grafana/provisioning/dashboards/rag.json
+      - ./config/grafana_dashboard_stack.json:/etc/grafana/provisioning/dashboards/stack.json
     depends_on:
       - prometheus
     networks:

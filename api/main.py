@@ -24,7 +24,6 @@ app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
 
 # Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
-litellm_api_key = os.getenv("LITELLM_API_KEY")
 
 # --- RAG (portail à fiches citées) — DESIGN_REVIEW : la base de fiches EST le produit,
 # la cascade LLM est le repli du long tail. Avant toute cascade, on cherche des fiches ;
