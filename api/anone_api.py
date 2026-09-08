@@ -8,6 +8,7 @@ renvoie HTTP 503 (jamais 200) pour que main.py bascule en repli local.
 """
 import logging
 import os
+import re
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
@@ -26,9 +27,84 @@ ANONYMIZE_REQUESTS = Counter(
 ANONYMIZE_PII_MASKED = Counter(
     "anonymize_pii_masked_total", "Entités PII masquées cumulées"
 )
+ANONYMIZE_REGEX_HITS = Counter(
+    "anonymize_regex_hits_total", "PII captées par la couche déterministe", ["kind"]
+)
+ANONYMIZE_LEAK_CANARY = Counter(
+    "anonymize_leak_canary_total", "Texte encore porteur de PII après masquage (fail-closed)"
+)
 
 # Modèle GLiNER multi-langue spécialisé PII (surchargeable pour les tests / mirroirs).
 MODEL_NAME = os.getenv("ANONE_MODEL", "urchade/gliner_multi_pii-v1")
+# Seuil bas = sur-masquer : la direction sûre pour un garde-fou fail-closed vers le cloud.
+THRESHOLD = float(os.getenv("ANONE_THRESHOLD", "0.4"))
+
+# --- Couche déterministe (revue de conception R1.2 — meilleure valeur/effort) --------
+# Regex + checksum pour les identifiants structurés à plus fort risque. Exécutée AVANT
+# GLiNER ; ses captures sont fusionnées avec celles du modèle. Un canari post-masquage
+# re-teste ces motifs : s'il reste une correspondance, on renvoie 503 (fail-closed).
+def _nir_ok(digits: str) -> bool:
+    """Clé de contrôle du NIR français : 97 - (nombre mod 97), Corse 2A/2B -> 19/18."""
+    body, key = digits[:13], digits[13:15]
+    body = body.replace("2A", "19").replace("2B", "18")
+    try:
+        return int(key) == 97 - (int(body) % 97)
+    except ValueError:
+        return False
+
+
+def _iban_ok(iban: str) -> bool:
+    s = re.sub(r"\s", "", iban).upper()
+    s = s[4:] + s[:4]
+    n = "".join(str(ord(c) - 55) if c.isalpha() else c for c in s)
+    try:
+        return int(n) % 97 == 1
+    except ValueError:
+        return False
+
+
+DETERMINISTIC = [
+    ("EMAIL", "EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), None),
+    # Téléphone Polynésie française : +689 puis 6 (fixe 40/44) ou 8 (mobile 87/89) chiffres,
+    # ou groupes locaux 40 XX XX / 87 XX XX XX.
+    ("PHONE", "PHONE", re.compile(
+        r"(?<![\d.])(?:\+?689[\s.\-]?)?(?:4[04]|8[79]|2[0-9])[\s.\-]?\d{2}[\s.\-]?\d{2}"
+        r"(?:[\s.\-]?\d{2})?(?![\d.])"), None),
+    ("NIR", "NIR", re.compile(
+        r"\b[12][\s.]?\d{2}[\s.]?(?:0[1-9]|1[0-2])[\s.]?(?:\d{2}|2[AB])[\s.]?\d{3}[\s.]?\d{3}"
+        r"(?:[\s.]?\d{2})?\b"), _nir_ok),
+    ("IBAN", "IBAN", re.compile(r"\b[A-Z]{2}\d{2}(?:[\s]?[A-Z0-9]{4}){2,7}(?:[\s]?[A-Z0-9]{1,3})?\b"),
+     _iban_ok),
+    # Matricule agent DSI (à ajuster au format réel — placeholder large, marqué à part).
+    ("MATRICULE", "MATRICULE", re.compile(r"\bmatricule\s*:?\s*([A-Z]?\d{5,8})\b", re.I), None),
+]
+
+
+def _deterministic_spans(text: str) -> list[dict]:
+    spans = []
+    for kind, prefix, rx, check in DETERMINISTIC:
+        for m in rx.finditer(text):
+            raw = m.group(0)
+            if check is not None:
+                digits = re.sub(r"[^\dAB]", "", raw.upper())
+                if not check(digits if kind == "NIR" else raw):
+                    continue
+            spans.append({"start": m.start(), "end": m.end(), "label": prefix,
+                          "_prefix": prefix, "_kind": kind, "_src": "regex"})
+            ANONYMIZE_REGEX_HITS.labels(kind=kind).inc()
+    return spans
+
+
+def _residual_pii(text: str) -> str | None:
+    """Canari : le texte masqué contient-il encore un motif structuré ? -> nom du motif."""
+    for kind, _p, rx, check in DETERMINISTIC:
+        for m in rx.finditer(text):
+            if check is None:
+                return kind
+            digits = re.sub(r"[^\dAB]", "", m.group(0).upper())
+            if check(digits if kind == "NIR" else m.group(0)):
+                return kind
+    return None
 
 # Jeu d'étiquettes PII figé. Clé = label GLiNER, valeur = préfixe du token de masquage.
 # RGPD = données à caractère personnel (personnes physiques). On NE masque PAS les
@@ -67,15 +143,27 @@ async def anonymize(request: dict):
     text = request.get("text", "")
 
     try:
-        entities = ner.predict_entities(text, list(PII_LABELS.keys()), threshold=0.5)
+        gliner_ents = ner.predict_entities(text, list(PII_LABELS.keys()), threshold=THRESHOLD)
+        for e in gliner_ents:
+            e["_prefix"] = PII_LABELS.get(e["label"], "PII")
+            e["_src"] = "gliner"
 
-        # Attribution des tokens dans l'ordre de lecture ; une même valeur => même token.
-        pii_mapping = {}
-        value_to_token = {}
-        counters = {}
-        for ent in sorted(entities, key=lambda e: e["start"]):
+        # Fusion regex (déterministe) + GLiNER ; en cas de chevauchement, on garde le
+        # span le plus long (les offsets restants ne bougent pas si on substitue de
+        # droite à gauche et qu'aucun span ne se chevauche).
+        cand = _deterministic_spans(text) + gliner_ents
+        cand.sort(key=lambda e: (e["start"], -(e["end"] - e["start"])))
+        merged = []
+        for e in cand:
+            if merged and e["start"] < merged[-1]["end"]:
+                continue  # chevauche le précédent (plus long) — ignoré
+            merged.append(e)
+
+        # Attribution des tokens ; une même valeur => même token.
+        pii_mapping, value_to_token, counters = {}, {}, {}
+        for ent in merged:
             value = text[ent["start"]:ent["end"]]
-            prefix = PII_LABELS.get(ent["label"], "PII")
+            prefix = ent["_prefix"]
             token = value_to_token.get((prefix, value))
             if token is None:
                 idx = counters.get(prefix, 0)
@@ -85,24 +173,33 @@ async def anonymize(request: dict):
                 pii_mapping[token] = value
             ent["_token"] = token
 
-        # Substitution de droite à gauche : les offsets des entités restantes ne bougent pas.
         anonymized = text
-        for ent in sorted(entities, key=lambda e: e["start"], reverse=True):
+        for ent in sorted(merged, key=lambda e: e["start"], reverse=True):
             anonymized = anonymized[:ent["start"]] + ent["_token"] + anonymized[ent["end"]:]
+
+        # Canari post-masquage : un identifiant structuré encore présent = fuite -> 503.
+        leak = _residual_pii(anonymized)
+        if leak:
+            ANONYMIZE_LEAK_CANARY.inc()
+            ANONYMIZE_REQUESTS.labels(status="leak").inc()
+            logger.warning("canari : PII résiduelle après masquage (%s)", leak)
+            raise HTTPException(status_code=503, detail=f"pii residuelle: {leak}")
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Erreur interne /anonymize : %s", exc)
+    except Exception as exc:  # noqa: BLE001 — jamais str(exc) vers l'extérieur (contient de la PII)
+        logger.exception("Erreur interne /anonymize")
         ANONYMIZE_REQUESTS.labels(status="503").inc()
-        raise HTTPException(status_code=503, detail=f"erreur anonymisation: {exc}")
+        raise HTTPException(status_code=503, detail="erreur interne anonymisation")
 
     ANONYMIZE_REQUESTS.labels(status="ok").inc()
-    ANONYMIZE_PII_MASKED.inc(len(entities))
+    ANONYMIZE_PII_MASKED.inc(len(merged))
     return {
         "status": "ok",
         "anonymized_text": anonymized,
         "pii_mapping": pii_mapping,
-        "entities_found": len(entities),
+        "entities_found": len(merged),
+        "by_source": {"regex": sum(1 for e in merged if e.get("_src") == "regex"),
+                      "gliner": sum(1 for e in merged if e.get("_src") == "gliner")},
     }
 
 

@@ -105,3 +105,23 @@ def test_deanonymize_sans_mapping_renvoie_le_texte_intact():
     r = client.post("/deanonymize", json={"text": "rien à restaurer"})
     body = r.json()
     assert body == {"text": "rien à restaurer", "status": "no_mapping"}
+
+
+# --- Couche déterministe + canari (revue globale, constat 3) -----------------------
+def test_regex_masque_email_telephone_pf_meme_si_gliner_rate(monkeypatch):
+    """Un e-mail et un +689 sont masqués par la couche regex, GLiNER ne voyant rien."""
+    monkeypatch.setattr(anone_api, "ner", _FakeNER([]))
+    r = client.post("/anonymize", json={
+        "text": "écris à marie.tera@service.pf ou appelle le +689 87 65 43 21"})
+    b = r.json()
+    assert b["status"] == "ok"
+    assert "@" not in b["anonymized_text"] and "87 65 43 21" not in b["anonymized_text"]
+    assert b["by_source"]["regex"] >= 2
+
+
+def test_canari_bloque_si_pii_residuelle(monkeypatch):
+    """Le canari post-masquage renvoie 503 si une PII structurée subsiste."""
+    monkeypatch.setattr(anone_api, "ner", _FakeNER([]))
+    monkeypatch.setattr(anone_api, "_residual_pii", lambda _t: "NIR")
+    r = client.post("/anonymize", json={"text": "texte quelconque"})
+    assert r.status_code == 503 and "residuelle" in r.json()["detail"]
