@@ -1,16 +1,22 @@
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade pip setuptools wheel
+# GLiNER tourne sur CPU (CLAUDE.md) — pas de base CUDA (image ~13 Go -> ~2 Go).
+RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.anone.txt .
-RUN pip install --no-cache-dir -r requirements.anone.txt
+RUN grep -v '^torch' requirements.anone.txt > /tmp/req.txt && \
+    pip install --no-cache-dir -r /tmp/req.txt
+
+# GLiNER embarqué dans l'image (air-gap). Le build a besoin du réseau ; au runtime,
+# hors-ligne.
+ENV HF_HOME=/models/hf
+RUN python -c "from gliner import GLiNER; GLiNER.from_pretrained('urchade/gliner_multi_pii-v1'); print('GLiNER ok')"
 
 COPY anone_api.py .
 
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 EXPOSE 8080
 
 CMD ["python3", "anone_api.py"]
