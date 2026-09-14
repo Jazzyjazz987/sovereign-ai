@@ -1,0 +1,55 @@
+# config/disambiguation.yaml — termes ambigus qui doivent déclencher une question de
+# clarification plutôt qu'une réponse tranchée au hasard.
+#
+# Cas déclencheur : « comment réaffecter un poste » se faisait happer par le parcours
+# « mutation-agent » (RH) par collision de sous-chaîne sur « reaffect », sans jamais
+# soupçonner qu'il pouvait s'agir d'un poste informatique. Le RAG lui-même distingue
+# déjà bien MDT/Intune dès que le contexte est clair (PROC-ATL-001/002) — ce fichier ne
+# traite que l'ambiguïté EN AMONT, sur le sens de « poste » (matériel vs emploi/service).
+#
+# Détection : `patterns` = sous-chaînes déclenchantes (insensible casse/accents).
+#   Si la requête contient un `device_signals` OU un `job_signals`, le contexte est
+#   déjà clair → PAS de clarification, on laisse la cascade (parcours/RAG) répondre.
+#
+# ⚠️ validated: false → /health le signale, la question porte un avertissement.
+#    Passer à true après relecture par le chef de cellule CPA.
+version: 1
+validated: false
+
+termes:
+  - id: poste-informatique-ou-emploi
+    patterns:
+      - "reaffect"                # réaffecter, réaffectation
+      - "changement de poste"
+      - "changer de poste"
+      - "nouveau poste"
+      - "poste vacant"
+      - "poste libre"
+    device_signals:
+      - "poste informatique"
+      - "poste de travail"
+      - "ordinateur"
+      - "materiel"
+      - "machine"
+      - "mdt"
+      - "intune"
+      - "autopilot"
+      - "pc"
+      - "portable"
+      - "physique"
+    job_signals:
+      - "service"
+      - "direction"
+      - "fonction"
+      - "grade"
+      - "emploi"
+      - "hierarchie"
+      - "hierarchique"
+      - "affectation administrative"
+    question: |
+      Votre question mentionne « poste » — ça peut vouloir dire deux choses :
+      • un **poste informatique** (ordinateur) à réaffecter ou réinitialiser pour un autre
+        agent → voir PROC-ATL-001 (MDT) ou PROC-ATL-002 (Intune/Autopilot) selon le matériel ;
+      • un **poste/emploi** — mutation ou changement de service d'un agent → voir PROC-ID-002.
+
+      Précisez de quoi il s'agit pour une réponse fiable.

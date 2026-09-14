@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.langgraph.txt .
 RUN pip install --no-cache-dir -r requirements.langgraph.txt
 
-COPY main.py screening.py parcours.py .
+COPY main.py screening.py parcours.py disambiguation.py .
 
 EXPOSE 8888
 

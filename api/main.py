@@ -18,6 +18,7 @@ import requests
 import yaml
 import screening
 import parcours
+import disambiguation
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 app = FastAPI(title="Sovereign AI Cascade Router", version="1.0")
@@ -735,6 +736,14 @@ async def _query_cascade(request: QueryRequest):
     audience = "teleassistance" if (request.audience or "").strip().lower() == "teleassistance" else "atelier"
     mode = "redaction" if (request.mode or "").strip().lower() == "redaction" else "question"
 
+    # Étape 0 ter — termes ambigus (« poste » informatique vs emploi/service) : avant le
+    # matching des parcours, sinon une collision de sous-chaîne (« reaffect ») tranche à
+    # tort pour le sens RH sans jamais soupçonner l'autre (D8 bis).
+    if not forced and audience == "atelier" and mode == "question":
+        cl = disambiguation.clarify(q)
+        if cl is not None:
+            return cl
+
     # Étape 0 bis — parcours de cycle de vie (arrivée / départ / mutation) : réponse
     # canonique multi-fiches, plus fiable que le RAG sur ces requêtes composées (D8).
     # Réservé au profil interne, mode question (le parcours s'adresse à l'agent).
@@ -854,6 +863,9 @@ async def health():
                       "safeguarding_validated": screening.SG_VALIDATED},
         "parcours": {"config": parcours.CONFIG_FINGERPRINT,
                      "count": len(parcours._ENTRIES), "validated": parcours.VALIDATED},
+        "disambiguation": {"config": disambiguation.CONFIG_FINGERPRINT,
+                           "count": len(disambiguation._ENTRIES),
+                           "validated": disambiguation.VALIDATED},
         "rag": {"enabled": RAG_ENABLED, "status": rag_status, "url": RAG_URL,
                 "model": RAG_MODEL, "rag_prompt": RAG_PROMPT_FP, "contract": contract,
                 "score_floor": RAG_SCORE_FLOOR, "score_high": RAG_SCORE_HIGH,
