@@ -93,12 +93,15 @@ services:
       - RAG_RERANK=${RAG_RERANK:-on}
       - RAG_TORCH_THREADS=${RAG_TORCH_THREADS:-8}
       - RAG_MAX_CONCURRENCY=${RAG_MAX_CONCURRENCY:-3}
+      # reranker fine-tuné CPA (rag/finetune/, POC SHORTLIST) ; override possible via .env.
+      - RAG_RERANK_MODEL=${RAG_RERANK_MODEL:-/models/rerank-ft}
       # /ingest désactivé par défaut ; poser un jeton pour l'activer (header X-Admin-Token).
       - RAG_ADMIN_TOKEN=${RAG_ADMIN_TOKEN:-}
     volumes:
       - rag_hf_cache:/models/hf
       - ./corpus:/corpus:ro
       - ./config/rag:/app/config/rag:ro
+      - ./rag/finetune/model:/models/rerank-ft:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,7 +120,7 @@ services:
       context: ./api
       dockerfile: Dockerfile.langgraph
     ports:
-      - "127.0.0.1:8888:8888"
+      - "0.0.0.0:8888:8888"
     volumes:
       - ./api/static:/app/static
       - ./config:/app/config:ro

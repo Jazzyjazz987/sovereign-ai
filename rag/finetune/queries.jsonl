@@ -1,0 +1,240 @@
+{"q": "Comment installer le module MDT sur Proxmox ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Que faire si la machine ne reconnait pas les disques dur après l'installation de MDT ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Procédure pour configurer un poste via MDT ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Quand une erreur se produit-elle pendant la préparation d'un PC, que faire ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Comment paramétrer le cluster Proxmox CPA pour héberger MDT ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Que doit-on vérifier avant de préparer un poste avec MDT ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Mots-clés : MDT, Proxmox, configuration, disques dur ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Comment initialiser une nouvelle machine dans MDT ?", "proc_code": "PROC-ATL-001", "source": "qwen"}
+{"q": "Comment préparer un poste avec Intune/Autopilot?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Que faire quand je reçois une nouvelle configuration via Intune?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Procédure AT-101 pour préparation poste?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Intune/Autopilot, que dois-je savoir avant déploiement?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Mots-clés: Intune Autopilot Windows 11?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Comment configurer un poste avec Microsoft Intune?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Que faire si le déploiement échoue via Autopilot?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Procédure pour mettre à jour un poste avec Intune?", "proc_code": "PROC-ATL-002", "source": "qwen"}
+{"q": "Comment gérer un incident N2 nécessitant une intervention physique ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Que faire lorsque le problème persiste après tentative de résolution à distance ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Procédure pour réparer un matériel défaillant en atelier selon PROC-ATL-003 ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Savoir si je dois envoyer l'appareil en atelier pour incident N2 ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Comment documenter une intervention N2 effectuée dans l'atelier ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Que faire quand j'ai un incident de niveau N2 sur du matériel logiciel ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Quels sont les étapes à suivre pour un SAV matérielle N2 ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Mots-clés : procédure atelier N2, intervention physique ?", "proc_code": "PROC-ATL-003", "source": "qwen"}
+{"q": "Que faire pour maintenir les images MDT à jour ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Comment mettre à jour l'image MDT ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Procédure MDT Windows 10", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Quand actualiser l'image MDT ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Comment intégrer les correctifs de sécurité dans MDT ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Quels drivers intégrer avec MDT ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Que faire quand une nouvelle version de Windows arrive ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Procédure d'intégration des dernières mises à jour pour MDT ?", "proc_code": "PROC-ATL-004", "source": "qwen"}
+{"q": "Que dois-je faire pour organiser l'espace de l'atelier CPA ?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Comment définir le périmètre de l'atelier selon la fiche PROC-ATL-005?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Procédure pour attribuer les postes dans l'atelier CPA ?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Quels sont les KPI à suivre pour piloter l'activité du DSI Polynésie française?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Comment évaluer l'efficacité de l'organisation physique de l'atelier CPA ?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Règles d'organisation physique de l'atelier CPA mentionnées dans PROC-ATL-005 ?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Indicateurs de performance à surveiller pour la cellule support informatique ?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Comment organiser physiquement l'espace de l'atelier pour optimiser les opérations?", "proc_code": "PROC-ATL-005", "source": "qwen"}
+{"q": "Comment créer un compte utilisateur dans EntraID?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Que faut-il faire pour créer un compte utilisateur en LDAP et cloud?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Procédure pour créer un compte utilisateur sur Exchange Online?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Création d'un compte utilisateur : quels sont les étapes?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Quelle licence M365 attribuer par défaut lors de la création d'un compte?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Comment attribuer la licence M365 F3 à un nouvel utilisateur?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Que faire pour créer et configurer un compte utilisateur complet?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Procédure-ID-001 : quelles sont les étapes de création d'un compte utilisateur?", "proc_code": "PROC-ID-001", "source": "qwen"}
+{"q": "Quels sont les étapes pour modifier un compte utilisateur en EntraID et LDAP ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Comment modifier la situation professionnelle d'un utilisateur dans EntraID ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Faut-il réactualiser le compte après avoir modifié EntraID ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Que faire quand l'utilisateur a changé de service ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Procédure pour actualiser les attributs LDAP suite à un changement de service ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Comment vérifier que la modification sur EntraID est transmise à LDAP ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Quels sont les points clés à ne pas oublier lors d'une modification de compte ?", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Mots-clés : EntraID, LDAP, attributs utilisateur", "proc_code": "PROC-ID-002", "source": "qwen"}
+{"q": "Comment désactiver correctement un compte EntraID?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Désactivation du compte : que faire d'abord?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Que faire après avoir désactivé un compte EntraID?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Procédure pour supprimer un compte Exchange?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Quand supprimer vraiment le compte après désactivation?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Mots-clés : procédure suppression EntraID", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Comment respecter RGPD lors de la suppression d'un compte?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Quels délais suivre pour supprimer un compte?", "proc_code": "PROC-ID-003", "source": "qwen"}
+{"q": "Comment déblocer un compte utilisateur verrouillé ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Que faire quand l'authentification MFA échoue ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Procédure pour débloquer un compte après trop de tentatives d’identification ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Quand devrais-je réinitialiser les méthodes MFA ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Comment réinitialiser le MFA pour un utilisateur sur EntraID ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Déblocage d'un compte après blocage : procédure ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Procédure de réinitialisation des méthodes MFA utilisées par l'EntraID ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Quand est-il nécessaire de débloquer un compte ?", "proc_code": "PROC-ID-004", "source": "qwen"}
+{"q": "Que faire pour créer un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Comment configurer un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Quel est le procédure de création d'un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Procédure pour gérer les droits d'un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Comment ajouter des utilisateurs à un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Que faire quand je souhaite supprimer un BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Comment modifier la configuration d'un BALP existant?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Quels sont les étapes pour créer une nouvelle BALP?", "proc_code": "PROC-ID-005", "source": "qwen"}
+{"q": "Comment créer une salle de réunion dans Exchange ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Quelle procédure suivre pour ajouter un équipement au calendrier ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Que faire quand je dois modifier l'emplacement d'une ressource existante ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Procédure pour supprimer une ressource Exchange ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Comment gérer les ressources disponibles sur le calendrier ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Mots-clés : Ressources, Exchange, Calendrier, Salle de réunion", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Quand dois-je utiliser la fonctionnalité de disponibilité partagée ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Comment synchroniser les équipements avec l'Exchange ?", "proc_code": "PROC-ID-006", "source": "qwen"}
+{"q": "Comment attribuer correctement une licence F3 aux nouveaux employés ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Que faire quand une licence E1 est à l'excès ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Procédure pour suivre mensuellement les utilisateurs M365", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Quand dois-je vérifier la validité des licences M365 ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Comment optimiser les coûts avec cette procédure M365 ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Mots-clés : quelle licence attribuer pour quel rôle ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Que faire quand un employé n'a plus besoin de sa licence E3 ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Procédure pour actualiser la liste des utilisateurs M365 chaque mois ?", "proc_code": "PROC-ID-007", "source": "qwen"}
+{"q": "Comment enroler un ordinateur Windows 11 avec Autopilot ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Quels sont les étapes pour provisionner une machine avec Autopilot Intune ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Procédure d'enrôlement Autopilot pour Windows 11 ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Que faire quand l'ordinateur ne se connecte pas après l'enrôlement ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Comment configurer Microsoft Intune pour Autopilot enrôlement ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Quels paramètres provisionner avec Autopilot Windows 11 ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Procédure pour déploiement Zero Touch avec Windows 11 ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Mots-clés pour Autopilot enregistrement Intune ?", "proc_code": "PROC-INT-001", "source": "qwen"}
+{"q": "Comment enrouler un terminal Android avec Intune?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Que faire quand je dois configurer Android Enterprise?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Procédure d'enrôlement Android Enterprise avec Intune?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Comment enregistrer un terminal Android dans Microsoft Intune?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Quand faut-il utiliser le profil Android Enterprise?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Mots-clés pour l'enroulement Android E dans Intune?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Comment configurer un terminal Android sur Intune via le profil Android E?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Quelle est la procédure d'enrôlement pour Android Enterprise?", "proc_code": "PROC-INT-002", "source": "qwen"}
+{"q": "Comment packager une application pour Intune ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Que faire quand l'application ne se déploie pas avec Intune ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Procédure pour configurer un déploiement d'application sur Intune ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Comment tester le déploiement d'une application avant sa mise en production ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Quels sont les étapes pour un déploiement progressif sur Intune ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Mots-clés : que faire si l'application est déjà installée sur certains appareils ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Comment utiliser la procédure de test progressif lors du déploiement d'une application ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Quelle est la procédure pour packager une nouvelle version d'une application existante ?", "proc_code": "PROC-INT-003", "source": "qwen"}
+{"q": "Comment créer un groupe de déploiement Intune ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Quels sont les étapes pour modifier un profil Intune ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Procédure pour ajouter des utilisateurs à un groupe Intune existant ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Que faire quand un groupe Intune est désactivé ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Mots-clés : Comment configurer les profils de configuration dans Intune ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Quand un utilisateur ne répond pas aux politiques, quels sont les groupes Intune à vérifier ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Comment supprimer un profil Intune ? Procédure pour cela.", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Gestion des profils et groupes : Que faire si un profil est déconnecté d'Intune ?", "proc_code": "PROC-INT-004", "source": "qwen"}
+{"q": "Comment retirer un appareil de l'Intune ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Procédure pour désinscrire un ordinateur d'Intune ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Quel est le processus pour retirer un équipement du parc Intune ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Retrait d'appareil Intune : quelles sont les étapes ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Désinscription de l'Intune : comment faire ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Comment effacer correctement les données sur un appareil Intune ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Que faire quand un appareil doit être retiré de l'Intune ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Procédure de désinscription d'un appareil pour respecter le RGPD ?", "proc_code": "PROC-INT-005", "source": "qwen"}
+{"q": "Comment traiter une alerte de sécurité EDR ?", "proc_code": "PROC-INT-006", "source": "qwen"}
+{"q": "Que faire quand je reçois une alerte MDM ?", "proc_code": "PROC-INT-006", "source": "qwen"}
+{"q": "Procédure pour gérer les alertes SecOps ?", "proc_code": "PROC-INT-006", "source": "qwen"}
+{"q": "SecOps : que dois-je faire avec l'alerte收到最后一句话的中文翻译有误，请允许我重新表述最后一个问题：“SecOps：遇到警报时应采取什么步骤？”]，", "proc_code": "PROC-INT-006", "source": "qwen"}
+{"q": "Quand une nouvelle commande arrive, comment procède-t-on ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Comment vérifier la conformité des équipements ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Que faire si les équipements ne correspondent pas à la commande ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Comment stocker correctement les nouvelles acquisitions dans le CPA ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Procédure pour réceptionner un équipement informatique neuf ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Quels sont les éléments à contrôler lors de la livraison ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Comment s'assurer que tous les accessoires sont présents ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Comment documenter la réception et le contrôle des équipements ?", "proc_code": "PROC-STOCK-001", "source": "qwen"}
+{"q": "Comment enregistrer un matériel dans GLPI ?", "proc_code": "PROC-STOCK-002", "source": "qwen"}
+{"q": "Que faire après l'arrivée de nouveaux équipements ?", "proc_code": "PROC-STOCK-002", "source": "qwen"}
+{"q": "Procédure pour injecter des entrées GLPI ?", "proc_code": "PROC-STOCK-002", "source": "qwen"}
+{"q": "Quelle est la démarche pour étiqueter du matériel新消息已到达，请继续阅读：[", "proc_code": "PROC-STOCK-002", "source": "qwen"}
+{"q": "Comment effectuer l'inventaire périodique ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Que faire pour vérifier le stock ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Procédure d'inventaire physique du matériel ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Quand doit-on réaliser l'inventaire ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Inventaire : que regarder dans Tauturu ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Comment identifier les écarts entre le stock et Tauturu ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Problèmes de cohérence : quelles actions prendre ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Cas où l'inventaire est nécessaire : comment procéder ?", "proc_code": "PROC-STOCK-003", "source": "qwen"}
+{"q": "Comment attribuer un équipement informatique?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Quand dois-je procéder à l'allocation d'un matériel?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Procédure pour donner un ordinateur à un agent?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Attribution d'équipements : que faire après validation?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Comment gérer la traçabilité dans Tauturu?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Que faire quand une demande d'équipement est validée?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Quels sont les étapes de l'allocation d'un matériel?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Procédure attribution équipement informatique dans DSI Polynésie française?", "proc_code": "PROC-STOCK-004", "source": "qwen"}
+{"q": "Comment gérer un retour de matériel informatique?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Quand dois-je effacer les données après le retour du matériel?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Retour d'un ordinateur, quelles sont mes étapes?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Procédure pour réceptionner un matériel retourné", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Que faire des données pendant 30 jours après le retour?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Mettre à jour l'inventaire après un retour de matériel", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Comment orienter le matériel retourné vers le stock ou la réforme?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Abréviation DSI signifie quoi dans cette procédure?", "proc_code": "PROC-STOCK-005", "source": "qwen"}
+{"q": "Comment gérer la sortie définitive d'un ordinateur du parc DSI ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Quel est le processus pour détruire les données d'un équipement informatique ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Réforme physique de quel matériel doit-on s'occuper avec un prestataire agréé ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Que faire quand on doit sortir un équipement du parc ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Comment assurer la destruction sécurisée des données selon RGPD ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Pourquoi faut-il réformer physiquement certains équipements ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Procédure pour détruire les données sur un PC en fin de vie ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Quel est le rôle du prestataire agréé dans cette procédure ?", "proc_code": "PROC-STOCK-006", "source": "qwen"}
+{"q": "Comment encadrer le processus d'achat de matériel informatique?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Que contient la circulaire n°979/PR du 14 février 2025?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Procédure pour lancer un marché public d'achats informatiques?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Quels sont les étapes à suivre pour acheter du matériel informatique?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Comment s'assurer de la conformité des achats informatiques?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Mots-clés : circulaire n°979/PR, processus d'achat?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Que faire quand on doit acheter du matériel informatique?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Comment respecter la circulaire 979/PR pour les achats?", "proc_code": "PROC-STOCK-007", "source": "qwen"}
+{"q": "Comment prioriser les interventions terrain ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "VIP, Urgent et Standard, quels sont ces statuts ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Procédure pour organiser les interventions quotidien ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Quelle matrice utiliser pour priorisation ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Quand utiliser la procédure CPA ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Mots clés : matrice de priorité CPA", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Comment faire pour classer une intervention VIP ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Que faire quand plusieurs interventions sont en Urgent ?", "proc_code": "PROC-TER-001", "source": "qwen"}
+{"q": "Que faire si le matériel n'est pas livré sur place ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Comment configurer le poste après sa livraison ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Procédure pour installer un ordinateur chez le bénéficiaire ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Quand doit-on contacter l'utilisateur après la livraison ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Comment réagir si l'utilisateur ne répond pas après installation ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Que faire en cas de panne du matériel lors de la configuration ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Comment documenter la fin de la livraison et installation ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Mots-clés : Dotation sur site, configuration utilisateur ?", "proc_code": "PROC-TER-002", "source": "qwen"}
+{"q": "Quels sont les premiers étapes à suivre pour un dépannage N1 ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Comment identifier le niveau d’urgence lors d’un incident ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Procédure pour réagir face à une panne de bureau ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Que faire si l’ordinateur ne demarre pas ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Comment résoudre une connexion internet qui tombe souvent ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Quand faut-il escalader un incident vers l'atelier ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Mots-clés : dépannage N1 sur site ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Procédure pour gérer un black-out informatique ?", "proc_code": "PROC-TER-003", "source": "qwen"}
+{"q": "Comment effectuer une téléassistance pour un incident logiciel ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Quand dois-je passer à l'escalade vers l'atelier ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Procédure pour résoudre un incident logiciel à distance ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Que faire si je ne peux pas corriger un problème de software par moi-même ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Comment documenter un incident après une session de téléassistance ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Quelle est la procédure d'escalade vers l'atelier dans le cas d'un incident critique ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Mots-clés : que faire quand je ne peux pas résoudre un problème logiciel à distance ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Téléassistance et escalade : quelles étapes pour gérer les incidents N1 ?", "proc_code": "PROC-TER-004", "source": "qwen"}
+{"q": "Comment gérer les interventions informatiques pour les îles éloignées ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Quand utiliser le courrier plutôt que la téléassistance ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Procédure pour envoyer un équipement par coursier ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Que faire quand une panne se produit sur une île ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Comment transmettre des informations techniques lors d'une intervention à distance ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Quels sont les étapes d'une intervention sur l'île de Rapa ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Comment préparer le matériel pour un déplacement courrier ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Procédure d'intervention pour un agent de Moorea ?", "proc_code": "PROC-TER-005", "source": "qwen"}
+{"q": "Comment récupérer du matériel chez un utilisateur ?", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Que faire si je ne reçois pas de retour de stock ?", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Procédure pour récupération matériel informatique", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Quand dois-je contacter le service après-vente si le matériel est défectueux ?", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Récupération d'ordinateur chez l'utilisateur, que devons-nous vérifier ?", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Comment procède-t-on pour retourner du matériel à la CPA ?", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Mots-clés : récupération équipements informatiques", "proc_code": "PROC-TER-006", "source": "qwen"}
+{"q": "Que faire lorsque des utilisateurs refusent le retour de matériel ?", "proc_code": "PROC-TER-006", "source": "qwen"}

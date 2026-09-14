@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import unicodedata
 import urllib.error
@@ -30,7 +31,7 @@ from pathlib import Path
 import yaml
 
 DATASET = Path(__file__).with_name("dataset.yaml")
-RAG_URL = "http://localhost:8090"
+RAG_URL = os.getenv("RAG_EVAL_URL", "http://localhost:8090")
 API_URL = "http://localhost:8888"
 
 # ordre d'affichage des mesures ; une mesure absente d'un cas est simplement ignorée

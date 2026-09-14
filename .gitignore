@@ -36,3 +36,8 @@ Thumbs.db
 # données nominatives → JAMAIS dans git. Seul le README de structure est suivi.
 corpus/*
 !corpus/README.md
+.venv-ft/
+
+# Reranker fine-tuné — poids reproductibles via rag/finetune/train.py (GPU, ~1 min),
+# trop volumineux pour git (model.safetensors ~1,1 Go).
+rag/finetune/model/
