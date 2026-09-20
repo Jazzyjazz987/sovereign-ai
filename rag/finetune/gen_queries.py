@@ -15,7 +15,11 @@ import httpx
 
 OLLAMA = "http://localhost:11434"
 MODEL = "qwen2.5:7b"
-CORPUS = Path("corpus/01-procedures-legacy")
+# Migration 2026-09-19 : générer sur le corpus RÉELLEMENT actif (hybride en vigueur +
+# les 6 procédures legacy non hybridées), pas sur l'ancien corpus dans son ensemble —
+# 25 des 31 fiches legacy sont archivées, un reranker entraîné dessus désapprend le
+# vocabulaire des fiches hybrides (tableaux 🟠/🔵, chapitres numérotés).
+CORPORA = [Path("corpus/02-procedures-hybride"), Path("corpus/01-procedures-legacy")]
 OUT = Path("rag/finetune/queries.jsonl")
 
 SYS = (
@@ -57,7 +61,7 @@ def gen_for(path: Path, n: int = 8) -> list[str]:
 
 
 def main():
-    procs = sorted(CORPUS.glob("PROC-*.md"))
+    procs = sorted(p for c in CORPORA for p in c.glob("PROC-*.md"))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     seen = set()
     with OUT.open("w", encoding="utf-8") as f:

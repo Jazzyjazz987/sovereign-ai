@@ -12,6 +12,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import re
+
+# PROC-ATL-001 (historique), PROC-ATL-H01 (hybride), PROC-ID-C02 (cible) — même
+# pattern que rag/chunker.py::PROC_CODE_RE (migration 2026-09-19).
+PROC_CODE_RE = re.compile(r"PROC-[A-Z]+-[A-Z]?\d+")
 import hashlib
 import anthropic
 import requests
@@ -487,7 +491,13 @@ async def _rag_answer(query: str, hits: Optional[list], mode: str = "question") 
         obj = _json.loads(raw)
         repond = bool(obj.get("repond"))
         answer = (obj.get("reponse") or "").strip()
-        cited = [str(c).upper() for c in (obj.get("fiches") or [])]
+        # Le modèle recopie parfois l'étiquette entière de l'extrait (« PROC-ID-H01 §3 —
+        # Arrivée d'un agent ») au lieu du seul code — fréquent depuis que les fiches
+        # hybrides ont des sections numérotées/titrées. On extrait le code nu plutôt que
+        # de comparer la chaîne brute, sinon une réponse pourtant fondée est rejetée à
+        # tort comme « citation hors extraits » (constat 2026-09-19).
+        cited_raw = [str(c).upper() for c in (obj.get("fiches") or [])]
+        cited = {(PROC_CODE_RE.search(c).group(0) if PROC_CODE_RE.search(c) else c) for c in cited_raw}
     except (ValueError, AttributeError):
         RAG_ANSWERS.labels(outcome="parse_error").inc()
         return None
@@ -496,15 +506,20 @@ async def _rag_answer(query: str, hits: Optional[list], mode: str = "question") 
         return None
 
     # C3 + D2 : post-contrôle — tout code cité (liste `fiches` OU dans la prose) doit
-    # être une fiche fournie. (En rédaction, aucun code PROC-* ne doit apparaître dans
+    # être soit une fiche fournie, soit un renvoi que la fiche fournie fait ELLE-MÊME
+    # dans son propre texte (ex. ID-H01 §3.3 « poursuivre selon PROC-STOCK-H02,
+    # PROC-ATL-H01... ») — grounded dans l'extrait donné au modèle, pas inventé.
+    # Repérer seulement les vraies inventions (constat 2026-09-19, palier après le fix
+    # du code nu ci-dessus). (En rédaction, aucun code PROC-* ne doit apparaître dans
     # le message à l'usager.)
     fournis = {h["proc_code"] for h in usable}
-    en_prose = set(re.findall(r"\bPROC-[A-Z]+-\d+\b", answer.upper()))
+    dans_extraits = fournis | set(PROC_CODE_RE.findall(extraits.upper()))
+    en_prose = set(PROC_CODE_RE.findall(answer.upper()))
     if redaction and en_prose:
         RAG_ANSWERS.labels(outcome="citation_invalide").inc()
         print("[rag] code PROC dans un message usager — rejeté", flush=True)
         return None
-    inconnus = [c for c in (set(cited) | en_prose) if c.startswith("PROC-") and c not in fournis]
+    inconnus = [c for c in (set(cited) | en_prose) if c.startswith("PROC-") and c not in dans_extraits]
     if inconnus:
         RAG_ANSWERS.labels(outcome="citation_invalide").inc()
         print(f"[rag] citation hors extraits {inconnus} — réponse rejetée", flush=True)

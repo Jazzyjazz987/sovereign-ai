@@ -4,8 +4,12 @@
 # Cas déclencheur : « comment réaffecter un poste » se faisait happer par le parcours
 # « mutation-agent » (RH) par collision de sous-chaîne sur « reaffect », sans jamais
 # soupçonner qu'il pouvait s'agir d'un poste informatique. Le RAG lui-même distingue
-# déjà bien MDT/Intune dès que le contexte est clair (PROC-ATL-001/002) — ce fichier ne
-# traite que l'ambiguïté EN AMONT, sur le sens de « poste » (matériel vs emploi/service).
+# déjà bien MDT/Intune dès que le contexte est clair (PROC-ATL-H01, deux colonnes
+# 🟠/🔵) — ce fichier ne traite que l'ambiguïté EN AMONT, sur le sens de « poste »
+# (matériel vs emploi/service).
+#
+# MAJ 2026-09-19 (migration hybride) : PROC-ATL-001/002 sont archivées, fusionnées
+# dans PROC-ATL-H01. PROC-ID-002 est archivée, fusionnée dans PROC-ID-H01.
 #
 # Détection : `patterns` = sous-chaînes déclenchantes (insensible casse/accents).
 #   Si la requête contient un `device_signals` OU un `job_signals`, le contexte est
@@ -49,7 +53,7 @@ termes:
     question: |
       Votre question mentionne « poste » — ça peut vouloir dire deux choses :
       • un **poste informatique** (ordinateur) à réaffecter ou réinitialiser pour un autre
-        agent → voir PROC-ATL-001 (MDT) ou PROC-ATL-002 (Intune/Autopilot) selon le matériel ;
-      • un **poste/emploi** — mutation ou changement de service d'un agent → voir PROC-ID-002.
+        agent → voir PROC-ATL-H01 (colonne 🟠 MDT ou 🔵 Intune selon le matériel) ;
+      • un **poste/emploi** — mutation ou changement de service d'un agent → voir PROC-ID-H01.
 
       Précisez de quoi il s'agit pour une réponse fiable.

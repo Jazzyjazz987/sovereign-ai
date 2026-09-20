@@ -17,8 +17,13 @@ teleassistance:
   # Procédures visibles au prestataire de téléassistance (dépannage N1 à distance,
   # orientation utilisateur, self-service). PAS l'infra, PAS les consoles d'admin,
   # PAS la sécurité, PAS le stock, PAS la gestion d'identités à privilège.
+  # Remappé le 2026-09-19 (migration hybride, voir corpus/02-procedures-hybride/
+  # 00-correspondance-trois-corpus.md) : les codes historiques ci-dessous sont archivés,
+  # remplacés par leurs équivalents hybrides « en vigueur ». PROC-TER-H04 et PROC-ID-H03
+  # fusionnent chacun deux fiches historiques — le périmètre presta s'élargit donc un peu
+  # (ID-H03 ajoute le suivi des licences M365, TER-H04 ajoute les îles éloignées à
+  # l'escalade). À reconfirmer avec le chef de cellule (D-B2, toujours non validé).
   fiches:
-    - PROC-TER-003   # Dépannage N1 sur site (contexte utile au N1 distant)
-    - PROC-TER-004   # Téléassistance et escalade atelier  ← cœur du métier presta
-    - PROC-TER-005   # Interventions dans les îles éloignées
-    - PROC-ID-004    # Déblocage / réinitialisation MFA — volet self-service / 1er niveau
+    - PROC-TER-H03   # ex PROC-TER-003 — Dépannage N1 sur site (contexte utile au N1 distant)
+    - PROC-TER-H04   # ex PROC-TER-004 + PROC-TER-005 — téléassistance/escalade + îles éloignées
+    - PROC-ID-H03    # ex PROC-ID-004 — déblocage MFA (fusionné avec licences M365, ex PROC-ID-007)

@@ -23,11 +23,25 @@ NAV_FILES = {
     "00-onboarding-parcours-nouvel-agent-cpa.md",
     "00-atelier.md", "00-console-intune.md", "00-entraid-exchange.md",
     "00-gestion-du-stock.md", "00-agents-de-proximite-terrain.md",
+    # Jalon migration (2026-09-19) — index/synthèse des corpus hybride et cible,
+    # même logique : citent plein de codes PROC-*-H../-C.., polluent la recherche large.
+    "00-procedures-hybrides-cpa.md", "00-correspondance-trois-corpus.md",
+    "00-atelier-hybride.md", "00-agents-de-proximite-terrain-hybride.md",
+    "00-console-intune-hybride.md", "00-gestion-du-stock-hybride.md",
+    "00-entraid-exchange-hybride.md",
+    "00-corpus-cible-cpa.md", "00-matrice-raci-cible.md",
+    "00-atelier-cible.md", "00-agents-de-proximite-terrain-cible.md",
+    "00-console-intune-cible.md", "00-gestion-du-stock-cible.md",
+    "00-entraid-exchange-cible.md",
 }
 
 
 def _corpus_for(row: dict, base: str) -> str:
-    return "procedures-nav" if row["source_file"] in NAV_FILES else base
+    # Suffixe par dossier source (procedures-legacy-nav, procedures-hybride-nav, ...) :
+    # un nom de corpus 'procedures-nav' unique et partagé ferait que le DELETE d'une
+    # ingestion efface les pages nav ingérées par une AUTRE ingestion (constat 2026-09-19,
+    # perte silencieuse de 00-correspondance-trois-corpus.md après ré-ingestion du legacy).
+    return f"{base}-nav" if row["source_file"] in NAV_FILES else base
 
 
 def run(root: Path, corpus: str) -> dict:

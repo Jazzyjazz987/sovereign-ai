@@ -99,7 +99,12 @@ def _vec(v: list[float]) -> str:
     return "[" + ",".join(f"{x:.6f}" for x in v) + "]"
 
 
-DEFAULT_CORPORA = ("procedures-legacy",)
+# Migration 2026-09-19 : le corpus hybride est « en vigueur » (voir corpus/02-procedures-hybride/
+# 00-correspondance-trois-corpus.md). procedures-legacy ne contient plus que les 6 procédures
+# non hybridées, toujours applicables telles quelles. procedures-legacy-archive (25 fiches
+# remplacées) et procedures-cible (« à valider », pas encore en vigueur) restent ingérés mais
+# hors recherche par défaut — même logique que procedures-nav.
+DEFAULT_CORPORA = ("procedures-hybride", "procedures-legacy")
 
 
 def _audience_clause(audience: str | None, where: list, params: list) -> None:

@@ -25,7 +25,10 @@ SOURCE_RE = re.compile(r"<!--\s*source:.*?page\s+(\d+)\s*—\s*(\S+)\s*-->")
 META_ROW_RE = re.compile(r"^\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*$")
 H1_RE = re.compile(r"^#\s+(.*)$", re.M)
 SECTION_RE = re.compile(r"^##\s+(.*)$", re.M)
-PROC_CODE_RE = re.compile(r"\b(PROC-[A-Z]+-\d+)\b")
+# [A-Z]? capture le suffixe hybride/cible : PROC-ATL-001 (historique), PROC-ATL-H01
+# (hybride, en vigueur), PROC-ID-C02 (cible) — voir corpus/02-procedures-hybride/
+# 00-correspondance-trois-corpus.md (migration 2026-09-19).
+PROC_CODE_RE = re.compile(r"\b(PROC-[A-Z]+-[A-Z]?\d+)\b")
 
 
 @dataclass

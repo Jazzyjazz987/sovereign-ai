@@ -9,6 +9,12 @@
 #
 # Détection : `patterns` = sous-chaînes (insensible casse/accents). `anti` = si présent,
 #    on NE déclenche PAS (évite « mutation » de capter « départ »).
+#
+# MAJ 2026-09-19 (migration hybride, voir corpus/02-procedures-hybride/
+# 00-correspondance-trois-corpus.md) : les trois parcours pointent maintenant vers
+# PROC-ID-H01 (fusion ID-001+002+003), dont le discriminant N'EST PAS le type de poste
+# mais le raccordement du SERVICE de l'agent à IdentityDSI (🟠 hors IdentityDSI /
+# 🔵 raccordé). Les anciens codes ID-001/002/003 sont archivés.
 
 version: 1
 validated: false
@@ -26,28 +32,31 @@ parcours:
       - "que faire quand un agent quitte"
       - "offboarding"
     anti: ["mutation", "change de service"]
-    fiches: [PROC-ID-003, PROC-INT-005, PROC-STOCK-005, PROC-TER-006]
+    fiches: [PROC-ID-H01, PROC-STOCK-H03, PROC-INT-H03]
     reponse: |
-      Le départ d'un agent croise 4 procédures. Chacune est déclenchée par un ticket
-      Tauturu (GLPI) créé par un valideur.
+      Le départ d'un agent se traite d'abord côté identité — PROC-ID-H01 (règle
+      invariante validée par la DPO : le compte suit l'agent, il est SUPPRIMÉ au
+      départ, sans exception) :
+      • identifier le service de rattachement de l'agent et vérifier s'il est raccordé
+        à IdentityDSI (liste tenue par la CPA) ;
+      • 🟠 hors IdentityDSI : supprimer le compte à la date d'effet (Gestionnaire de
+        comptes) ; 🔵 raccordé : vérifier que la sortie a bien été saisie dans le SIRH,
+        ce qui déclenche la suppression — sinon le délai relève de la DRH ;
+      • traiter délégations, redirections et boîtes partagées AVANT la suppression ;
+      • aucune donnée n'est conservée sur le compte supprimé : les données utiles sont
+        déplacées avant la date d'effet, sur l'espace de stockage de référence.
 
-      1. Compte et messagerie — PROC-ID-003 (Gestionnaire de comptes)
-         • désactiver le compte LDAP, bloquer la connexion EntraID et révoquer les
-           sessions actives, retirer la licence M365 ;
-         • archiver la boîte aux lettres AVANT suppression (délai recommandé 6 mois) ;
-         • supprimer le compte EntraID → 1ʳᵉ corbeille (30 j de restauration possible).
-      2. Appareil géré (poste / mobile Intune) — PROC-INT-005 (Agent atelier)
-         • retirer l'appareil des groupes de déploiement, le désinscrire d'Intune ;
-         • en cas de perte/vol : effacement distant immédiat + alerte chef CPA / RSSI.
-      3. Retour du matériel — PROC-STOCK-005 (Gestionnaire de stock)
-         • zone « reste », conservation des données 30 j (l'agent peut les réclamer) ;
-         • après 30 j : réinitialisation puis remise en stock, ou réforme (PROC-STOCK-006).
-      4. Récupération physique sur site — PROC-TER-006 (Agent de proximité terrain)
-         • récupérer poste, écran, câbles et périphériques, retour atelier.
+      Puis le matériel :
+      1. Retrait de l'appareil — PROC-INT-H03 : désinscrire l'appareil (console Intune
+         si poste 🔵) ou le sortir de l'annuaire local et effacer (poste 🟠).
+      2. Retour en stock — PROC-STOCK-H03 : zone de conservation isolée du stock neuf,
+         effacement puis remise en zone à préparer (🟠) ou prêt à doter (🔵). La durée
+         de conservation avant effacement dépend d'une politique d'archivage — non
+         encore établie (écart P1).
 
-      Contrainte RGPD : traçer l'effacement et la suppression (date, agent, méthode)
-      dans les tickets. Pour un agent en île éloignée, la récupération passe par le
-      coursier (PROC-TER-005).
+      Filet de sécurité : un compte à supprimer découvert hors ticket de départ
+      (ex. lors d'une réaffectation de poste) est désactivé immédiatement, un ticket
+      est créé pour tracer la découverte, et le service + la DRH sont alertés.
 
   - id: arrivee-agent
     titre: "Arrivée d'un nouvel agent (utilisateur final)"
@@ -61,23 +70,30 @@ parcours:
       - "que faire pour un nouvel agent"
       - "creer un poste pour un nouvel agent"
     anti: ["depart", "quitte", "mutation"]
-    fiches: [PROC-ID-001, PROC-STOCK-004, PROC-ATL-002, PROC-TER-002]
+    fiches: [PROC-ID-H01, PROC-STOCK-H02, PROC-ATL-H01, PROC-TER-H02]
     reponse: |
-      L'arrivée d'un agent enchaîne 4 procédures, chacune sur ticket Tauturu.
+      L'arrivée d'un agent se traite d'abord côté identité — PROC-ID-H01. Vérifier
+      d'abord si le service de rattachement de l'agent est raccordé à IdentityDSI
+      (liste tenue par la CPA) : en cas de doute, traiter selon 🟠 et signaler l'écart.
 
-      1. Compte — PROC-ID-001 (Gestionnaire de comptes)
-         • créer le compte LDAP (attributs du service), vérifier la synchro EntraID ;
-         • attribuer la licence M365 F3 par défaut (E1/E3 si spécifié et validé) ;
-         • configurer le MFA (self-service via le numéro de l'agent).
-      2. Dotation du matériel — PROC-STOCK-004 (Gestionnaire de stock)
-         • vérifier la demande validée et la disponibilité du stock tampon.
-      3. Préparation du poste — PROC-ATL-002 (Autopilot/Intune) ou PROC-ATL-001 (MDT)
-         • image, profils Intune, Harfanglab EDR, BitLocker, LAPS ; contrôle qualité.
-      4. Livraison et installation — PROC-TER-002 (Agent de proximité terrain)
-         • installation sur site, finalisation de session EN PRÉSENCE du bénéficiaire.
+      • 🟠 hors IdentityDSI : créer le compte manuellement dans EntraID à partir du
+        ticket, appliquer la convention de nommage, renseigner service/fonction/
+        licence, créer la boîte aux lettres.
+      • 🔵 raccordé : vérifier que la fiche agent existe dans le SIRH, attendre le
+        provisionnement automatique par IdentityDSI puis en contrôler le résultat —
+        toute correction se fait dans le SIRH, jamais dans la console.
+      • Dans les deux cas : vérifier qu'aucun compte n'existe déjà pour cet agent
+        (mutation interne), puis inscrire l'agent au MFA.
 
-      SLA cible dotation : 7 jours ouvrés. Îles éloignées : envoi coursier +
-      finalisation par la téléassistance (PROC-TER-005).
+      Puis le matériel, sur nouveaux tickets Tauturu :
+      1. Dotation — PROC-STOCK-H02 : vérifier la demande validée et l'existence du
+         compte (sinon le ticket est clôturé ou mis en attente).
+      2. Préparation ou contrôle du poste — PROC-ATL-H01 : ~2h de préparation sur un
+         poste 🟠 MDT, quelques minutes de contrôle de conformité sur un poste 🔵 Intune.
+      3. Livraison — PROC-TER-H02 : installation sur site, finalisation de session EN
+         PRÉSENCE du bénéficiaire (~45 min sur poste 🟠, ~15 min sur poste 🔵).
+
+      SLA cible dotation : 7 jours ouvrés.
 
   - id: mutation-agent
     titre: "Mutation / changement de service d'un agent"
@@ -93,15 +109,19 @@ parcours:
       - "reaffecte"
       - "change d'affectation"
     anti: ["depart", "quitte", "nouvel agent", "nouveau collaborateur"]
-    fiches: [PROC-ID-002]
+    fiches: [PROC-ID-H01, PROC-STOCK-H03, PROC-TER-H02]
     reponse: |
-      Une mutation se traite d'abord côté identité — PROC-ID-002 (Gestionnaire de
-      comptes), sur ticket Tauturu créé par un valideur :
-      • modifier les attributs LDAP (unité d'organisation, fonction, service) ;
-      • vérifier la cohérence de la synchro EntraID ;
-      • le nom patronymique est toujours conservé ; pas d'accents dans l'UPN.
+      Contrairement à l'intuition, une mutation ne « modifie » pas le compte — PROC-ID-H01
+      (règle validée par la DPO) : le compte de l'agent est SUPPRIMÉ côté service
+      d'origine, puis un nouveau compte est créé côté service d'accueil. Sans exception.
 
-      Le matériel suit l'agent en général. S'il change : dotation (PROC-STOCK-004) et/ou
-      récupération de l'ancien poste (PROC-TER-006) sur nouveaux tickets. Vérifier les
-      habilitations applicatives et les groupes Intune si le nouveau service a un profil
-      différent (PROC-INT-004).
+      • 🟠 service d'accueil hors IdentityDSI : supprimer le compte d'origine, puis créer
+        le nouveau compte selon la colonne applicable **au service d'accueil** — pas à
+        celui d'origine.
+      • 🔵 service d'accueil raccordé : vérifier que la mutation est saisie dans le SIRH
+        (déclenche suppression + reprovisionnement), ou basculer sur 🟠 si le service
+        d'accueil n'est pas raccordé.
+
+      Le poste suit ensuite : retour en stock (PROC-STOCK-H03) si l'agent n'en a plus
+      besoin, ou réaffectation sur site (PROC-TER-H02) s'il change de bureau. Vérifier
+      les groupes/profils Intune si le nouveau service a un profil différent.

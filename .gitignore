@@ -19,6 +19,7 @@ env/
 
 # Logs (keep directory, ignore files)
 logs/*.log
+logs/**/*.log
 
 # OS
 .DS_Store
