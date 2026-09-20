@@ -1,0 +1,508 @@
+{
+  "65813": {
+    "title": "Support informatique",
+    "parent_id": null,
+    "file": null,
+    "note": "page d'accueil d'espace, jamais éditée (modèle par défaut)"
+  },
+  "65918": {
+    "title": "🏠 Accueil CPA — DSI Polynésie française",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/accueil-cpa-dsi-polynesie-francaise.md"
+  },
+  "65942": {
+    "title": "👤 EntraID / Exchange",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/entraid-exchange.md"
+  },
+  "65958": {
+    "title": "PROC-STOCK-001 — Réception et contrôle livraison",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-001-reception-et-controle-livraison.md"
+  },
+  "65975": {
+    "title": "PROC-STOCK-002 — Étiquetage et injection GLPI",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-002-etiquetage-et-injection-glpi.md"
+  },
+  "65994": {
+    "title": "PROC-STOCK-005 — Retour matériel",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-005-retour-materiel.md"
+  },
+  "66015": {
+    "title": "PROC-ATL-001 — Préparation poste via MDT",
+    "parent_id": "98329",
+    "file": "SI/support-informatique/atelier/proc-atl-001-preparation-poste-via-mdt.md"
+  },
+  "66032": {
+    "title": "PROC-ATL-004 — Maintenance de l'image MDT",
+    "parent_id": "98329",
+    "file": "SI/support-informatique/atelier/proc-atl-004-maintenance-de-limage-mdt.md"
+  },
+  "66051": {
+    "title": "PROC-TER-001 — Planification et priorisation des interventions",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-001-planification-et-priorisation-des-interventions.md"
+  },
+  "66070": {
+    "title": "PROC-TER-006 — Récupération matériel et retour stock",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-006-recuperation-materiel-et-retour-stock.md"
+  },
+  "66089": {
+    "title": "PROC-INT-004 — Gestion des profils et groupes Intune",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-004-gestion-des-profils-et-groupes-intune.md"
+  },
+  "66108": {
+    "title": "Vue : Chef de cellule CPA",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-chef-de-cellule-cpa.md"
+  },
+  "66127": {
+    "title": "⚠️ Conformité et RGPD",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/conformite-et-rgpd/conformite-et-rgpd.md"
+  },
+  "66143": {
+    "title": "🔴 Registre RGPD — Procédures à contrainte",
+    "parent_id": "66127",
+    "file": "SI/support-informatique/conformite-et-rgpd/registre-rgpd-procedures-a-contrainte.md"
+  },
+  "66162": {
+    "title": "📊 Synthèse du projet de formalisation CPA",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/synthese-du-projet-de-formalisation-cpa.md"
+  },
+  "98313": {
+    "title": "📦 Gestion du stock",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/gestion-du-stock.md"
+  },
+  "98329": {
+    "title": "🔧 Atelier",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/atelier.md"
+  },
+  "98345": {
+    "title": "🖥️ Console Intune",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/console-intune.md"
+  },
+  "98361": {
+    "title": "PROC-STOCK-004 — Dotation matériel",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-004-dotation-materiel.md"
+  },
+  "98378": {
+    "title": "PROC-ATL-003 — SAV et incidents N2 atelier",
+    "parent_id": "98329",
+    "file": "SI/support-informatique/atelier/proc-atl-003-sav-et-incidents-n2-atelier.md"
+  },
+  "98395": {
+    "title": "PROC-ATL-005 — Organisation physique de l'atelier et KPI",
+    "parent_id": "98329",
+    "file": "SI/support-informatique/atelier/proc-atl-005-organisation-physique-de-latelier-et-kpi.md"
+  },
+  "98415": {
+    "title": "PROC-TER-003 — Dépannage N1 sur site",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-003-depannage-n1-sur-site.md"
+  },
+  "98432": {
+    "title": "PROC-TER-005 — Interventions dans les îles éloignées",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-005-interventions-dans-les-iles-eloignees.md"
+  },
+  "98455": {
+    "title": "PROC-INT-003 — Packaging et déploiement d'application",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-003-packaging-et-deploiement-dapplication.md"
+  },
+  "98475": {
+    "title": "PROC-INT-006 — SecOps — Remontée et traitement des alertes",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-006-secops-remontee-et-traitement-des-alertes.md"
+  },
+  "98495": {
+    "title": "PROC-ID-002 — Modification de compte utilisateur",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-002-modification-de-compte-utilisateur.md"
+  },
+  "98516": {
+    "title": "PROC-ID-005 — Création et gestion des BALP",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-005-creation-et-gestion-des-balp.md"
+  },
+  "98533": {
+    "title": "PROC-ID-006 — Gestion des ressources Exchange (salles, équipements)",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-006-gestion-des-ressources-exchange-salles-equipements.md"
+  },
+  "98550": {
+    "title": "PROC-ID-007 — Attribution et suivi des licences M365",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-007-attribution-et-suivi-des-licences-m365.md"
+  },
+  "98567": {
+    "title": "👁️ Vues par rôle",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/vues-par-role/vues-par-role.md"
+  },
+  "98585": {
+    "title": "Vue : Agent de proximité terrain",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-agent-de-proximite-terrain.md"
+  },
+  "98602": {
+    "title": "Vue : Gestionnaire de comptes",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-gestionnaire-de-comptes.md"
+  },
+  "98624": {
+    "title": "🎯 Matrice RACI — Responsabilités par procédure",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/matrice-raci-responsabilites-par-procedure.md"
+  },
+  "131189": {
+    "title": "PROC-STOCK-006 — Réforme et destruction de données",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-006-reforme-et-destruction-de-donnees.md"
+  },
+  "131206": {
+    "title": "PROC-STOCK-007 — Marchés publics et achats informatiques",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-007-marches-publics-et-achats-informatiques.md"
+  },
+  "131226": {
+    "title": "PROC-ATL-002 — Préparation poste via Intune/Autopilot",
+    "parent_id": "98329",
+    "file": "SI/support-informatique/atelier/proc-atl-002-preparation-poste-via-intuneautopilot.md"
+  },
+  "131248": {
+    "title": "PROC-TER-002 — Dotation sur site",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-002-dotation-sur-site.md"
+  },
+  "131270": {
+    "title": "PROC-TER-004 — Téléassistance et escalade atelier",
+    "parent_id": "229575",
+    "file": "SI/support-informatique/agents-de-proximite-terrain/proc-ter-004-teleassistance-et-escalade-atelier.md"
+  },
+  "131289": {
+    "title": "PROC-INT-001 — Enrôlement Autopilot Windows 11",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-001-enrolement-autopilot-windows-11.md"
+  },
+  "131309": {
+    "title": "PROC-INT-005 — Retrait et désinscription appareil Intune",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-005-retrait-et-desinscription-appareil-intune.md"
+  },
+  "131333": {
+    "title": "PROC-ID-001 — Création de compte utilisateur",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-001-creation-de-compte-utilisateur.md"
+  },
+  "131350": {
+    "title": "PROC-ID-003 — Désactivation et suppression de compte",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-003-desactivation-et-suppression-de-compte.md"
+  },
+  "131367": {
+    "title": "PROC-ID-004 — Déblocage et réinitialisation MFA",
+    "parent_id": "65942",
+    "file": "SI/support-informatique/entraid-exchange/proc-id-004-deblocage-et-reinitialisation-mfa.md"
+  },
+  "131390": {
+    "title": "Vue : Gestionnaire de stock",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-gestionnaire-de-stock.md"
+  },
+  "131407": {
+    "title": "🎓 Onboarding — Parcours nouvel agent CPA",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/onboarding-parcours-nouvel-agent-cpa.md"
+  },
+  "229575": {
+    "title": "🚗 Agents de proximité terrain",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/agents-de-proximite-terrain.md"
+  },
+  "229602": {
+    "title": "PROC-STOCK-003 — Inventaire périodique",
+    "parent_id": "98313",
+    "file": "SI/support-informatique/gestion-du-stock/proc-stock-003-inventaire-periodique.md"
+  },
+  "229626": {
+    "title": "PROC-INT-002 — Enrôlement Android Enterprise",
+    "parent_id": "98345",
+    "file": "SI/support-informatique/console-intune/proc-int-002-enrolement-android-enterprise.md"
+  },
+  "229647": {
+    "title": "Vue : Agent atelier",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-agent-atelier.md"
+  },
+  "229666": {
+    "title": "Vue : Agent téléassistance",
+    "parent_id": "98567",
+    "file": "SI/support-informatique/vues-par-role/vue-agent-teleassistance.md"
+  },
+  "1703937": {
+    "title": "🎯 Corpus cible CPA — après migration Intune et externalisation",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation.md"
+  },
+  "1703958": {
+    "title": "📦 Gestion du stock — cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/gestion-du-stock-cible.md"
+  },
+  "1703978": {
+    "title": "PROC-STOCK-C01 — Réception et injection du matériel",
+    "parent_id": "1703958",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/gestion-du-stock-cible/proc-stock-c01-reception-et-injection-du-materiel.md"
+  },
+  "1703998": {
+    "title": "PROC-STOCK-C02 — Dotation de matériel",
+    "parent_id": "1703958",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/gestion-du-stock-cible/proc-stock-c02-dotation-de-materiel.md"
+  },
+  "1704018": {
+    "title": "PROC-STOCK-C04 — Réforme et destruction des données",
+    "parent_id": "1703958",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/gestion-du-stock-cible/proc-stock-c04-reforme-et-destruction-des-donnees.md"
+  },
+  "1704038": {
+    "title": "PROC-TER-C02 — Dotation sur site",
+    "parent_id": "1769473",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/agents-de-proximite-terrain-cible/proc-ter-c02-dotation-sur-site.md"
+  },
+  "1704058": {
+    "title": "PROC-INT-C05 — Retrait et désinscription d'un appareil",
+    "parent_id": "1802241",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible/proc-int-c05-retrait-et-desinscription-dun-appareil.md"
+  },
+  "1704078": {
+    "title": "PROC-ID-C01 — Vérification et suivi des comptes provisionnés",
+    "parent_id": "1736726",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible/proc-id-c01-verification-et-suivi-des-comptes-provisionnes.md"
+  },
+  "1704098": {
+    "title": "PROC-ID-C02 — Création d'un compte hors SIRH",
+    "parent_id": "1736726",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible/proc-id-c02-creation-dun-compte-hors-sirh.md"
+  },
+  "1704118": {
+    "title": "PROC-ID-C03 — Gestion des boîtes aux lettres partagées et ressources Exchange",
+    "parent_id": "1736726",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible/proc-id-c03-gestion-des-boites-aux-lettres-partagees-et-ressources-exchange.md"
+  },
+  "1704138": {
+    "title": "PROC-STOCK-H01 — Réception et enregistrement du matériel",
+    "parent_id": "1736806",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/gestion-du-stock-hybride/proc-stock-h01-reception-et-enregistrement-du-materiel.md"
+  },
+  "1704158": {
+    "title": "PROC-ATL-H01 — Préparation ou contrôle d'un poste avant dotation",
+    "parent_id": "1736826",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/atelier-hybride/proc-atl-h01-preparation-ou-controle-dun-poste-avant-dotation.md"
+  },
+  "1704178": {
+    "title": "PROC-ID-H01 — Cycle de vie d'un compte d'agent",
+    "parent_id": "1802396",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/entraid-exchange-hybride/proc-id-h01-cycle-de-vie-dun-compte-dagent.md"
+  },
+  "1736705": {
+    "title": "🔧 Atelier — cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/atelier-cible.md"
+  },
+  "1736726": {
+    "title": "👤 EntraID / Exchange — cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible.md"
+  },
+  "1736746": {
+    "title": "PROC-ATL-C02 — Contrôle de conformité du matériel à réception",
+    "parent_id": "1736705",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/atelier-cible/proc-atl-c02-controle-de-conformite-du-materiel-a-reception.md"
+  },
+  "1736766": {
+    "title": "PROC-INT-C02 — Enrôlement et gestion des tablettes Android Enterprise",
+    "parent_id": "1802241",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible/proc-int-c02-enrolement-et-gestion-des-tablettes-android-enterprise.md"
+  },
+  "1736786": {
+    "title": "PROC-ID-C04 — Déblocage et réinitialisation MFA",
+    "parent_id": "1736726",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible/proc-id-c04-deblocage-et-reinitialisation-mfa.md"
+  },
+  "1736806": {
+    "title": "📦 Gestion du stock — hybride",
+    "parent_id": "1802375",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/gestion-du-stock-hybride.md"
+  },
+  "1736826": {
+    "title": "🔧 Atelier — hybride",
+    "parent_id": "1802375",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/atelier-hybride.md"
+  },
+  "1736847": {
+    "title": "🚗 Agents de proximité terrain — hybride",
+    "parent_id": "1802375",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/agents-de-proximite-terrain-hybride.md"
+  },
+  "1736867": {
+    "title": "🖥️ Console Intune — hybride",
+    "parent_id": "1802375",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/console-intune-hybride.md"
+  },
+  "1736887": {
+    "title": "PROC-STOCK-H02 — Dotation de matériel",
+    "parent_id": "1736806",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/gestion-du-stock-hybride/proc-stock-h02-dotation-de-materiel.md"
+  },
+  "1736907": {
+    "title": "PROC-STOCK-H04 — Réforme et destruction des données",
+    "parent_id": "1736806",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/gestion-du-stock-hybride/proc-stock-h04-reforme-et-destruction-des-donnees.md"
+  },
+  "1736927": {
+    "title": "PROC-ATL-H02 — SAV et incidents de niveau 2",
+    "parent_id": "1736826",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/atelier-hybride/proc-atl-h02-sav-et-incidents-de-niveau-2.md"
+  },
+  "1736947": {
+    "title": "PROC-ATL-H03 — Maintenance de l'image MDT",
+    "parent_id": "1736826",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/atelier-hybride/proc-atl-h03-maintenance-de-limage-mdt.md"
+  },
+  "1736967": {
+    "title": "PROC-TER-H03 — Dépannage de niveau 1 sur site",
+    "parent_id": "1736847",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/agents-de-proximite-terrain-hybride/proc-ter-h03-depannage-de-niveau-1-sur-site.md"
+  },
+  "1736987": {
+    "title": "PROC-TER-H04 — Télé-assistance et interventions aux îles",
+    "parent_id": "1736847",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/agents-de-proximite-terrain-hybride/proc-ter-h04-tele-assistance-et-interventions-aux-iles.md"
+  },
+  "1737007": {
+    "title": "PROC-INT-H01 — Enrôlement et attribution d'un appareil",
+    "parent_id": "1736867",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/console-intune-hybride/proc-int-h01-enrolement-et-attribution-dun-appareil.md"
+  },
+  "1737027": {
+    "title": "PROC-ID-H03 — Déblocage MFA et gestion des licences",
+    "parent_id": "1802396",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/entraid-exchange-hybride/proc-id-h03-deblocage-mfa-et-gestion-des-licences.md"
+  },
+  "1769473": {
+    "title": "🚗 Agents de proximité terrain — cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/agents-de-proximite-terrain-cible.md"
+  },
+  "1769493": {
+    "title": "PROC-STOCK-C03 — Retour de matériel",
+    "parent_id": "1703958",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/gestion-du-stock-cible/proc-stock-c03-retour-de-materiel.md"
+  },
+  "1769513": {
+    "title": "PROC-TER-C01 — Planification et priorisation des interventions",
+    "parent_id": "1769473",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/agents-de-proximite-terrain-cible/proc-ter-c01-planification-et-priorisation-des-interventions.md"
+  },
+  "1769533": {
+    "title": "PROC-INT-C01 — Attribution d'un appareil enrôlé",
+    "parent_id": "1802241",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible/proc-int-c01-attribution-dun-appareil-enrole.md"
+  },
+  "1769553": {
+    "title": "PROC-INT-C03 — Packaging et déploiement d'une application",
+    "parent_id": "1802241",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible/proc-int-c03-packaging-et-deploiement-dune-application.md"
+  },
+  "1769573": {
+    "title": "PROC-ID-C05 — Attribution et suivi des licences M365",
+    "parent_id": "1736726",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/entraid-exchange-cible/proc-id-c05-attribution-et-suivi-des-licences-m365.md"
+  },
+  "1769593": {
+    "title": "🎯 Matrice RACI cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/matrice-raci-cible.md"
+  },
+  "1769613": {
+    "title": "PROC-INT-H03 — Retrait et désinscription d'un appareil",
+    "parent_id": "1736867",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/console-intune-hybride/proc-int-h03-retrait-et-desinscription-dun-appareil.md"
+  },
+  "1802241": {
+    "title": "🖥️ Console Intune — cible",
+    "parent_id": "1703937",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible.md"
+  },
+  "1802261": {
+    "title": "PROC-ATL-C01 — SAV et incidents de niveau 2",
+    "parent_id": "1736705",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/atelier-cible/proc-atl-c01-sav-et-incidents-de-niveau-2.md"
+  },
+  "1802281": {
+    "title": "PROC-TER-C03 — Dépannage de niveau 1 sur site",
+    "parent_id": "1769473",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/agents-de-proximite-terrain-cible/proc-ter-c03-depannage-de-niveau-1-sur-site.md"
+  },
+  "1802301": {
+    "title": "PROC-TER-C04 — Télé-assistance et interventions aux îles",
+    "parent_id": "1769473",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/agents-de-proximite-terrain-cible/proc-ter-c04-tele-assistance-et-interventions-aux-iles.md"
+  },
+  "1802321": {
+    "title": "PROC-INT-C04 — Gestion des profils et groupes dynamiques",
+    "parent_id": "1802241",
+    "file": "SI/support-informatique/corpus-cible-cpa-apres-migration-intune-et-externalisation/console-intune-cible/proc-int-c04-gestion-des-profils-et-groupes-dynamiques.md"
+  },
+  "1802341": {
+    "title": "🔄 Correspondance des trois corpus",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/correspondance-des-trois-corpus.md"
+  },
+  "1802375": {
+    "title": "⚙️ Procédures hybrides CPA — pendant la migration",
+    "parent_id": "65813",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration.md"
+  },
+  "1802396": {
+    "title": "👤 EntraID / Exchange — hybride",
+    "parent_id": "1802375",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/entraid-exchange-hybride.md"
+  },
+  "1802416": {
+    "title": "PROC-STOCK-H03 — Retour de matériel",
+    "parent_id": "1736806",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/gestion-du-stock-hybride/proc-stock-h03-retour-de-materiel.md"
+  },
+  "1802437": {
+    "title": "PROC-TER-H01 — Planification et priorisation des interventions",
+    "parent_id": "1736847",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/agents-de-proximite-terrain-hybride/proc-ter-h01-planification-et-priorisation-des-interventions.md"
+  },
+  "1802458": {
+    "title": "PROC-TER-H02 — Dotation sur site",
+    "parent_id": "1736847",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/agents-de-proximite-terrain-hybride/proc-ter-h02-dotation-sur-site.md"
+  },
+  "1802478": {
+    "title": "PROC-INT-H02 — Packaging et déploiement d'une application",
+    "parent_id": "1736867",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/console-intune-hybride/proc-int-h02-packaging-et-deploiement-dune-application.md"
+  },
+  "1802499": {
+    "title": "PROC-ID-H02 — Comptes hors SIRH, boîtes partagées et ressources",
+    "parent_id": "1802396",
+    "file": "SI/support-informatique/procedures-hybrides-cpa-pendant-la-migration/entraid-exchange-hybride/proc-id-h02-comptes-hors-sirh-boites-partagees-et-ressources.md"
+  }
+}
